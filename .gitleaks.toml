@@ -1,0 +1,5 @@
+[allowlist]
+  paths = [
+    '''gen/''',
+    '''\.git/''',
+  ]

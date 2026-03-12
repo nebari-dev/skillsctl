@@ -1,0 +1,23 @@
+# Binaries
+skillctl
+skillctl-server
+*.exe
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+coverage.out
+*.test
+
+# Build
+dist/
+
+# Config (local)
+CLAUDE.md

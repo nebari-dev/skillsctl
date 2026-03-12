@@ -1,0 +1,36 @@
+version: "2"
+formatters:
+  enable:
+    - goimports
+linters:
+  enable:
+    - errcheck
+    - staticcheck
+    - govet
+    - revive
+    - gosec
+    - misspell
+    - unconvert
+  settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Fprint
+    gosec:
+      excludes:
+        - G104
+        - G114
+    revive:
+      rules:
+        - name: package-comments
+          disabled: true
+        - name: exported
+          disabled: true
+exclusions:
+  paths:
+    - gen/
+  rules:
+    - path: "_test\\.go"
+      linters:
+        - gosec
