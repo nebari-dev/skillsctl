@@ -1,6 +1,6 @@
 # Binaries
-skillctl
-skillctl-server
+/skillctl
+/skillctl-server
 *.exe
 
 # IDE
