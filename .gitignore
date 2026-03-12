@@ -21,3 +21,11 @@ dist/
 
 # Config (local)
 CLAUDE.md
+
+# Worktrees
+.worktrees/
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm
