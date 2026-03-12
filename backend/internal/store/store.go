@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	skillctlv1 "github.com/openteams-ai/skill-share/gen/go/skillctl/v1"
+	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 )
 
 // ErrNotFound is returned when a requested skill does not exist.

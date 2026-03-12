@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/openteams-ai/skill-share/backend/internal/server"
-	"github.com/openteams-ai/skill-share/backend/internal/store"
+	"github.com/nebari-dev/skillctl/backend/internal/server"
+	"github.com/nebari-dev/skillctl/backend/internal/store"
 )
 
 func TestHealthz(t *testing.T) {

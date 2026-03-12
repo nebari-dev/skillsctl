@@ -1,6 +1,6 @@
 package main
 
-import "github.com/openteams-ai/skill-share/cli/cmd"
+import "github.com/nebari-dev/skillctl/cli/cmd"
 
 func main() {
 	cmd.Execute()

@@ -3,7 +3,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/openteams-ai/skill-share/gen/go
+      value: github.com/nebari-dev/skillctl/gen/go
 plugins:
   - remote: buf.build/protocolbuffers/go
     out: ../gen/go

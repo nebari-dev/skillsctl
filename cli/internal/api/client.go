@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect"
-	skillctlv1 "github.com/openteams-ai/skill-share/gen/go/skillctl/v1"
-	"github.com/openteams-ai/skill-share/gen/go/skillctl/v1/skillctlv1connect"
+	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
 )
 
 type Client struct {

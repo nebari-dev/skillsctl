@@ -1,4 +1,4 @@
-module github.com/openteams-ai/skill-share
+module github.com/nebari-dev/skillctl
 
 go 1.25.7
 

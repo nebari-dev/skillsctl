@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	skillctlv1 "github.com/openteams-ai/skill-share/gen/go/skillctl/v1"
+	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 
-	"github.com/openteams-ai/skill-share/backend/internal/store"
+	"github.com/nebari-dev/skillctl/backend/internal/store"
 )
 
 func testSkills() []*skillctlv1.Skill {

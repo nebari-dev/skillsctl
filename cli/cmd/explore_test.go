@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/openteams-ai/skill-share/cli/cmd"
-	"github.com/openteams-ai/skill-share/cli/internal/testutil"
+	"github.com/nebari-dev/skillctl/cli/cmd"
+	"github.com/nebari-dev/skillctl/cli/internal/testutil"
 )
 
 func TestExploreCommand(t *testing.T) {

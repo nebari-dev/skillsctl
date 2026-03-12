@@ -3,9 +3,9 @@ package server
 import (
 	"net/http"
 
-	"github.com/openteams-ai/skill-share/backend/internal/registry"
-	"github.com/openteams-ai/skill-share/backend/internal/store"
-	"github.com/openteams-ai/skill-share/gen/go/skillctl/v1/skillctlv1connect"
+	"github.com/nebari-dev/skillctl/backend/internal/registry"
+	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
 )
 
 // Server is the main HTTP server that mounts the health check and ConnectRPC handlers.

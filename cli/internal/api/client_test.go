@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	skillctlv1 "github.com/openteams-ai/skill-share/gen/go/skillctl/v1"
+	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 
-	"github.com/openteams-ai/skill-share/cli/internal/api"
-	"github.com/openteams-ai/skill-share/cli/internal/testutil"
+	"github.com/nebari-dev/skillctl/cli/internal/api"
+	"github.com/nebari-dev/skillctl/cli/internal/testutil"
 )
 
 func TestClient_ListSkills(t *testing.T) {

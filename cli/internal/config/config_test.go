@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/openteams-ai/skill-share/cli/internal/config"
+	"github.com/nebari-dev/skillctl/cli/internal/config"
 )
 
 func TestDefaults(t *testing.T) {

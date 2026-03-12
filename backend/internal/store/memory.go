@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	skillctlv1 "github.com/openteams-ai/skill-share/gen/go/skillctl/v1"
+	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 )
 
 // Memory is an in-memory SkillStore for local development and testing.
