@@ -7,12 +7,12 @@ import (
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 )
 
-// Memory is an in-memory SkillStore for local development and testing.
+// Memory is an in-memory Repository for local development and testing.
 type Memory struct {
 	skills []*skillctlv1.Skill
 }
 
-var _ SkillStore = (*Memory)(nil)
+var _ Repository = (*Memory)(nil)
 
 // NewMemory creates an in-memory store pre-populated with the given skills.
 func NewMemory(skills []*skillctlv1.Skill) *Memory {
@@ -22,7 +22,11 @@ func NewMemory(skills []*skillctlv1.Skill) *Memory {
 	return &Memory{skills: skills}
 }
 
-func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skillctlv1.SkillSource, _ int32, _ string) ([]*skillctlv1.Skill, string, error) {
+func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skillctlv1.SkillSource, _ int32, pageToken string) ([]*skillctlv1.Skill, string, error) {
+	if pageToken != "" {
+		return nil, "", ErrPaginationNotSupported
+	}
+
 	var result []*skillctlv1.Skill
 	for _, s := range m.skills {
 		if sourceFilter != skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED && s.Source != sourceFilter {

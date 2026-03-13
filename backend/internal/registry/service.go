@@ -13,13 +13,13 @@ import (
 
 // Service implements the RegistryService ConnectRPC handler.
 type Service struct {
-	store store.SkillStore
+	store store.Repository
 }
 
 var _ skillctlv1connect.RegistryServiceHandler = (*Service)(nil)
 
 // NewService creates a RegistryService backed by the given store.
-func NewService(s store.SkillStore) *Service {
+func NewService(s store.Repository) *Service {
 	return &Service{store: s}
 }
 

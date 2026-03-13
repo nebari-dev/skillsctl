@@ -14,7 +14,7 @@ type Server struct {
 }
 
 // New creates a Server wired to the given skill store.
-func New(skillStore store.SkillStore) *Server {
+func New(skillStore store.Repository) *Server {
 	s := &Server{
 		mux: http.NewServeMux(),
 	}
