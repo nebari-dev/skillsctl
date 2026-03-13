@@ -42,6 +42,9 @@ func (v *Validator) Validate(ctx context.Context, rawToken string) (*Claims, err
 		return nil, fmt.Errorf("verify token: %w", err)
 	}
 
+	// Claims() unmarshals the already-verified JWT payload into a map.
+	// This can only fail if the OIDC library has an internal JSON bug
+	// after successful verification - effectively unreachable in practice.
 	var raw map[string]any
 	if err := idToken.Claims(&raw); err != nil {
 		return nil, fmt.Errorf("extract claims: %w", err)

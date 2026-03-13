@@ -8,6 +8,10 @@ import (
 	"github.com/nebari-dev/skillctl/backend/internal/auth"
 )
 
+// TestAllowlistMiddleware verifies the middleware passes all requests through.
+// All cases assert the same outcome because the middleware is currently a
+// pass-through placeholder. When HTTP-level auth is added, these tests should
+// be updated to assert differential behavior for allowlisted vs. non-allowlisted paths.
 func TestAllowlistMiddleware(t *testing.T) {
 	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)

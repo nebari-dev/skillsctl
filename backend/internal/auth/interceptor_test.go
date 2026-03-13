@@ -142,7 +142,7 @@ func TestInterceptor_ClaimsInContext(t *testing.T) {
 	)
 	mux.Handle(path, handler)
 	ts := httptest.NewServer(mux)
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
 	req := connect.NewRequest(&skillctlv1.ListSkillsRequest{})

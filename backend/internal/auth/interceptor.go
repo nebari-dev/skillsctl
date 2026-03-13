@@ -18,15 +18,10 @@ func NewInterceptor(v TokenValidator) connect.UnaryInterceptorFunc {
 				return next(ctx, req)
 			}
 
-			authHeader := req.Header().Get("Authorization")
-			if !strings.HasPrefix(authHeader, "Bearer ") {
-				return nil, connect.NewError(connect.CodeUnauthenticated, nil)
-			}
-
-			// HasPrefix requires "Bearer " (7 chars) but the token after
-			// trimming may still be empty, e.g. "Bearer " with no value.
-			token := strings.TrimPrefix(authHeader, "Bearer ")
-			if token == "" {
+			// CutPrefix handles both missing prefix and empty token in one check:
+			// "Bearer xyz" -> ("xyz", true), "Bearer " -> ("", true), "Basic x" -> ("", false)
+			token, ok := strings.CutPrefix(req.Header().Get("Authorization"), "Bearer ")
+			if !ok || token == "" {
 				return nil, connect.NewError(connect.CodeUnauthenticated, nil)
 			}
 
