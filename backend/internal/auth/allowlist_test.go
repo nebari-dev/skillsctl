@@ -15,7 +15,7 @@ import (
 func TestAllowlistMiddleware(t *testing.T) {
 	inner := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("reached"))
+		_, _ = w.Write([]byte("reached"))
 	})
 
 	mw := auth.NewAllowlistMiddleware([]string{"/healthz"}, inner)

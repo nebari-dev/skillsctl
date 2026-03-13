@@ -258,4 +258,10 @@ func TestIsAdmin(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("nil claims", func(t *testing.T) {
+		if auth.IsAdmin("skillctl-admins", nil) {
+			t.Error("expected false for nil claims")
+		}
+	})
 }

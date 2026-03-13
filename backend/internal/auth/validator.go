@@ -74,6 +74,9 @@ func (v *Validator) Validate(ctx context.Context, rawToken string) (*Claims, err
 // IsAdmin checks whether the claims include the given admin group.
 // This is a pure function with no dependency on the OIDC provider.
 func IsAdmin(adminGroup string, claims *Claims) bool {
+	if claims == nil {
+		return false
+	}
 	for _, g := range claims.Groups {
 		if g == adminGroup {
 			return true
