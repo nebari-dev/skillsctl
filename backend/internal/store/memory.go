@@ -7,12 +7,12 @@ import (
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 )
 
-// Memory is an in-memory SkillStore for local development and testing.
+// Memory is an in-memory Repository for local development and testing.
 type Memory struct {
 	skills []*skillctlv1.Skill
 }
 
-var _ SkillStore = (*Memory)(nil)
+var _ Repository = (*Memory)(nil)
 
 // NewMemory creates an in-memory store pre-populated with the given skills.
 func NewMemory(skills []*skillctlv1.Skill) *Memory {

@@ -1,8 +1,9 @@
-package store_test
+package sqlite_test
 
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -11,24 +12,23 @@ import (
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 
 	"github.com/nebari-dev/skillctl/backend/internal/store"
-	"github.com/nebari-dev/skillctl/backend/internal/store/migrations"
+	sqlitestore "github.com/nebari-dev/skillctl/backend/internal/store/sqlite"
+	"github.com/nebari-dev/skillctl/backend/internal/store/sqlite/migrations"
 )
 
-// openTestDB creates an in-memory SQLite database with pragmas and migrations applied.
 func openTestDB(t *testing.T) *sql.DB {
 	t.Helper()
-	db, err := store.OpenSQLite(":memory:")
+	db, err := sqlitestore.Open(":memory:")
 	if err != nil {
 		t.Fatalf("open db: %v", err)
 	}
 	t.Cleanup(func() { db.Close() })
-	if err := migrations.Run(db); err != nil {
+	if err := migrations.Run(context.Background(), db); err != nil {
 		t.Fatalf("run migrations: %v", err)
 	}
 	return db
 }
 
-// seedSkills inserts test skills into the database.
 func seedSkills(t *testing.T, db *sql.DB) {
 	t.Helper()
 	skills := []struct {
@@ -50,39 +50,51 @@ func seedSkills(t *testing.T, db *sql.DB) {
 	}
 }
 
-func TestSQLiteStore_ListSkills(t *testing.T) {
+func TestRepository_ListSkills(t *testing.T) {
 	tests := []struct {
 		name         string
+		seed         bool
 		tags         []string
 		sourceFilter skillctlv1.SkillSource
 		wantCount    int
 	}{
 		{
+			name:      "empty database",
+			seed:      false,
+			wantCount: 0,
+		},
+		{
 			name:      "list all skills",
+			seed:      true,
 			wantCount: 2,
 		},
 		{
 			name:      "filter by matching tag",
+			seed:      true,
 			tags:      []string{"go"},
 			wantCount: 1,
 		},
 		{
 			name:      "filter by non-matching tag",
+			seed:      true,
 			tags:      []string{"nonexistent"},
 			wantCount: 0,
 		},
 		{
 			name:         "filter by source internal",
+			seed:         true,
 			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 			wantCount:    2,
 		},
 		{
 			name:         "filter by source federated returns none",
+			seed:         true,
 			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_FEDERATED,
 			wantCount:    0,
 		},
 		{
 			name:      "filter by multiple tags matches if any match",
+			seed:      true,
 			tags:      []string{"go", "nonexistent"},
 			wantCount: 1,
 		},
@@ -91,9 +103,11 @@ func TestSQLiteStore_ListSkills(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			db := openTestDB(t)
-			seedSkills(t, db)
-			s := store.NewSQLite(db)
-			skills, _, err := s.ListSkills(context.Background(), tt.tags, tt.sourceFilter, 20, "")
+			if tt.seed {
+				seedSkills(t, db)
+			}
+			repo := sqlitestore.New(db)
+			skills, _, err := repo.ListSkills(context.Background(), tt.tags, tt.sourceFilter, 20, "")
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
@@ -104,23 +118,20 @@ func TestSQLiteStore_ListSkills(t *testing.T) {
 	}
 }
 
-func TestSQLiteStore_ListSkills_Empty(t *testing.T) {
+func TestRepository_ListSkills_RejectsPageToken(t *testing.T) {
 	db := openTestDB(t)
-	s := store.NewSQLite(db)
-	skills, _, err := s.ListSkills(context.Background(), nil, skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if len(skills) != 0 {
-		t.Errorf("expected 0 skills, got %d", len(skills))
+	repo := sqlitestore.New(db)
+	_, _, err := repo.ListSkills(context.Background(), nil, skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "some-token")
+	if !errors.Is(err, store.ErrPaginationNotSupported) {
+		t.Errorf("expected ErrPaginationNotSupported, got %v", err)
 	}
 }
 
-func TestSQLiteStore_GetSkill(t *testing.T) {
+func TestRepository_GetSkill(t *testing.T) {
 	tests := []struct {
 		name      string
 		skillName string
-		wantErr   bool
+		wantErr   error
 	}{
 		{
 			name:      "existing skill",
@@ -129,7 +140,7 @@ func TestSQLiteStore_GetSkill(t *testing.T) {
 		{
 			name:      "nonexistent skill",
 			skillName: "does-not-exist",
-			wantErr:   true,
+			wantErr:   store.ErrNotFound,
 		},
 	}
 
@@ -137,11 +148,11 @@ func TestSQLiteStore_GetSkill(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			db := openTestDB(t)
 			seedSkills(t, db)
-			s := store.NewSQLite(db)
-			skill, _, err := s.GetSkill(context.Background(), tt.skillName)
-			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
+			repo := sqlitestore.New(db)
+			skill, _, err := repo.GetSkill(context.Background(), tt.skillName)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("expected error %v, got %v", tt.wantErr, err)
 				}
 				return
 			}
@@ -155,12 +166,12 @@ func TestSQLiteStore_GetSkill(t *testing.T) {
 	}
 }
 
-func TestSQLiteStore_GetSkill_TagsRoundTrip(t *testing.T) {
+func TestRepository_GetSkill_TagsRoundTrip(t *testing.T) {
 	db := openTestDB(t)
 	seedSkills(t, db)
-	s := store.NewSQLite(db)
+	repo := sqlitestore.New(db)
 
-	skill, _, err := s.GetSkill(context.Background(), "data-pipeline")
+	skill, _, err := repo.GetSkill(context.Background(), "data-pipeline")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -170,7 +181,7 @@ func TestSQLiteStore_GetSkill_TagsRoundTrip(t *testing.T) {
 	}
 }
 
-func TestSQLiteStore_GetSkill_WithVersions(t *testing.T) {
+func TestRepository_GetSkill_WithVersions(t *testing.T) {
 	db := openTestDB(t)
 	seedSkills(t, db)
 	_, err := db.Exec(
@@ -181,8 +192,8 @@ func TestSQLiteStore_GetSkill_WithVersions(t *testing.T) {
 		t.Fatalf("insert version: %v", err)
 	}
 
-	s := store.NewSQLite(db)
-	skill, versions, err := s.GetSkill(context.Background(), "data-pipeline")
+	repo := sqlitestore.New(db)
+	skill, versions, err := repo.GetSkill(context.Background(), "data-pipeline")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

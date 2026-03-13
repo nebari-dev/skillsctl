@@ -1,44 +1,72 @@
-package store
+// Package sqlite provides a SQLite-backed implementation of store.Repository.
+//
+// Callers must register the SQLite driver before using this package by
+// importing the driver for side effects:
+//
+//	import _ "modernc.org/sqlite"
+package sqlite
 
 import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/nebari-dev/skillctl/backend/internal/store"
 )
 
-// SQLite is a SQLite-backed SkillStore for production use.
-type SQLite struct {
+// Repository is a SQLite-backed store.Repository implementation.
+type Repository struct {
 	db *sql.DB
 }
 
-var _ SkillStore = (*SQLite)(nil)
+var _ store.Repository = (*Repository)(nil)
 
-// NewSQLite creates a SQLite-backed store using the given database connection.
+// New creates a SQLite-backed repository using the given database connection.
 // The caller is responsible for running migrations before calling this.
-func NewSQLite(db *sql.DB) *SQLite {
-	return &SQLite{db: db}
+func New(db *sql.DB) *Repository {
+	return &Repository{db: db}
 }
 
-// OpenSQLite opens a SQLite database at the given path with WAL mode and
-// recommended pragmas. Sets MaxOpenConns=1 since SQLite is single-writer,
-// and configures pragmas via DSN so they apply to every connection.
-func OpenSQLite(path string) (*sql.DB, error) {
-	dsn := fmt.Sprintf("%s?_pragma=journal_mode%%3DWAL&_pragma=busy_timeout%%3D5000&_pragma=foreign_keys%%3DON&_pragma=synchronous%%3DNORMAL", path)
+// Open opens a SQLite database at the given path with WAL mode and recommended
+// pragmas. Sets MaxOpenConns=1 since SQLite is single-writer. Pings the
+// database to verify the connection is usable.
+//
+// Callers must register the SQLite driver before calling Open:
+//
+//	import _ "modernc.org/sqlite"
+func Open(path string) (*sql.DB, error) {
+	dsn := path + "?" + strings.Join([]string{
+		"_pragma=journal_mode=WAL",
+		"_pragma=busy_timeout=5000",
+		"_pragma=foreign_keys=ON",
+		"_pragma=synchronous=NORMAL",
+	}, "&")
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite %s: %w", path, err)
 	}
 	db.SetMaxOpenConns(1)
+
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("ping sqlite %s: %w", path, err)
+	}
+
 	return db, nil
 }
 
-func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter skillctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillctlv1.Skill, string, error) {
+func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter skillctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillctlv1.Skill, string, error) {
+	if pageToken != "" {
+		return nil, "", store.ErrPaginationNotSupported
+	}
+
 	query := `SELECT name, description, owner, tags, latest_version, install_count, created_at, updated_at, source, marketplace_id, upstream_url FROM skills`
 	var conditions []string
 	var args []any
@@ -72,7 +100,7 @@ func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter ski
 		query += fmt.Sprintf(" LIMIT %d", pageSize)
 	}
 
-	rows, err := s.db.QueryContext(ctx, query, args...)
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, "", fmt.Errorf("list skills: %w", err)
 	}
@@ -80,7 +108,7 @@ func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter ski
 
 	var skills []*skillctlv1.Skill
 	for rows.Next() {
-		skill, err := scanSkill(rows)
+		skill, err := scanSkillFields(rows)
 		if err != nil {
 			return nil, "", err
 		}
@@ -92,20 +120,20 @@ func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter ski
 	return skills, "", nil
 }
 
-func (s *SQLite) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error) {
-	row := s.db.QueryRowContext(ctx,
+func (r *Repository) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error) {
+	row := r.db.QueryRowContext(ctx,
 		`SELECT name, description, owner, tags, latest_version, install_count, created_at, updated_at, source, marketplace_id, upstream_url FROM skills WHERE name = ?`,
 		name,
 	)
-	skill, err := scanSkillRow(row)
+	skill, err := scanSkillFields(row)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil, fmt.Errorf("%w: %s", ErrNotFound, name)
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil, fmt.Errorf("%w: %s", store.ErrNotFound, name)
 		}
 		return nil, nil, fmt.Errorf("get skill %s: %w", name, err)
 	}
 
-	rows, err := s.db.QueryContext(ctx,
+	rows, err := r.db.QueryContext(ctx,
 		`SELECT version, changelog, oci_ref, digest, size_bytes, published_by, published_at, draft FROM skill_versions WHERE skill_name = ? ORDER BY published_at DESC`,
 		name,
 	)
@@ -163,22 +191,22 @@ func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
 		UpstreamUrl:   upstreamURL,
 	}
 
-	if t, err := parseTimestamp(createdAt); err == nil {
+	if createdAt != "" {
+		t, err := parseTimestamp(createdAt)
+		if err != nil {
+			return nil, fmt.Errorf("parse created_at for %s: %w", name, err)
+		}
 		skill.CreatedAt = t
 	}
-	if t, err := parseTimestamp(updatedAt); err == nil {
+	if updatedAt != "" {
+		t, err := parseTimestamp(updatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("parse updated_at for %s: %w", name, err)
+		}
 		skill.UpdatedAt = t
 	}
 
 	return skill, nil
-}
-
-func scanSkill(rows *sql.Rows) (*skillctlv1.Skill, error) {
-	return scanSkillFields(rows)
-}
-
-func scanSkillRow(row *sql.Row) (*skillctlv1.Skill, error) {
-	return scanSkillFields(row)
 }
 
 func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
@@ -202,7 +230,11 @@ func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
 		Draft:       draft != 0,
 	}
 
-	if t, err := parseTimestamp(publishedAt); err == nil {
+	if publishedAt != "" {
+		t, err := parseTimestamp(publishedAt)
+		if err != nil {
+			return nil, fmt.Errorf("parse published_at: %w", err)
+		}
 		v.PublishedAt = t
 	}
 
@@ -210,8 +242,6 @@ func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
 }
 
 func parseTimestamp(s string) (*timestamppb.Timestamp, error) {
-	// SQLite stores timestamps as ISO 8601 strings.
-	// Try parsing with the format used by strftime in the migration.
 	formats := []string{
 		"2006-01-02T15:04:05.000Z",
 		"2006-01-02T15:04:05Z",

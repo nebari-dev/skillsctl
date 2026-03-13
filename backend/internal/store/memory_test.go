@@ -2,6 +2,7 @@ package store_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
@@ -112,8 +113,8 @@ func TestMemoryStore_GetSkill(t *testing.T) {
 			s := store.NewMemory(testSkills())
 			skill, _, err := s.GetSkill(context.Background(), tt.skillName)
 			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
+				if !errors.Is(err, store.ErrNotFound) {
+					t.Errorf("expected ErrNotFound, got %v", err)
 				}
 				return
 			}
