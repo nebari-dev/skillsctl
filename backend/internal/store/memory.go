@@ -22,7 +22,11 @@ func NewMemory(skills []*skillctlv1.Skill) *Memory {
 	return &Memory{skills: skills}
 }
 
-func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skillctlv1.SkillSource, _ int32, _ string) ([]*skillctlv1.Skill, string, error) {
+func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skillctlv1.SkillSource, _ int32, pageToken string) ([]*skillctlv1.Skill, string, error) {
+	if pageToken != "" {
+		return nil, "", ErrPaginationNotSupported
+	}
+
 	var result []*skillctlv1.Skill
 	for _, s := range m.skills {
 		if sourceFilter != skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED && s.Source != sourceFilter {

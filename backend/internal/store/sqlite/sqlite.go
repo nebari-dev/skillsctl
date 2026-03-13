@@ -241,6 +241,9 @@ func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
 	return v, nil
 }
 
+// parseTimestamp tries multiple time formats because the canonical format from
+// SQLite's strftime('%Y-%m-%dT%H:%M:%fZ') includes milliseconds, but data may
+// also be inserted manually or by goose seeds using simpler formats.
 func parseTimestamp(s string) (*timestamppb.Timestamp, error) {
 	formats := []string{
 		"2006-01-02T15:04:05.000Z",
