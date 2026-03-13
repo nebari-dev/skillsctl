@@ -96,9 +96,11 @@ func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter
 
 	query += " ORDER BY updated_at DESC"
 
-	if pageSize > 0 {
-		query += fmt.Sprintf(" LIMIT %d", pageSize)
+	const defaultPageSize = 100
+	if pageSize <= 0 {
+		pageSize = defaultPageSize
 	}
+	query += fmt.Sprintf(" LIMIT %d", pageSize)
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -186,7 +188,7 @@ func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
 		Tags:          tags,
 		LatestVersion: version,
 		InstallCount:  installs,
-		Source:        skillctlv1.SkillSource(source),
+		Source:        validSkillSource(source),
 		MarketplaceId: marketplaceID,
 		UpstreamUrl:   upstreamURL,
 	}
@@ -239,6 +241,15 @@ func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
 	}
 
 	return v, nil
+}
+
+// validSkillSource returns the SkillSource for a known enum value, or
+// SKILL_SOURCE_UNSPECIFIED if the integer doesn't map to a known value.
+func validSkillSource(v int) skillctlv1.SkillSource {
+	if _, ok := skillctlv1.SkillSource_name[int32(v)]; ok {
+		return skillctlv1.SkillSource(v)
+	}
+	return skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
 }
 
 // parseTimestamp tries multiple time formats because the canonical format from
