@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 	"time"
 
@@ -198,7 +199,7 @@ func TestValidator_Validate(t *testing.T) {
 			if claims.Email != tt.wantEmail {
 				t.Errorf("email: got %q, want %q", claims.Email, tt.wantEmail)
 			}
-			if len(claims.Groups) != len(tt.wantGroups) {
+			if !slices.Equal(claims.Groups, tt.wantGroups) {
 				t.Errorf("groups: got %v, want %v", claims.Groups, tt.wantGroups)
 			}
 		})
@@ -232,24 +233,13 @@ func TestValidator_Validate_CustomGroupsClaim(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(claims.Groups) != 2 || claims.Groups[0] != "admin" {
-		t.Errorf("expected groups [admin editor], got %v", claims.Groups)
+	wantGroups := []string{"admin", "editor"}
+	if !slices.Equal(claims.Groups, wantGroups) {
+		t.Errorf("groups: got %v, want %v", claims.Groups, wantGroups)
 	}
 }
 
-func TestValidator_IsAdmin(t *testing.T) {
-	fake := newFakeOIDC(t)
-	cfg := auth.Config{
-		IssuerURL:   fake.server.URL,
-		ClientID:    "test",
-		AdminGroup:  "skillctl-admins",
-		GroupsClaim: "groups",
-	}
-	v, err := auth.NewValidator(context.Background(), cfg)
-	if err != nil {
-		t.Fatalf("new validator: %v", err)
-	}
-
+func TestIsAdmin(t *testing.T) {
 	tests := []struct {
 		name   string
 		groups []string
@@ -263,7 +253,7 @@ func TestValidator_IsAdmin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			claims := &auth.Claims{Groups: tt.groups}
-			if got := v.IsAdmin(claims); got != tt.want {
+			if got := auth.IsAdmin("skillctl-admins", claims); got != tt.want {
 				t.Errorf("IsAdmin: got %v, want %v", got, tt.want)
 			}
 		})

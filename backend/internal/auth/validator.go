@@ -25,9 +25,6 @@ var _ TokenValidator = (*Validator)(nil)
 // NewValidator creates a Validator by fetching the OIDC discovery document
 // from cfg.IssuerURL. Fails fast if the provider is unreachable.
 func NewValidator(ctx context.Context, cfg Config) (*Validator, error) {
-	if cfg.GroupsClaim == "" {
-		cfg.GroupsClaim = "groups"
-	}
 	provider, err := oidc.NewProvider(ctx, cfg.IssuerURL)
 	if err != nil {
 		return nil, fmt.Errorf("oidc discovery %s: %w", cfg.IssuerURL, err)
@@ -71,10 +68,11 @@ func (v *Validator) Validate(ctx context.Context, rawToken string) (*Claims, err
 	return claims, nil
 }
 
-// IsAdmin checks whether the claims include the configured admin group.
-func (v *Validator) IsAdmin(claims *Claims) bool {
+// IsAdmin checks whether the claims include the given admin group.
+// This is a pure function with no dependency on the OIDC provider.
+func IsAdmin(adminGroup string, claims *Claims) bool {
 	for _, g := range claims.Groups {
-		if g == v.cfg.AdminGroup {
+		if g == adminGroup {
 			return true
 		}
 	}

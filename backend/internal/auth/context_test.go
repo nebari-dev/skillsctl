@@ -2,6 +2,7 @@ package auth_test
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"github.com/nebari-dev/skillctl/backend/internal/auth"
@@ -25,7 +26,7 @@ func TestClaimsContext_RoundTrip(t *testing.T) {
 	if got.Email != want.Email {
 		t.Errorf("email: got %q, want %q", got.Email, want.Email)
 	}
-	if len(got.Groups) != len(want.Groups) {
+	if !slices.Equal(got.Groups, want.Groups) {
 		t.Errorf("groups: got %v, want %v", got.Groups, want.Groups)
 	}
 }
@@ -34,5 +35,13 @@ func TestClaimsContext_Missing(t *testing.T) {
 	_, ok := auth.ClaimsFromContext(context.Background())
 	if ok {
 		t.Error("expected no claims in empty context")
+	}
+}
+
+func TestClaimsContext_NilClaims(t *testing.T) {
+	ctx := auth.WithClaims(context.Background(), nil)
+	_, ok := auth.ClaimsFromContext(ctx)
+	if ok {
+		t.Error("expected false for nil claims stored in context")
 	}
 }

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -22,6 +23,8 @@ func NewInterceptor(v TokenValidator) connect.UnaryInterceptorFunc {
 				return nil, connect.NewError(connect.CodeUnauthenticated, nil)
 			}
 
+			// HasPrefix requires "Bearer " (7 chars) but the token after
+			// trimming may still be empty, e.g. "Bearer " with no value.
 			token := strings.TrimPrefix(authHeader, "Bearer ")
 			if token == "" {
 				return nil, connect.NewError(connect.CodeUnauthenticated, nil)
@@ -29,7 +32,8 @@ func NewInterceptor(v TokenValidator) connect.UnaryInterceptorFunc {
 
 			claims, err := v.Validate(ctx, token)
 			if err != nil {
-				return nil, connect.NewError(connect.CodeUnauthenticated, err)
+				// Return a generic message to avoid leaking OIDC error details to clients.
+				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("invalid or expired token"))
 			}
 
 			ctx = WithClaims(ctx, claims)

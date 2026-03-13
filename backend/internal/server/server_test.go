@@ -54,7 +54,9 @@ func TestRPC_RequiresAuth(t *testing.T) {
 	defer ts.Close()
 
 	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillctlv1.ListSkillsRequest{}))
+	req := connect.NewRequest(&skillctlv1.ListSkillsRequest{})
+	req.Header().Set("Authorization", "Bearer bad-token")
+	_, err := client.ListSkills(context.Background(), req)
 	if err == nil {
 		t.Fatal("expected auth error, got nil")
 	}
