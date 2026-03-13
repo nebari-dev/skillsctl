@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"os"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	_ "modernc.org/sqlite"
 
 	"github.com/nebari-dev/skillctl/backend/internal/server"
 	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillctl/backend/internal/store/migrations"
 )
 
 func main() {
@@ -17,33 +18,25 @@ func main() {
 		port = "8080"
 	}
 
-	// Seed with sample data for local development.
-	// Will be replaced by PostgreSQL store in a later slice.
-	seedSkills := []*skillctlv1.Skill{
-		{
-			Name:          "data-pipeline",
-			Description:   "Data pipeline utilities for Spark and batch processing",
-			Owner:         "data-eng",
-			Tags:          []string{"data", "spark"},
-			LatestVersion: "1.3.0",
-			InstallCount:  47,
-			Source:        skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
-		},
-		{
-			Name:          "code-review",
-			Description:   "Code review helpers for Go and Python",
-			Owner:         "platform",
-			Tags:          []string{"review", "go", "python"},
-			LatestVersion: "0.9.1",
-			InstallCount:  23,
-			Source:        skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
-		},
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "skillctl.db"
 	}
 
-	skillStore := store.NewMemory(seedSkills)
+	db, err := store.OpenSQLite(dbPath)
+	if err != nil {
+		log.Fatalf("open database: %v", err)
+	}
+	defer db.Close()
+
+	if err := migrations.Run(db); err != nil {
+		log.Fatalf("run migrations: %v", err)
+	}
+
+	skillStore := store.NewSQLite(db)
 	srv := server.New(skillStore)
 
-	log.Printf("starting server on :%s", port)
+	log.Printf("starting server on :%s (db: %s)", port, dbPath)
 	if err := http.ListenAndServe(":"+port, srv.Handler()); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
