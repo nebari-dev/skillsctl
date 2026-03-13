@@ -8,21 +8,15 @@ import (
 
 	_ "modernc.org/sqlite"
 
+	"github.com/nebari-dev/skillctl/backend/internal/auth"
 	"github.com/nebari-dev/skillctl/backend/internal/server"
 	sqlitestore "github.com/nebari-dev/skillctl/backend/internal/store/sqlite"
 	"github.com/nebari-dev/skillctl/backend/internal/store/sqlite/migrations"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "skillctl.db"
-	}
+	port := envOr("PORT", "8080")
+	dbPath := envOr("DB_PATH", "skillctl.db")
 
 	db, err := sqlitestore.Open(dbPath)
 	if err != nil {
@@ -34,11 +28,41 @@ func main() {
 		log.Fatalf("run migrations: %v", err)
 	}
 
+	authCfg := auth.Config{
+		IssuerURL:   envOr("OIDC_ISSUER_URL", ""),
+		ClientID:    envOr("OIDC_CLIENT_ID", ""),
+		AdminGroup:  envOr("OIDC_ADMIN_GROUP", "skillctl-admins"),
+		GroupsClaim: envOr("OIDC_GROUPS_CLAIM", "groups"),
+	}
+
+	if (authCfg.IssuerURL == "") != (authCfg.ClientID == "") {
+		log.Fatalf("OIDC_ISSUER_URL and OIDC_CLIENT_ID must both be set or both be empty")
+	}
+
+	var validator auth.TokenValidator
+	if authCfg.IssuerURL != "" {
+		v, err := auth.NewValidator(context.Background(), authCfg)
+		if err != nil {
+			log.Fatalf("init auth: %v", err)
+		}
+		validator = v
+		log.Printf("auth enabled (issuer: %s)", authCfg.IssuerURL)
+	} else {
+		log.Println("auth disabled (no OIDC_ISSUER_URL)")
+	}
+
 	repo := sqlitestore.New(db)
-	srv := server.New(repo)
+	srv := server.New(repo, validator)
 
 	log.Printf("starting server on :%s (db: %s)", port, dbPath)
 	if err := http.ListenAndServe(":"+port, srv.Handler()); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
