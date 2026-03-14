@@ -237,6 +237,254 @@ func (x *GetSkillResponse) GetVersions() []*SkillVersion {
 	return nil
 }
 
+type PublishSkillRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Version       string                 `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Tags          []string               `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`
+	Changelog     string                 `protobuf:"bytes,5,opt,name=changelog,proto3" json:"changelog,omitempty"`
+	Content       []byte                 `protobuf:"bytes,6,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishSkillRequest) Reset() {
+	*x = PublishSkillRequest{}
+	mi := &file_skillctl_v1_registry_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishSkillRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishSkillRequest) ProtoMessage() {}
+
+func (x *PublishSkillRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillctl_v1_registry_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishSkillRequest.ProtoReflect.Descriptor instead.
+func (*PublishSkillRequest) Descriptor() ([]byte, []int) {
+	return file_skillctl_v1_registry_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PublishSkillRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *PublishSkillRequest) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *PublishSkillRequest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *PublishSkillRequest) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *PublishSkillRequest) GetChangelog() string {
+	if x != nil {
+		return x.Changelog
+	}
+	return ""
+}
+
+func (x *PublishSkillRequest) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+type PublishSkillResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Skill         *Skill                 `protobuf:"bytes,1,opt,name=skill,proto3" json:"skill,omitempty"`
+	Version       *SkillVersion          `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PublishSkillResponse) Reset() {
+	*x = PublishSkillResponse{}
+	mi := &file_skillctl_v1_registry_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PublishSkillResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PublishSkillResponse) ProtoMessage() {}
+
+func (x *PublishSkillResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillctl_v1_registry_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PublishSkillResponse.ProtoReflect.Descriptor instead.
+func (*PublishSkillResponse) Descriptor() ([]byte, []int) {
+	return file_skillctl_v1_registry_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PublishSkillResponse) GetSkill() *Skill {
+	if x != nil {
+		return x.Skill
+	}
+	return nil
+}
+
+func (x *PublishSkillResponse) GetVersion() *SkillVersion {
+	if x != nil {
+		return x.Version
+	}
+	return nil
+}
+
+type GetSkillContentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Version       string                 `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	Digest        string                 `protobuf:"bytes,3,opt,name=digest,proto3" json:"digest,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkillContentRequest) Reset() {
+	*x = GetSkillContentRequest{}
+	mi := &file_skillctl_v1_registry_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkillContentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkillContentRequest) ProtoMessage() {}
+
+func (x *GetSkillContentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_skillctl_v1_registry_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkillContentRequest.ProtoReflect.Descriptor instead.
+func (*GetSkillContentRequest) Descriptor() ([]byte, []int) {
+	return file_skillctl_v1_registry_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetSkillContentRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetSkillContentRequest) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *GetSkillContentRequest) GetDigest() string {
+	if x != nil {
+		return x.Digest
+	}
+	return ""
+}
+
+type GetSkillContentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Content       []byte                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
+	Version       *SkillVersion          `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkillContentResponse) Reset() {
+	*x = GetSkillContentResponse{}
+	mi := &file_skillctl_v1_registry_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkillContentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkillContentResponse) ProtoMessage() {}
+
+func (x *GetSkillContentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_skillctl_v1_registry_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkillContentResponse.ProtoReflect.Descriptor instead.
+func (*GetSkillContentResponse) Descriptor() ([]byte, []int) {
+	return file_skillctl_v1_registry_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GetSkillContentResponse) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *GetSkillContentResponse) GetVersion() *SkillVersion {
+	if x != nil {
+		return x.Version
+	}
+	return nil
+}
+
 var File_skillctl_v1_registry_proto protoreflect.FileDescriptor
 
 const file_skillctl_v1_registry_proto_rawDesc = "" +
@@ -255,11 +503,30 @@ const file_skillctl_v1_registry_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"s\n" +
 	"\x10GetSkillResponse\x12(\n" +
 	"\x05skill\x18\x01 \x01(\v2\x12.skillctl.v1.SkillR\x05skill\x125\n" +
-	"\bversions\x18\x02 \x03(\v2\x19.skillctl.v1.SkillVersionR\bversions2\xa9\x01\n" +
+	"\bversions\x18\x02 \x03(\v2\x19.skillctl.v1.SkillVersionR\bversions\"\xb1\x01\n" +
+	"\x13PublishSkillRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04tags\x18\x04 \x03(\tR\x04tags\x12\x1c\n" +
+	"\tchangelog\x18\x05 \x01(\tR\tchangelog\x12\x18\n" +
+	"\acontent\x18\x06 \x01(\fR\acontent\"u\n" +
+	"\x14PublishSkillResponse\x12(\n" +
+	"\x05skill\x18\x01 \x01(\v2\x12.skillctl.v1.SkillR\x05skill\x123\n" +
+	"\aversion\x18\x02 \x01(\v2\x19.skillctl.v1.SkillVersionR\aversion\"^\n" +
+	"\x16GetSkillContentRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\x12\x16\n" +
+	"\x06digest\x18\x03 \x01(\tR\x06digest\"h\n" +
+	"\x17GetSkillContentResponse\x12\x18\n" +
+	"\acontent\x18\x01 \x01(\fR\acontent\x123\n" +
+	"\aversion\x18\x02 \x01(\v2\x19.skillctl.v1.SkillVersionR\aversion2\xdc\x02\n" +
 	"\x0fRegistryService\x12M\n" +
 	"\n" +
 	"ListSkills\x12\x1e.skillctl.v1.ListSkillsRequest\x1a\x1f.skillctl.v1.ListSkillsResponse\x12G\n" +
-	"\bGetSkill\x12\x1c.skillctl.v1.GetSkillRequest\x1a\x1d.skillctl.v1.GetSkillResponseB\xab\x01\n" +
+	"\bGetSkill\x12\x1c.skillctl.v1.GetSkillRequest\x1a\x1d.skillctl.v1.GetSkillResponse\x12S\n" +
+	"\fPublishSkill\x12 .skillctl.v1.PublishSkillRequest\x1a!.skillctl.v1.PublishSkillResponse\x12\\\n" +
+	"\x0fGetSkillContent\x12#.skillctl.v1.GetSkillContentRequest\x1a$.skillctl.v1.GetSkillContentResponseB\xab\x01\n" +
 	"\x0fcom.skillctl.v1B\rRegistryProtoP\x01Z<github.com/nebari-dev/skillctl/gen/go/skillctl/v1;skillctlv1\xa2\x02\x03SXX\xaa\x02\vSkillctl.V1\xca\x02\vSkillctl\\V1\xe2\x02\x17Skillctl\\V1\\GPBMetadata\xea\x02\fSkillctl::V1b\x06proto3"
 
 var (
@@ -274,30 +541,41 @@ func file_skillctl_v1_registry_proto_rawDescGZIP() []byte {
 	return file_skillctl_v1_registry_proto_rawDescData
 }
 
-var file_skillctl_v1_registry_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_skillctl_v1_registry_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_skillctl_v1_registry_proto_goTypes = []any{
-	(*ListSkillsRequest)(nil),  // 0: skillctl.v1.ListSkillsRequest
-	(*ListSkillsResponse)(nil), // 1: skillctl.v1.ListSkillsResponse
-	(*GetSkillRequest)(nil),    // 2: skillctl.v1.GetSkillRequest
-	(*GetSkillResponse)(nil),   // 3: skillctl.v1.GetSkillResponse
-	(SkillSource)(0),           // 4: skillctl.v1.SkillSource
-	(*Skill)(nil),              // 5: skillctl.v1.Skill
-	(*SkillVersion)(nil),       // 6: skillctl.v1.SkillVersion
+	(*ListSkillsRequest)(nil),       // 0: skillctl.v1.ListSkillsRequest
+	(*ListSkillsResponse)(nil),      // 1: skillctl.v1.ListSkillsResponse
+	(*GetSkillRequest)(nil),         // 2: skillctl.v1.GetSkillRequest
+	(*GetSkillResponse)(nil),        // 3: skillctl.v1.GetSkillResponse
+	(*PublishSkillRequest)(nil),     // 4: skillctl.v1.PublishSkillRequest
+	(*PublishSkillResponse)(nil),    // 5: skillctl.v1.PublishSkillResponse
+	(*GetSkillContentRequest)(nil),  // 6: skillctl.v1.GetSkillContentRequest
+	(*GetSkillContentResponse)(nil), // 7: skillctl.v1.GetSkillContentResponse
+	(SkillSource)(0),                // 8: skillctl.v1.SkillSource
+	(*Skill)(nil),                   // 9: skillctl.v1.Skill
+	(*SkillVersion)(nil),            // 10: skillctl.v1.SkillVersion
 }
 var file_skillctl_v1_registry_proto_depIdxs = []int32{
-	4, // 0: skillctl.v1.ListSkillsRequest.source_filter:type_name -> skillctl.v1.SkillSource
-	5, // 1: skillctl.v1.ListSkillsResponse.skills:type_name -> skillctl.v1.Skill
-	5, // 2: skillctl.v1.GetSkillResponse.skill:type_name -> skillctl.v1.Skill
-	6, // 3: skillctl.v1.GetSkillResponse.versions:type_name -> skillctl.v1.SkillVersion
-	0, // 4: skillctl.v1.RegistryService.ListSkills:input_type -> skillctl.v1.ListSkillsRequest
-	2, // 5: skillctl.v1.RegistryService.GetSkill:input_type -> skillctl.v1.GetSkillRequest
-	1, // 6: skillctl.v1.RegistryService.ListSkills:output_type -> skillctl.v1.ListSkillsResponse
-	3, // 7: skillctl.v1.RegistryService.GetSkill:output_type -> skillctl.v1.GetSkillResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	8,  // 0: skillctl.v1.ListSkillsRequest.source_filter:type_name -> skillctl.v1.SkillSource
+	9,  // 1: skillctl.v1.ListSkillsResponse.skills:type_name -> skillctl.v1.Skill
+	9,  // 2: skillctl.v1.GetSkillResponse.skill:type_name -> skillctl.v1.Skill
+	10, // 3: skillctl.v1.GetSkillResponse.versions:type_name -> skillctl.v1.SkillVersion
+	9,  // 4: skillctl.v1.PublishSkillResponse.skill:type_name -> skillctl.v1.Skill
+	10, // 5: skillctl.v1.PublishSkillResponse.version:type_name -> skillctl.v1.SkillVersion
+	10, // 6: skillctl.v1.GetSkillContentResponse.version:type_name -> skillctl.v1.SkillVersion
+	0,  // 7: skillctl.v1.RegistryService.ListSkills:input_type -> skillctl.v1.ListSkillsRequest
+	2,  // 8: skillctl.v1.RegistryService.GetSkill:input_type -> skillctl.v1.GetSkillRequest
+	4,  // 9: skillctl.v1.RegistryService.PublishSkill:input_type -> skillctl.v1.PublishSkillRequest
+	6,  // 10: skillctl.v1.RegistryService.GetSkillContent:input_type -> skillctl.v1.GetSkillContentRequest
+	1,  // 11: skillctl.v1.RegistryService.ListSkills:output_type -> skillctl.v1.ListSkillsResponse
+	3,  // 12: skillctl.v1.RegistryService.GetSkill:output_type -> skillctl.v1.GetSkillResponse
+	5,  // 13: skillctl.v1.RegistryService.PublishSkill:output_type -> skillctl.v1.PublishSkillResponse
+	7,  // 14: skillctl.v1.RegistryService.GetSkillContent:output_type -> skillctl.v1.GetSkillContentResponse
+	11, // [11:15] is the sub-list for method output_type
+	7,  // [7:11] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_skillctl_v1_registry_proto_init() }
@@ -312,7 +590,7 @@ func file_skillctl_v1_registry_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillctl_v1_registry_proto_rawDesc), len(file_skillctl_v1_registry_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
