@@ -14,6 +14,10 @@ var ErrNotFound = errors.New("skill not found")
 // the implementation does not yet support cursor-based pagination.
 var ErrPaginationNotSupported = errors.New("pagination not yet supported")
 
+var ErrAlreadyExists = errors.New("already exists")
+var ErrPermissionDenied = errors.New("permission denied")
+var ErrDigestMismatch = errors.New("digest mismatch")
+
 // Repository defines the interface for skill persistence.
 // This is the data abstraction layer between database implementations and
 // application logic. All database access flows through this interface.
@@ -22,4 +26,6 @@ var ErrPaginationNotSupported = errors.New("pagination not yet supported")
 type Repository interface {
 	ListSkills(ctx context.Context, tags []string, sourceFilter skillctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillctlv1.Skill, string, error)
 	GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error)
+	CreateSkillVersion(ctx context.Context, skill *skillctlv1.Skill, version *skillctlv1.SkillVersion, content []byte) error
+	GetSkillContent(ctx context.Context, name string, version string, digest string) ([]byte, *skillctlv1.SkillVersion, error)
 }

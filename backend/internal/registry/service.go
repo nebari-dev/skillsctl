@@ -47,3 +47,11 @@ func (s *Service) GetSkill(ctx context.Context, req *connect.Request[skillctlv1.
 		Versions: versions,
 	}), nil
 }
+
+func (s *Service) PublishSkill(_ context.Context, _ *connect.Request[skillctlv1.PublishSkillRequest]) (*connect.Response[skillctlv1.PublishSkillResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("not implemented"))
+}
+
+func (s *Service) GetSkillContent(_ context.Context, _ *connect.Request[skillctlv1.GetSkillContentRequest]) (*connect.Response[skillctlv1.GetSkillContentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("not implemented"))
+}

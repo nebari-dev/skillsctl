@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
@@ -47,6 +48,14 @@ func (m *Memory) GetSkill(_ context.Context, name string) (*skillctlv1.Skill, []
 		}
 	}
 	return nil, nil, fmt.Errorf("%w: %s", ErrNotFound, name)
+}
+
+func (m *Memory) CreateSkillVersion(_ context.Context, _ *skillctlv1.Skill, _ *skillctlv1.SkillVersion, _ []byte) error {
+	return errors.New("not implemented")
+}
+
+func (m *Memory) GetSkillContent(_ context.Context, _ string, _ string, _ string) ([]byte, *skillctlv1.SkillVersion, error) {
+	return nil, nil, errors.New("not implemented")
 }
 
 func hasAnyTag(skillTags, filterTags []string) bool {

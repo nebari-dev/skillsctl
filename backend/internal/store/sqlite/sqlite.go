@@ -159,6 +159,14 @@ func (r *Repository) GetSkill(ctx context.Context, name string) (*skillctlv1.Ski
 	return skill, versions, nil
 }
 
+func (r *Repository) CreateSkillVersion(_ context.Context, _ *skillctlv1.Skill, _ *skillctlv1.SkillVersion, _ []byte) error {
+	return errors.New("not implemented")
+}
+
+func (r *Repository) GetSkillContent(_ context.Context, _ string, _ string, _ string) ([]byte, *skillctlv1.SkillVersion, error) {
+	return nil, nil, errors.New("not implemented")
+}
+
 // scanner is satisfied by both *sql.Row and *sql.Rows.
 type scanner interface {
 	Scan(dest ...any) error
