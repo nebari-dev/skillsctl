@@ -13,7 +13,7 @@ service RegistryService {
   // Write - requires valid OIDC token
   rpc PublishSkill(PublishSkillRequest) returns (PublishSkillResponse);
 
-  // Read - requires valid OIDC token
+  // Read - unauthenticated (auth enforced by interceptor when configured)
   rpc GetSkillContent(GetSkillContentRequest) returns (GetSkillContentResponse);
 }
 
