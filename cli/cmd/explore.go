@@ -59,7 +59,7 @@ func addExploreCmd(root *cobra.Command) {
 
 			verbose, _ := cmd.Flags().GetBool("verbose")
 			if verbose {
-				content, _, err := client.GetSkillContent(cmd.Context(), args[0], "")
+				content, _, err := client.GetSkillContent(cmd.Context(), args[0], "", "")
 				if err != nil {
 					fmt.Fprintf(cmd.ErrOrStderr(), "Warning: could not fetch content: %v\n", err)
 				} else {

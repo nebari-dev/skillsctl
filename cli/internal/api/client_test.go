@@ -23,6 +23,24 @@ func TestClient_ListSkills(t *testing.T) {
 	}
 }
 
+func TestClient_PublishSkill(t *testing.T) {
+	ts := testutil.NewStubServer(t, nil)
+	client := api.NewClient(ts.URL)
+
+	skill, ver, err := client.PublishSkill(context.Background(),
+		"test-skill", "1.0.0", "A test", "Initial", []string{"go"}, []byte("content"),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if skill.Name != "test-skill" {
+		t.Errorf("expected name test-skill, got %q", skill.Name)
+	}
+	if ver.Digest == "" {
+		t.Error("expected non-empty digest")
+	}
+}
+
 func TestClient_GetSkill(t *testing.T) {
 	ts := testutil.NewStubServer(t, testutil.SeedSkills())
 	client := api.NewClient(ts.URL)
