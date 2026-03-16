@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
-	sqlite "modernc.org/sqlite"
 	"golang.org/x/mod/semver"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	sqlite "modernc.org/sqlite"
 
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 

@@ -54,7 +54,7 @@ type RegistryServiceClient interface {
 	GetSkill(context.Context, *connect.Request[v1.GetSkillRequest]) (*connect.Response[v1.GetSkillResponse], error)
 	// Write - requires valid OIDC token
 	PublishSkill(context.Context, *connect.Request[v1.PublishSkillRequest]) (*connect.Response[v1.PublishSkillResponse], error)
-	// Read - requires valid OIDC token
+	// Read - unauthenticated (auth enforced by interceptor when configured)
 	GetSkillContent(context.Context, *connect.Request[v1.GetSkillContentRequest]) (*connect.Response[v1.GetSkillContentResponse], error)
 }
 
@@ -131,7 +131,7 @@ type RegistryServiceHandler interface {
 	GetSkill(context.Context, *connect.Request[v1.GetSkillRequest]) (*connect.Response[v1.GetSkillResponse], error)
 	// Write - requires valid OIDC token
 	PublishSkill(context.Context, *connect.Request[v1.PublishSkillRequest]) (*connect.Response[v1.PublishSkillResponse], error)
-	// Read - requires valid OIDC token
+	// Read - unauthenticated (auth enforced by interceptor when configured)
 	GetSkillContent(context.Context, *connect.Request[v1.GetSkillContentRequest]) (*connect.Response[v1.GetSkillContentResponse], error)
 }
 
