@@ -193,7 +193,7 @@ func (r *Repository) CreateSkillVersion(ctx context.Context, skill *skillctlv1.S
 	} else {
 		// Existing skill - check ownership.
 		if existingOwner != skill.Owner {
-			return fmt.Errorf("%w: skill %q is owned by %q", store.ErrPermissionDenied, skill.Name, existingOwner)
+			return fmt.Errorf("%w: not the owner of skill %q", store.ErrPermissionDenied, skill.Name)
 		}
 		// Update latest_version only if semver-greater.
 		if compareSemver(version.Version, existingLatest) > 0 {
@@ -274,6 +274,9 @@ func (r *Repository) GetSkillContent(ctx context.Context, name string, version s
 	)
 
 	if errors.Is(err, sql.ErrNoRows) {
+		if version == "" {
+			return nil, nil, fmt.Errorf("%w: %s (no version available)", store.ErrNotFound, name)
+		}
 		return nil, nil, fmt.Errorf("%w: %s@%s", store.ErrNotFound, name, version)
 	}
 	if err != nil {

@@ -87,7 +87,7 @@ func (m *Memory) CreateSkillVersion(_ context.Context, skill *skillctlv1.Skill, 
 	if existing != nil {
 		// Owner check.
 		if existing.Owner != skill.Owner {
-			return fmt.Errorf("%w: skill %q is owned by %q", ErrPermissionDenied, skill.Name, existing.Owner)
+			return fmt.Errorf("%w: not the owner of skill %q", ErrPermissionDenied, skill.Name)
 		}
 
 		// Duplicate version check.
