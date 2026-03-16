@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -20,6 +21,7 @@ func NewRootCmd() *cobra.Command {
 	cobra.OnInitialize(func() {
 		home, _ := os.UserHomeDir()
 		viper.SetDefault("api_url", "http://localhost:8080")
+		viper.SetDefault("skills_dir", filepath.Join(home, ".claude", "skills"))
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath(home + "/.config/skillctl")
@@ -29,6 +31,7 @@ func NewRootCmd() *cobra.Command {
 	})
 
 	addExploreCmd(rootCmd)
+	addConfigCmd(rootCmd)
 	return rootCmd
 }
 
