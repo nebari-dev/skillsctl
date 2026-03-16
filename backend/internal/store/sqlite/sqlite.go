@@ -15,8 +15,11 @@ import (
 	"strings"
 	"time"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	"golang.org/x/mod/semver"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	sqlite "modernc.org/sqlite"
+
+	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
 
 	"github.com/nebari-dev/skillctl/backend/internal/store"
 )
@@ -157,6 +160,171 @@ func (r *Repository) GetSkill(ctx context.Context, name string) (*skillctlv1.Ski
 	}
 
 	return skill, versions, nil
+}
+
+func (r *Repository) CreateSkillVersion(ctx context.Context, skill *skillctlv1.Skill, version *skillctlv1.SkillVersion, content []byte) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	// Check if skill exists.
+	var existingOwner string
+	var existingLatest string
+	err = tx.QueryRowContext(ctx, "SELECT owner, latest_version FROM skills WHERE name = ?", skill.Name).Scan(&existingOwner, &existingLatest)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		// First publish - create skill.
+		tagsJSON, jsonErr := json.Marshal(skill.Tags)
+		if jsonErr != nil {
+			return fmt.Errorf("marshal tags: %w", jsonErr)
+		}
+		_, err = tx.ExecContext(ctx,
+			`INSERT INTO skills (name, description, owner, tags, latest_version, source) VALUES (?, ?, ?, ?, ?, ?)`,
+			skill.Name, skill.Description, skill.Owner, string(tagsJSON), version.Version,
+			int(skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL),
+		)
+		if err != nil {
+			return fmt.Errorf("insert skill: %w", err)
+		}
+	} else if err != nil {
+		return fmt.Errorf("check skill: %w", err)
+	} else {
+		// Existing skill - check ownership.
+		if existingOwner != skill.Owner {
+			return fmt.Errorf("%w: not the owner of skill %q", store.ErrPermissionDenied, skill.Name)
+		}
+		// Update latest_version only if semver-greater.
+		if compareSemver(version.Version, existingLatest) > 0 {
+			_, err = tx.ExecContext(ctx,
+				`UPDATE skills SET latest_version = ? WHERE name = ?`,
+				version.Version, skill.Name,
+			)
+			if err != nil {
+				return fmt.Errorf("update latest_version: %w", err)
+			}
+		}
+		// Always update updated_at on every successful publish.
+		_, err = tx.ExecContext(ctx,
+			`UPDATE skills SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE name = ?`,
+			skill.Name,
+		)
+		if err != nil {
+			return fmt.Errorf("update updated_at: %w", err)
+		}
+		// Update description and tags if provided.
+		if skill.Description != "" {
+			_, err = tx.ExecContext(ctx, `UPDATE skills SET description = ? WHERE name = ?`, skill.Description, skill.Name)
+			if err != nil {
+				return fmt.Errorf("update description: %w", err)
+			}
+		}
+		if len(skill.Tags) > 0 {
+			tagsJSON, jsonErr := json.Marshal(skill.Tags)
+			if jsonErr != nil {
+				return fmt.Errorf("marshal tags: %w", jsonErr)
+			}
+			_, err = tx.ExecContext(ctx, `UPDATE skills SET tags = ? WHERE name = ?`, string(tagsJSON), skill.Name)
+			if err != nil {
+				return fmt.Errorf("update tags: %w", err)
+			}
+		}
+	}
+
+	// Insert version - PRIMARY KEY constraint enforces immutability.
+	_, err = tx.ExecContext(ctx,
+		`INSERT INTO skill_versions (skill_name, version, published_by, changelog, digest, size_bytes, content) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		skill.Name, version.Version, version.PublishedBy, version.Changelog, version.Digest, version.SizeBytes, content,
+	)
+	if err != nil {
+		if isConstraintViolation(err) {
+			return fmt.Errorf("%w: version %s of %s", store.ErrAlreadyExists, version.Version, skill.Name)
+		}
+		return fmt.Errorf("insert version: %w", err)
+	}
+
+	return tx.Commit()
+}
+
+func (r *Repository) GetSkillContent(ctx context.Context, name string, version string, digest string) ([]byte, *skillctlv1.SkillVersion, error) {
+	// Build query - use a subquery to resolve latest version atomically when
+	// version is empty, avoiding a TOCTOU race between two separate reads.
+	query := `SELECT version, changelog, oci_ref, digest, size_bytes, published_by, published_at, draft, content
+		 FROM skill_versions WHERE skill_name = ?`
+	var args []any
+	args = append(args, name)
+
+	if version == "" {
+		query += ` AND version = (SELECT latest_version FROM skills WHERE name = ?)`
+		args = append(args, name)
+	} else {
+		query += ` AND version = ?`
+		args = append(args, version)
+	}
+
+	var (
+		v           skillctlv1.SkillVersion
+		content     []byte
+		publishedAt string
+		draft       int
+	)
+	err := r.db.QueryRowContext(ctx, query, args...).Scan(
+		&v.Version, &v.Changelog, &v.OciRef, &v.Digest, &v.SizeBytes, &v.PublishedBy, &publishedAt, &draft, &content,
+	)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		if version == "" {
+			return nil, nil, fmt.Errorf("%w: %s (no version available)", store.ErrNotFound, name)
+		}
+		return nil, nil, fmt.Errorf("%w: %s@%s", store.ErrNotFound, name, version)
+	}
+	if err != nil {
+		return nil, nil, fmt.Errorf("get skill content: %w", err)
+	}
+
+	v.Draft = draft != 0
+	if publishedAt != "" {
+		t, err := parseTimestamp(publishedAt)
+		if err != nil {
+			return nil, nil, fmt.Errorf("parse published_at: %w", err)
+		}
+		v.PublishedAt = t
+	}
+
+	if content == nil {
+		return nil, nil, fmt.Errorf("%w: no content for %s@%s", store.ErrNotFound, name, version)
+	}
+
+	if digest != "" && v.Digest != digest {
+		return nil, nil, fmt.Errorf("%w: expected %s, got %s", store.ErrDigestMismatch, digest, v.Digest)
+	}
+
+	return content, &v, nil
+}
+
+// isConstraintViolation checks if a SQLite error is a PRIMARY KEY or UNIQUE
+// constraint violation using the typed error from modernc.org/sqlite.
+// SQLITE_CONSTRAINT_PRIMARYKEY = 1555, SQLITE_CONSTRAINT_UNIQUE = 2067.
+func isConstraintViolation(err error) bool {
+	var sqliteErr *sqlite.Error
+	if errors.As(err, &sqliteErr) {
+		code := sqliteErr.Code()
+		return code == 1555 || code == 2067
+	}
+	return false
+}
+
+// compareSemver compares two semver strings, prepending "v" if absent.
+// Returns negative if a < b, zero if a == b, positive if a > b.
+func compareSemver(a, b string) int {
+	if a != "" && a[0] != 'v' {
+		a = "v" + a
+	}
+	if b != "" && b[0] != 'v' {
+		b = "v" + b
+	}
+	return semver.Compare(a, b)
 }
 
 // scanner is satisfied by both *sql.Row and *sql.Rows.

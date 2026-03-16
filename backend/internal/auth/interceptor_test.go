@@ -82,7 +82,7 @@ func TestInterceptor(t *testing.T) {
 			wantCode:   connect.CodeUnauthenticated,
 		},
 		{
-			name:        "nil validator passes through",
+			name:        "nil validator injects dev claims",
 			validator:   nil,
 			authHeader:  "",
 			wantSuccess: true,
@@ -114,6 +114,46 @@ func TestInterceptor(t *testing.T) {
 				t.Errorf("code: got %v, want %v", connectErr.Code(), tt.wantCode)
 			}
 		})
+	}
+}
+
+// TestInterceptor_DevModeClaimsInContext verifies that nil validator
+// injects dev claims so write operations work in local development.
+func TestInterceptor_DevModeClaimsInContext(t *testing.T) {
+	var gotClaims *auth.Claims
+	interceptor := auth.NewInterceptor(nil)
+	capturer := connect.UnaryInterceptorFunc(func(next connect.UnaryFunc) connect.UnaryFunc {
+		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+			c, ok := auth.ClaimsFromContext(ctx)
+			if ok {
+				gotClaims = c
+			}
+			return next(ctx, req)
+		}
+	})
+
+	mux := http.NewServeMux()
+	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+		registry.NewService(store.NewMemory(nil)),
+		connect.WithInterceptors(interceptor, capturer),
+	)
+	mux.Handle(path, handler)
+	ts := httptest.NewServer(mux)
+	t.Cleanup(ts.Close)
+
+	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillctlv1.ListSkillsRequest{}))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if gotClaims == nil {
+		t.Fatal("expected dev claims in context, got nil")
+	}
+	if gotClaims.Subject != "dev-user" {
+		t.Errorf("subject: got %q, want %q", gotClaims.Subject, "dev-user")
+	}
+	if gotClaims.Email != "dev@localhost" {
+		t.Errorf("email: got %q, want %q", gotClaims.Email, "dev@localhost")
 	}
 }
 

@@ -1,0 +1,64 @@
+syntax = "proto3";
+package skillctl.v1;
+
+import "skillctl/v1/skill.proto";
+
+option go_package = "github.com/openteams-ai/skill-share/gen/go/skillctl/v1;skillctlv1";
+
+service RegistryService {
+  // Read - requires valid OIDC token
+  rpc ListSkills(ListSkillsRequest) returns (ListSkillsResponse);
+  rpc GetSkill(GetSkillRequest) returns (GetSkillResponse);
+
+  // Write - requires valid OIDC token
+  rpc PublishSkill(PublishSkillRequest) returns (PublishSkillResponse);
+
+  // Read - unauthenticated (auth enforced by interceptor when configured)
+  rpc GetSkillContent(GetSkillContentRequest) returns (GetSkillContentResponse);
+}
+
+message ListSkillsRequest {
+  repeated string tags = 1;
+  SkillSource source_filter = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListSkillsResponse {
+  repeated Skill skills = 1;
+  string next_page_token = 2;
+}
+
+message GetSkillRequest {
+  string name = 1;
+}
+
+message GetSkillResponse {
+  Skill skill = 1;
+  repeated SkillVersion versions = 2;
+}
+
+message PublishSkillRequest {
+  string name = 1;
+  string version = 2;
+  string description = 3;
+  repeated string tags = 4;
+  string changelog = 5;
+  bytes content = 6;
+}
+
+message PublishSkillResponse {
+  Skill skill = 1;
+  SkillVersion version = 2;
+}
+
+message GetSkillContentRequest {
+  string name = 1;
+  string version = 2;
+  string digest = 3;
+}
+
+message GetSkillContentResponse {
+  bytes content = 1;
+  SkillVersion version = 2;
+}

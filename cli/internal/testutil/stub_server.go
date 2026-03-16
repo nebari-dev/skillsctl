@@ -15,7 +15,8 @@ import (
 // It serves canned skill data without depending on any backend internals.
 type StubRegistryService struct {
 	skillctlv1connect.UnimplementedRegistryServiceHandler
-	Skills []*skillctlv1.Skill
+	Skills  []*skillctlv1.Skill
+	Content map[string][]byte // keyed by skill name
 }
 
 func (s *StubRegistryService) ListSkills(_ context.Context, _ *connect.Request[skillctlv1.ListSkillsRequest]) (*connect.Response[skillctlv1.ListSkillsResponse], error) {
@@ -29,6 +30,20 @@ func (s *StubRegistryService) GetSkill(_ context.Context, req *connect.Request[s
 		}
 	}
 	return nil, connect.NewError(connect.CodeNotFound, nil)
+}
+
+func (s *StubRegistryService) GetSkillContent(_ context.Context, req *connect.Request[skillctlv1.GetSkillContentRequest]) (*connect.Response[skillctlv1.GetSkillContentResponse], error) {
+	if s.Content == nil {
+		return nil, connect.NewError(connect.CodeNotFound, nil)
+	}
+	content, ok := s.Content[req.Msg.Name]
+	if !ok {
+		return nil, connect.NewError(connect.CodeNotFound, nil)
+	}
+	return connect.NewResponse(&skillctlv1.GetSkillContentResponse{
+		Content: content,
+		Version: &skillctlv1.SkillVersion{Version: "1.0.0"},
+	}), nil
 }
 
 // SeedSkills returns a standard set of test skills.
@@ -58,8 +73,13 @@ func SeedSkills() []*skillctlv1.Skill {
 // NewStubServer starts a test server running the StubRegistryService.
 // Cleaned up automatically when the test finishes.
 func NewStubServer(t *testing.T, skills []*skillctlv1.Skill) *httptest.Server {
+	return NewStubServerWithContent(t, skills, nil)
+}
+
+// NewStubServerWithContent starts a test server with skills and content.
+func NewStubServerWithContent(t *testing.T, skills []*skillctlv1.Skill, content map[string][]byte) *httptest.Server {
 	t.Helper()
-	stub := &StubRegistryService{Skills: skills}
+	stub := &StubRegistryService{Skills: skills, Content: content}
 	mux := http.NewServeMux()
 	path, handler := skillctlv1connect.NewRegistryServiceHandler(stub)
 	mux.Handle(path, handler)

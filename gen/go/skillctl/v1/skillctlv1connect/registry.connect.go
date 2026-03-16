@@ -39,6 +39,12 @@ const (
 	// RegistryServiceGetSkillProcedure is the fully-qualified name of the RegistryService's GetSkill
 	// RPC.
 	RegistryServiceGetSkillProcedure = "/skillctl.v1.RegistryService/GetSkill"
+	// RegistryServicePublishSkillProcedure is the fully-qualified name of the RegistryService's
+	// PublishSkill RPC.
+	RegistryServicePublishSkillProcedure = "/skillctl.v1.RegistryService/PublishSkill"
+	// RegistryServiceGetSkillContentProcedure is the fully-qualified name of the RegistryService's
+	// GetSkillContent RPC.
+	RegistryServiceGetSkillContentProcedure = "/skillctl.v1.RegistryService/GetSkillContent"
 )
 
 // RegistryServiceClient is a client for the skillctl.v1.RegistryService service.
@@ -46,6 +52,10 @@ type RegistryServiceClient interface {
 	// Read - requires valid OIDC token
 	ListSkills(context.Context, *connect.Request[v1.ListSkillsRequest]) (*connect.Response[v1.ListSkillsResponse], error)
 	GetSkill(context.Context, *connect.Request[v1.GetSkillRequest]) (*connect.Response[v1.GetSkillResponse], error)
+	// Write - requires valid OIDC token
+	PublishSkill(context.Context, *connect.Request[v1.PublishSkillRequest]) (*connect.Response[v1.PublishSkillResponse], error)
+	// Read - unauthenticated (auth enforced by interceptor when configured)
+	GetSkillContent(context.Context, *connect.Request[v1.GetSkillContentRequest]) (*connect.Response[v1.GetSkillContentResponse], error)
 }
 
 // NewRegistryServiceClient constructs a client for the skillctl.v1.RegistryService service. By
@@ -71,13 +81,27 @@ func NewRegistryServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(registryServiceMethods.ByName("GetSkill")),
 			connect.WithClientOptions(opts...),
 		),
+		publishSkill: connect.NewClient[v1.PublishSkillRequest, v1.PublishSkillResponse](
+			httpClient,
+			baseURL+RegistryServicePublishSkillProcedure,
+			connect.WithSchema(registryServiceMethods.ByName("PublishSkill")),
+			connect.WithClientOptions(opts...),
+		),
+		getSkillContent: connect.NewClient[v1.GetSkillContentRequest, v1.GetSkillContentResponse](
+			httpClient,
+			baseURL+RegistryServiceGetSkillContentProcedure,
+			connect.WithSchema(registryServiceMethods.ByName("GetSkillContent")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // registryServiceClient implements RegistryServiceClient.
 type registryServiceClient struct {
-	listSkills *connect.Client[v1.ListSkillsRequest, v1.ListSkillsResponse]
-	getSkill   *connect.Client[v1.GetSkillRequest, v1.GetSkillResponse]
+	listSkills      *connect.Client[v1.ListSkillsRequest, v1.ListSkillsResponse]
+	getSkill        *connect.Client[v1.GetSkillRequest, v1.GetSkillResponse]
+	publishSkill    *connect.Client[v1.PublishSkillRequest, v1.PublishSkillResponse]
+	getSkillContent *connect.Client[v1.GetSkillContentRequest, v1.GetSkillContentResponse]
 }
 
 // ListSkills calls skillctl.v1.RegistryService.ListSkills.
@@ -90,11 +114,25 @@ func (c *registryServiceClient) GetSkill(ctx context.Context, req *connect.Reque
 	return c.getSkill.CallUnary(ctx, req)
 }
 
+// PublishSkill calls skillctl.v1.RegistryService.PublishSkill.
+func (c *registryServiceClient) PublishSkill(ctx context.Context, req *connect.Request[v1.PublishSkillRequest]) (*connect.Response[v1.PublishSkillResponse], error) {
+	return c.publishSkill.CallUnary(ctx, req)
+}
+
+// GetSkillContent calls skillctl.v1.RegistryService.GetSkillContent.
+func (c *registryServiceClient) GetSkillContent(ctx context.Context, req *connect.Request[v1.GetSkillContentRequest]) (*connect.Response[v1.GetSkillContentResponse], error) {
+	return c.getSkillContent.CallUnary(ctx, req)
+}
+
 // RegistryServiceHandler is an implementation of the skillctl.v1.RegistryService service.
 type RegistryServiceHandler interface {
 	// Read - requires valid OIDC token
 	ListSkills(context.Context, *connect.Request[v1.ListSkillsRequest]) (*connect.Response[v1.ListSkillsResponse], error)
 	GetSkill(context.Context, *connect.Request[v1.GetSkillRequest]) (*connect.Response[v1.GetSkillResponse], error)
+	// Write - requires valid OIDC token
+	PublishSkill(context.Context, *connect.Request[v1.PublishSkillRequest]) (*connect.Response[v1.PublishSkillResponse], error)
+	// Read - unauthenticated (auth enforced by interceptor when configured)
+	GetSkillContent(context.Context, *connect.Request[v1.GetSkillContentRequest]) (*connect.Response[v1.GetSkillContentResponse], error)
 }
 
 // NewRegistryServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -116,12 +154,28 @@ func NewRegistryServiceHandler(svc RegistryServiceHandler, opts ...connect.Handl
 		connect.WithSchema(registryServiceMethods.ByName("GetSkill")),
 		connect.WithHandlerOptions(opts...),
 	)
+	registryServicePublishSkillHandler := connect.NewUnaryHandler(
+		RegistryServicePublishSkillProcedure,
+		svc.PublishSkill,
+		connect.WithSchema(registryServiceMethods.ByName("PublishSkill")),
+		connect.WithHandlerOptions(opts...),
+	)
+	registryServiceGetSkillContentHandler := connect.NewUnaryHandler(
+		RegistryServiceGetSkillContentProcedure,
+		svc.GetSkillContent,
+		connect.WithSchema(registryServiceMethods.ByName("GetSkillContent")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/skillctl.v1.RegistryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case RegistryServiceListSkillsProcedure:
 			registryServiceListSkillsHandler.ServeHTTP(w, r)
 		case RegistryServiceGetSkillProcedure:
 			registryServiceGetSkillHandler.ServeHTTP(w, r)
+		case RegistryServicePublishSkillProcedure:
+			registryServicePublishSkillHandler.ServeHTTP(w, r)
+		case RegistryServiceGetSkillContentProcedure:
+			registryServiceGetSkillContentHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -137,4 +191,12 @@ func (UnimplementedRegistryServiceHandler) ListSkills(context.Context, *connect.
 
 func (UnimplementedRegistryServiceHandler) GetSkill(context.Context, *connect.Request[v1.GetSkillRequest]) (*connect.Response[v1.GetSkillResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillctl.v1.RegistryService.GetSkill is not implemented"))
+}
+
+func (UnimplementedRegistryServiceHandler) PublishSkill(context.Context, *connect.Request[v1.PublishSkillRequest]) (*connect.Response[v1.PublishSkillResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillctl.v1.RegistryService.PublishSkill is not implemented"))
+}
+
+func (UnimplementedRegistryServiceHandler) GetSkillContent(context.Context, *connect.Request[v1.GetSkillContentRequest]) (*connect.Response[v1.GetSkillContentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("skillctl.v1.RegistryService.GetSkillContent is not implemented"))
 }

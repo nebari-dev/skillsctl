@@ -39,3 +39,14 @@ func (c *Client) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, 
 	}
 	return resp.Msg.Skill, resp.Msg.Versions, nil
 }
+
+func (c *Client) GetSkillContent(ctx context.Context, name, version string) ([]byte, *skillctlv1.SkillVersion, error) {
+	resp, err := c.registry.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+		Name:    name,
+		Version: version,
+	}))
+	if err != nil {
+		return nil, nil, err
+	}
+	return resp.Msg.Content, resp.Msg.Version, nil
+}

@@ -56,9 +56,21 @@ func addExploreCmd(root *cobra.Command) {
 				return fmt.Errorf("skill not found: %w", err)
 			}
 			printSkillDetail(cmd.OutOrStdout(), skill, versions)
+
+			verbose, _ := cmd.Flags().GetBool("verbose")
+			if verbose {
+				content, _, err := client.GetSkillContent(cmd.Context(), args[0], "")
+				if err != nil {
+					fmt.Fprintf(cmd.ErrOrStderr(), "Warning: could not fetch content: %v\n", err)
+				} else {
+					fmt.Fprintln(cmd.OutOrStdout(), "\n--- Content ---")
+					fmt.Fprintln(cmd.OutOrStdout(), string(content))
+				}
+			}
 			return nil
 		},
 	}
+	showCmd.Flags().BoolP("verbose", "v", false, "include skill content in output")
 
 	exploreCmd.AddCommand(showCmd)
 	root.AddCommand(exploreCmd)
