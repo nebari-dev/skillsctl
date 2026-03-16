@@ -33,6 +33,7 @@ func NewRootCmd() *cobra.Command {
 	addExploreCmd(rootCmd)
 	addConfigCmd(rootCmd)
 	addPublishCmd(rootCmd)
+	addInstallCmd(rootCmd)
 	return rootCmd
 }
 
