@@ -40,13 +40,29 @@ func (c *Client) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, 
 	return resp.Msg.Skill, resp.Msg.Versions, nil
 }
 
-func (c *Client) GetSkillContent(ctx context.Context, name, version string) ([]byte, *skillctlv1.SkillVersion, error) {
+func (c *Client) GetSkillContent(ctx context.Context, name, version, digest string) ([]byte, *skillctlv1.SkillVersion, error) {
 	resp, err := c.registry.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
 		Name:    name,
 		Version: version,
+		Digest:  digest,
 	}))
 	if err != nil {
 		return nil, nil, err
 	}
 	return resp.Msg.Content, resp.Msg.Version, nil
+}
+
+func (c *Client) PublishSkill(ctx context.Context, name, version, description, changelog string, tags []string, content []byte) (*skillctlv1.Skill, *skillctlv1.SkillVersion, error) {
+	resp, err := c.registry.PublishSkill(ctx, connect.NewRequest(&skillctlv1.PublishSkillRequest{
+		Name:        name,
+		Version:     version,
+		Description: description,
+		Tags:        tags,
+		Changelog:   changelog,
+		Content:     content,
+	}))
+	if err != nil {
+		return nil, nil, err
+	}
+	return resp.Msg.Skill, resp.Msg.Version, nil
 }

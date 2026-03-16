@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,8 +16,9 @@ import (
 // It serves canned skill data without depending on any backend internals.
 type StubRegistryService struct {
 	skillctlv1connect.UnimplementedRegistryServiceHandler
-	Skills  []*skillctlv1.Skill
-	Content map[string][]byte // keyed by skill name
+	Skills     []*skillctlv1.Skill
+	Content    map[string][]byte // keyed by skill name
+	PublishErr error             // if set, PublishSkill returns this error
 }
 
 func (s *StubRegistryService) ListSkills(_ context.Context, _ *connect.Request[skillctlv1.ListSkillsRequest]) (*connect.Response[skillctlv1.ListSkillsResponse], error) {
@@ -32,6 +34,25 @@ func (s *StubRegistryService) GetSkill(_ context.Context, req *connect.Request[s
 	return nil, connect.NewError(connect.CodeNotFound, nil)
 }
 
+func (s *StubRegistryService) PublishSkill(_ context.Context, req *connect.Request[skillctlv1.PublishSkillRequest]) (*connect.Response[skillctlv1.PublishSkillResponse], error) {
+	if s.PublishErr != nil {
+		return nil, s.PublishErr
+	}
+	skill := &skillctlv1.Skill{
+		Name:          req.Msg.Name,
+		LatestVersion: req.Msg.Version,
+		Owner:         "dev-user",
+	}
+	ver := &skillctlv1.SkillVersion{
+		Version: req.Msg.Version,
+		Digest:  "sha256:stubdigest",
+	}
+	return connect.NewResponse(&skillctlv1.PublishSkillResponse{
+		Skill:   skill,
+		Version: ver,
+	}), nil
+}
+
 func (s *StubRegistryService) GetSkillContent(_ context.Context, req *connect.Request[skillctlv1.GetSkillContentRequest]) (*connect.Response[skillctlv1.GetSkillContentResponse], error) {
 	if s.Content == nil {
 		return nil, connect.NewError(connect.CodeNotFound, nil)
@@ -40,9 +61,12 @@ func (s *StubRegistryService) GetSkillContent(_ context.Context, req *connect.Re
 	if !ok {
 		return nil, connect.NewError(connect.CodeNotFound, nil)
 	}
+	if req.Msg.Digest != "" && req.Msg.Digest != "sha256:gooddigest" {
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("digest mismatch"))
+	}
 	return connect.NewResponse(&skillctlv1.GetSkillContentResponse{
 		Content: content,
-		Version: &skillctlv1.SkillVersion{Version: "1.0.0"},
+		Version: &skillctlv1.SkillVersion{Version: "1.0.0", Digest: "sha256:gooddigest"},
 	}), nil
 }
 
@@ -80,6 +104,18 @@ func NewStubServer(t *testing.T, skills []*skillctlv1.Skill) *httptest.Server {
 func NewStubServerWithContent(t *testing.T, skills []*skillctlv1.Skill, content map[string][]byte) *httptest.Server {
 	t.Helper()
 	stub := &StubRegistryService{Skills: skills, Content: content}
+	mux := http.NewServeMux()
+	path, handler := skillctlv1connect.NewRegistryServiceHandler(stub)
+	mux.Handle(path, handler)
+	ts := httptest.NewServer(mux)
+	t.Cleanup(ts.Close)
+	return ts
+}
+
+// NewStubServerFull starts a test server with skills, content, and an optional publish error.
+func NewStubServerFull(t *testing.T, skills []*skillctlv1.Skill, content map[string][]byte, publishErr error) *httptest.Server {
+	t.Helper()
+	stub := &StubRegistryService{Skills: skills, Content: content, PublishErr: publishErr}
 	mux := http.NewServeMux()
 	path, handler := skillctlv1connect.NewRegistryServiceHandler(stub)
 	mux.Handle(path, handler)
