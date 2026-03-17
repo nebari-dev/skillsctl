@@ -32,7 +32,7 @@ func (s *stubValidator) Validate(_ context.Context, _ string) (*auth.Claims, err
 }
 
 func TestHealthz(t *testing.T) {
-	srv := server.New(store.NewMemory(nil), nil)
+	srv := server.New(store.NewMemory(nil), nil, auth.Config{})
 	ts := httptest.NewServer(srv.Handler())
 	defer ts.Close()
 
@@ -54,7 +54,7 @@ func TestHealthz(t *testing.T) {
 
 func TestRPC_RequiresAuth(t *testing.T) {
 	validator := &stubValidator{err: errors.New("invalid")}
-	srv := server.New(store.NewMemory(nil), validator)
+	srv := server.New(store.NewMemory(nil), validator, auth.Config{})
 	ts := httptest.NewServer(srv.Handler())
 	defer ts.Close()
 
@@ -75,7 +75,7 @@ func TestRPC_RequiresAuth(t *testing.T) {
 }
 
 func TestRPC_NilValidator_PassesThrough(t *testing.T) {
-	srv := server.New(store.NewMemory(nil), nil)
+	srv := server.New(store.NewMemory(nil), nil, auth.Config{})
 	ts := httptest.NewServer(srv.Handler())
 	defer ts.Close()
 
@@ -101,7 +101,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	repo := sqlitestore.New(db)
-	srv := server.New(repo, nil) // nil validator = dev mode with dev claims
+	srv := server.New(repo, nil, auth.Config{}) // nil validator = dev mode with dev claims
 	ts := httptest.NewServer(srv.Handler())
 	t.Cleanup(ts.Close)
 
@@ -256,5 +256,60 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 	if errors.As(err, &connectErr) && connectErr.Code() != connect.CodeNotFound {
 		t.Errorf("expected NotFound, got %v", connectErr.Code())
+	}
+}
+
+func TestAuthConfig_Enabled(t *testing.T) {
+	cfg := auth.Config{
+		IssuerURL: "https://keycloak.example.com/realms/test",
+		ClientID:  "skillctl-cli",
+	}
+	srv := server.New(store.NewMemory(nil), nil, cfg)
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL + "/auth/config")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("expected 200, got %d", resp.StatusCode)
+	}
+	if ct := resp.Header.Get("Content-Type"); ct != "application/json" {
+		t.Errorf("expected application/json, got %q", ct)
+	}
+
+	body, _ := io.ReadAll(resp.Body)
+	if !strings.Contains(string(body), `"enabled":true`) {
+		t.Errorf("expected enabled:true, got: %s", body)
+	}
+	if !strings.Contains(string(body), cfg.IssuerURL) {
+		t.Errorf("expected issuer_url, got: %s", body)
+	}
+	if !strings.Contains(string(body), cfg.ClientID) {
+		t.Errorf("expected client_id, got: %s", body)
+	}
+}
+
+func TestAuthConfig_Disabled(t *testing.T) {
+	srv := server.New(store.NewMemory(nil), nil, auth.Config{})
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL + "/auth/config")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if !strings.Contains(string(body), `"enabled":false`) {
+		t.Errorf("expected enabled:false, got: %s", body)
+	}
+	// Should not contain issuer or client_id when disabled
+	if strings.Contains(string(body), "issuer_url") {
+		t.Errorf("expected no issuer_url when disabled, got: %s", body)
 	}
 }

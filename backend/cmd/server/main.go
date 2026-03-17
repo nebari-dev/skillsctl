@@ -52,7 +52,7 @@ func main() {
 	}
 
 	repo := sqlitestore.New(db)
-	srv := server.New(repo, validator)
+	srv := server.New(repo, validator, authCfg)
 
 	log.Printf("starting server on :%s (db: %s)", port, dbPath)
 	if err := http.ListenAndServe(":"+port, srv.Handler()); err != nil {
