@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -54,7 +55,7 @@ func runAuthLogin(cmd *cobra.Command, _ []string) error {
 
 	pending, err := auth.StartDeviceFlow(cmd.Context(), serverURL)
 	if err != nil {
-		if err == auth.ErrAuthDisabled {
+		if errors.Is(err, auth.ErrAuthDisabled) {
 			fmt.Fprintln(cmd.OutOrStdout(), "Server does not require authentication.")
 			return nil
 		}

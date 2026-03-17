@@ -89,6 +89,11 @@ func StartDeviceFlow(ctx context.Context, serverURL string) (*DeviceFlowPending,
 		interval = 5 * time.Second
 	}
 
+	expiresIn := time.Duration(deviceAuth.ExpiresIn) * time.Second
+	if expiresIn <= 0 {
+		expiresIn = 5 * time.Minute
+	}
+
 	return &DeviceFlowPending{
 		VerificationURI:         deviceAuth.VerificationURI,
 		VerificationURIComplete: deviceAuth.VerificationURIComplete,
@@ -97,7 +102,7 @@ func StartDeviceFlow(ctx context.Context, serverURL string) (*DeviceFlowPending,
 		TokenEndpoint:           discovery.TokenEndpoint,
 		ClientID:                authCfg.ClientID,
 		Interval:                interval,
-		ExpiresAt:               time.Now().Add(time.Duration(deviceAuth.ExpiresIn) * time.Second),
+		ExpiresAt:               time.Now().Add(expiresIn),
 	}, nil
 }
 
