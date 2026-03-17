@@ -6,6 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/nebari-dev/skillctl/cli/internal/api"
+	"github.com/nebari-dev/skillctl/cli/internal/auth"
 )
 
 var apiURL string
@@ -42,6 +45,14 @@ func getAPIURL() string {
 		return apiURL
 	}
 	return viper.GetString("api_url")
+}
+
+func getClient() *api.Client {
+	token := ""
+	if tok, _ := auth.LoadToken(auth.DefaultCredentialsPath()); tok != nil {
+		token = tok.IDToken
+	}
+	return api.NewClient(getAPIURL(), api.WithToken(token))
 }
 
 func Execute() {

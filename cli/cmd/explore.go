@@ -10,8 +10,6 @@ import (
 	"github.com/spf13/cobra"
 
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-
-	"github.com/nebari-dev/skillctl/cli/internal/api"
 )
 
 func addExploreCmd(root *cobra.Command) {
@@ -22,7 +20,7 @@ func addExploreCmd(root *cobra.Command) {
 		Use:   "explore",
 		Short: "Browse available skills",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			client := api.NewClient(getAPIURL())
+			client := getClient()
 
 			sourceFilter := skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
 			switch source {
@@ -50,7 +48,7 @@ func addExploreCmd(root *cobra.Command) {
 		Short: "Show skill details",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			client := api.NewClient(getAPIURL())
+			client := getClient()
 			skill, versions, err := client.GetSkill(context.Background(), args[0])
 			if err != nil {
 				return fmt.Errorf("skill not found: %w", err)

@@ -9,14 +9,52 @@ import (
 	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
 )
 
-type Client struct {
-	registry skillctlv1connect.RegistryServiceClient
+// ClientOption configures the API client.
+type ClientOption func(*Client)
+
+// WithToken sets the Bearer token for all requests.
+func WithToken(token string) ClientOption {
+	return func(c *Client) {
+		c.token = token
+	}
 }
 
-func NewClient(baseURL string) *Client {
-	return &Client{
-		registry: skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, baseURL),
+// Client is the skillctl API client.
+type Client struct {
+	registry skillctlv1connect.RegistryServiceClient
+	token    string
+}
+
+// NewClient creates an API client. Pass WithToken to attach auth.
+func NewClient(baseURL string, opts ...ClientOption) *Client {
+	c := &Client{}
+	for _, opt := range opts {
+		opt(c)
 	}
+
+	httpClient := http.DefaultClient
+	if c.token != "" {
+		httpClient = &http.Client{
+			Transport: &tokenRoundTripper{
+				base:  http.DefaultTransport,
+				token: c.token,
+			},
+		}
+	}
+
+	c.registry = skillctlv1connect.NewRegistryServiceClient(httpClient, baseURL)
+	return c
+}
+
+type tokenRoundTripper struct {
+	base  http.RoundTripper
+	token string
+}
+
+func (t *tokenRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	req.Header.Set("Authorization", "Bearer "+t.token)
+	return t.base.RoundTrip(req)
 }
 
 func (c *Client) ListSkills(ctx context.Context, tags []string, source skillctlv1.SkillSource) ([]*skillctlv1.Skill, error) {
