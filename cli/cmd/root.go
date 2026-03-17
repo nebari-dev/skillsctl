@@ -20,6 +20,7 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().StringVar(&apiURL, "api-url", "", "Backend API URL")
+	rootCmd.PersistentFlags().StringVar(&credentialsPath, "credentials-path", "", "Credentials file path (for testing)")
 
 	cobra.OnInitialize(func() {
 		home, _ := os.UserHomeDir()
@@ -50,7 +51,7 @@ func getAPIURL() string {
 
 func getClient() *api.Client {
 	token := ""
-	if tok, _ := auth.LoadToken(auth.DefaultCredentialsPath()); tok != nil {
+	if tok, _ := auth.LoadToken(resolveCredentialsPath()); tok != nil {
 		token = tok.IDToken
 	}
 	return api.NewClient(getAPIURL(), api.WithToken(token))

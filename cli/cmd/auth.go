@@ -37,7 +37,6 @@ func addAuthCmd(root *cobra.Command) {
 		RunE:  runAuthLogout,
 	}
 
-	authCmd.PersistentFlags().StringVar(&credentialsPath, "credentials-path", "", "Credentials file path (for testing)")
 	authCmd.AddCommand(loginCmd, statusCmd, logoutCmd)
 	root.AddCommand(authCmd)
 }
