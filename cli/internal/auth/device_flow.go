@@ -6,11 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 )
+
+// maxResponseBytes limits the size of HTTP responses to prevent OOM from
+// malicious or misconfigured servers.
+const maxResponseBytes = 1024 * 1024 // 1MB
 
 // ErrAuthDisabled is returned when the server has no OIDC configured.
 var ErrAuthDisabled = errors.New("server does not require authentication")
@@ -69,6 +74,11 @@ func StartDeviceFlow(ctx context.Context, serverURL string) (*DeviceFlowPending,
 	}
 	if !authCfg.Enabled {
 		return nil, ErrAuthDisabled
+	}
+
+	// Validate issuer URL scheme to prevent SSRF via file:// or other protocols.
+	if !strings.HasPrefix(authCfg.IssuerURL, "http://") && !strings.HasPrefix(authCfg.IssuerURL, "https://") {
+		return nil, fmt.Errorf("invalid issuer URL scheme: %s (must be http or https)", authCfg.IssuerURL)
 	}
 
 	discovery, err := fetchOIDCDiscovery(ctx, authCfg.IssuerURL)
@@ -157,6 +167,14 @@ func PollForToken(ctx context.Context, pending *DeviceFlowPending, pollInterval 
 	}
 }
 
+// decodeJSON reads a limited response body and decodes JSON into v.
+// Returns an error if the status code is not 200 (for GET) or 200/400 (for token endpoints).
+func decodeJSON(resp *http.Response, v any) error {
+	defer resp.Body.Close()
+	body := io.LimitReader(resp.Body, maxResponseBytes)
+	return json.NewDecoder(body).Decode(v)
+}
+
 func fetchAuthConfig(ctx context.Context, serverURL string) (*authConfigResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", serverURL+"/auth/config", nil)
 	if err != nil {
@@ -166,9 +184,12 @@ func fetchAuthConfig(ctx context.Context, serverURL string) (*authConfigResponse
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected status %d from %s/auth/config", resp.StatusCode, serverURL)
+	}
 	var cfg authConfigResponse
-	if err := json.NewDecoder(resp.Body).Decode(&cfg); err != nil {
+	if err := decodeJSON(resp, &cfg); err != nil {
 		return nil, err
 	}
 	return &cfg, nil
@@ -183,9 +204,12 @@ func fetchOIDCDiscovery(ctx context.Context, issuerURL string) (*oidcDiscovery, 
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected status %d from OIDC discovery", resp.StatusCode)
+	}
 	var disc oidcDiscovery
-	if err := json.NewDecoder(resp.Body).Decode(&disc); err != nil {
+	if err := decodeJSON(resp, &disc); err != nil {
 		return nil, err
 	}
 	return &disc, nil
@@ -205,9 +229,12 @@ func requestDeviceCode(ctx context.Context, endpoint, clientID string) (*deviceA
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected status %d from device authorization endpoint", resp.StatusCode)
+	}
 	var dar deviceAuthResponse
-	if err := json.NewDecoder(resp.Body).Decode(&dar); err != nil {
+	if err := decodeJSON(resp, &dar); err != nil {
 		return nil, err
 	}
 	return &dar, nil
@@ -228,9 +255,14 @@ func pollToken(ctx context.Context, endpoint, clientID, deviceCode string) (*tok
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	// Token endpoint returns 400 for error responses (authorization_pending, etc.)
+	// and 200 for success. Both contain JSON we need to decode.
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusBadRequest {
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected status %d from token endpoint", resp.StatusCode)
+	}
 	var tok tokenResponse
-	if err := json.NewDecoder(resp.Body).Decode(&tok); err != nil {
+	if err := decodeJSON(resp, &tok); err != nil {
 		return nil, err
 	}
 	return &tok, nil
