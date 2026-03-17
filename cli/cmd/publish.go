@@ -7,8 +7,6 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/spf13/cobra"
-
-	"github.com/nebari-dev/skillctl/cli/internal/api"
 )
 
 const maxContentBytes = 1024 * 1024 // 1MB
@@ -35,7 +33,7 @@ func addPublishCmd(root *cobra.Command) {
 				return fmt.Errorf("file exceeds maximum size of %d bytes", maxContentBytes)
 			}
 
-			client := api.NewClient(getAPIURL())
+			client := getClient()
 			_, ver, err := client.PublishSkill(cmd.Context(), name, version, description, changelog, tags, content)
 			if err != nil {
 				return mapPublishError(err, name, version)

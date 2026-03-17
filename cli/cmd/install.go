@@ -10,8 +10,6 @@ import (
 	"connectrpc.com/connect"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/nebari-dev/skillctl/cli/internal/api"
 )
 
 func addInstallCmd(root *cobra.Command) {
@@ -32,7 +30,7 @@ func addInstallCmd(root *cobra.Command) {
 				dir = viper.GetString("skills_dir")
 			}
 
-			client := api.NewClient(getAPIURL())
+			client := getClient()
 			content, ver, err := client.GetSkillContent(cmd.Context(), name, version, digest)
 			if err != nil {
 				return mapInstallError(err, name, version)

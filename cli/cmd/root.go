@@ -6,6 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/nebari-dev/skillctl/cli/internal/api"
+	"github.com/nebari-dev/skillctl/cli/internal/auth"
 )
 
 var apiURL string
@@ -17,6 +20,7 @@ func NewRootCmd() *cobra.Command {
 	}
 
 	rootCmd.PersistentFlags().StringVar(&apiURL, "api-url", "", "Backend API URL")
+	rootCmd.PersistentFlags().StringVar(&credentialsPath, "credentials-path", "", "Credentials file path (for testing)")
 
 	cobra.OnInitialize(func() {
 		home, _ := os.UserHomeDir()
@@ -34,6 +38,7 @@ func NewRootCmd() *cobra.Command {
 	addConfigCmd(rootCmd)
 	addPublishCmd(rootCmd)
 	addInstallCmd(rootCmd)
+	addAuthCmd(rootCmd)
 	return rootCmd
 }
 
@@ -42,6 +47,14 @@ func getAPIURL() string {
 		return apiURL
 	}
 	return viper.GetString("api_url")
+}
+
+func getClient() *api.Client {
+	token := ""
+	if tok, _ := auth.LoadToken(resolveCredentialsPath()); tok != nil {
+		token = tok.IDToken
+	}
+	return api.NewClient(getAPIURL(), api.WithToken(token))
 }
 
 func Execute() {

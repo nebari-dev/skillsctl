@@ -2,6 +2,8 @@ package api_test
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
@@ -38,6 +40,42 @@ func TestClient_PublishSkill(t *testing.T) {
 	}
 	if ver.Digest == "" {
 		t.Error("expected non-empty digest")
+	}
+}
+
+func TestClient_WithToken_AttachesHeader(t *testing.T) {
+	var gotAuth string
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{}`))
+	})
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
+
+	client := api.NewClient(ts.URL, api.WithToken("test-token-123"))
+	client.ListSkills(context.Background(), nil, 0)
+
+	if gotAuth != "Bearer test-token-123" {
+		t.Errorf("expected 'Bearer test-token-123', got %q", gotAuth)
+	}
+}
+
+func TestClient_WithoutToken_NoHeader(t *testing.T) {
+	var gotAuth string
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotAuth = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{}`))
+	})
+	ts := httptest.NewServer(handler)
+	defer ts.Close()
+
+	client := api.NewClient(ts.URL)
+	client.ListSkills(context.Background(), nil, 0)
+
+	if gotAuth != "" {
+		t.Errorf("expected no auth header, got %q", gotAuth)
 	}
 }
 
