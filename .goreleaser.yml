@@ -25,6 +25,20 @@ builds:
       - -X github.com/nebari-dev/skillctl/cli/cmd.version={{.Version}}
       - -X github.com/nebari-dev/skillctl/cli/cmd.commit={{.ShortCommit}}
 
+  - id: skillctl-server
+    main: ./backend/cmd/server
+    binary: skillctl-server
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+
 archives:
   - id: skillctl
     builds:
@@ -34,6 +48,12 @@ archives:
       - goos: windows
         format: zip
     name_template: "skillctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+  - id: skillctl-server
+    builds:
+      - skillctl-server
+    format: tar.gz
+    name_template: "skillctl-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
   name_template: "checksums.txt"
