@@ -14,7 +14,6 @@ import (
 var (
 	apiURL  string
 	version = "dev"
-	commit  = ""
 )
 
 func NewRootCmd() *cobra.Command {

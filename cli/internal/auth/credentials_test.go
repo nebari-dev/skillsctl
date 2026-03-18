@@ -53,7 +53,9 @@ func TestLoadToken_Missing(t *testing.T) {
 func TestLoadToken_Malformed(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "credentials.json")
-	os.WriteFile(path, []byte("not json"), 0600)
+	if err := os.WriteFile(path, []byte("not json"), 0600); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
 
 	tok, err := auth.LoadToken(path)
 	if err != nil {
@@ -72,7 +74,9 @@ func TestLoadToken_Expired(t *testing.T) {
 		IDToken: "eyJ.expired.token",
 		Expiry:  time.Now().Add(-time.Hour),
 	}
-	auth.SaveToken(path, tok)
+	if err := auth.SaveToken(path, tok); err != nil {
+		t.Fatalf("save token: %v", err)
+	}
 
 	loaded, err := auth.LoadToken(path)
 	if err != nil {
@@ -91,7 +95,9 @@ func TestLoadTokenRaw_Expired(t *testing.T) {
 		IDToken: "eyJ.expired.token",
 		Expiry:  time.Now().Add(-time.Hour),
 	}
-	auth.SaveToken(path, tok)
+	if err := auth.SaveToken(path, tok); err != nil {
+		t.Fatalf("save token: %v", err)
+	}
 
 	loaded, err := auth.LoadTokenRaw(path)
 	if err != nil {
@@ -108,7 +114,9 @@ func TestLoadTokenRaw_Expired(t *testing.T) {
 func TestDeleteToken(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "credentials.json")
-	os.WriteFile(path, []byte("{}"), 0600)
+	if err := os.WriteFile(path, []byte("{}"), 0600); err != nil {
+		t.Fatalf("write file: %v", err)
+	}
 
 	auth.DeleteToken(path)
 

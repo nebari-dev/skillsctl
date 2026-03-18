@@ -44,7 +44,7 @@ func (f *fakeOIDC) handleDiscovery(w http.ResponseWriter, _ *http.Request) {
 		"jwks_uri": f.server.URL + "/jwks",
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(doc)
+	_ = json.NewEncoder(w).Encode(doc)
 }
 
 func (f *fakeOIDC) handleJWKS(w http.ResponseWriter, _ *http.Request) {
@@ -59,7 +59,7 @@ func (f *fakeOIDC) handleJWKS(w http.ResponseWriter, _ *http.Request) {
 		},
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(jwks)
+	_ = json.NewEncoder(w).Encode(jwks)
 }
 
 type tokenClaims struct {

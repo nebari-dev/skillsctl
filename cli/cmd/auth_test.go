@@ -28,20 +28,20 @@ func mockFullOIDCServer(t *testing.T) *httptest.Server {
 
 	mux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"enabled":    true,
 			"issuer_url": ts.URL,
 			"client_id":  "test-client",
 		})
 	})
 	mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{
+		_ = json.NewEncoder(w).Encode(map[string]string{
 			"device_authorization_endpoint": ts.URL + "/device",
-			"token_endpoint":               ts.URL + "/token",
+			"token_endpoint":                ts.URL + "/token",
 		})
 	})
 	mux.HandleFunc("/device", func(w http.ResponseWriter, _ *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"device_code":      "test-code",
 			"user_code":        "TEST-CODE",
 			"verification_uri": ts.URL + "/verify",
@@ -51,7 +51,7 @@ func mockFullOIDCServer(t *testing.T) *httptest.Server {
 	})
 	mux.HandleFunc("/token", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		_ = json.NewEncoder(w).Encode(map[string]string{
 			"id_token": authTestJWT,
 		})
 	})
@@ -99,7 +99,7 @@ func TestAuthLogin_AuthDisabled(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"enabled": false})
+		_ = json.NewEncoder(w).Encode(map[string]any{"enabled": false})
 	})
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
@@ -130,10 +130,12 @@ func TestAuthStatus_LoggedIn(t *testing.T) {
 	tmpDir := t.TempDir()
 	credsPath := filepath.Join(tmpDir, "credentials.json")
 
-	cliauth.SaveToken(credsPath, &cliauth.CachedToken{
+	if err := cliauth.SaveToken(credsPath, &cliauth.CachedToken{
 		IDToken: authTestJWT,
 		Expiry:  cliauth.FarFuture(),
-	})
+	}); err != nil {
+		t.Fatalf("save token: %v", err)
+	}
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()
@@ -169,10 +171,12 @@ func TestAuthStatus_Expired(t *testing.T) {
 	tmpDir := t.TempDir()
 	credsPath := filepath.Join(tmpDir, "credentials.json")
 
-	cliauth.SaveToken(credsPath, &cliauth.CachedToken{
+	if err := cliauth.SaveToken(credsPath, &cliauth.CachedToken{
 		IDToken: authTestJWT,
 		Expiry:  time.Now().Add(-time.Hour),
-	})
+	}); err != nil {
+		t.Fatalf("save token: %v", err)
+	}
 
 	root := cmd.NewRootCmd()
 	root.SetArgs([]string{"auth", "status", "--credentials-path", credsPath})
@@ -198,20 +202,20 @@ func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
 	// OIDC endpoints
 	mux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"enabled":    true,
 			"issuer_url": ts.URL,
 			"client_id":  "test-client",
 		})
 	})
 	mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{
+		_ = json.NewEncoder(w).Encode(map[string]string{
 			"device_authorization_endpoint": ts.URL + "/device",
-			"token_endpoint":               ts.URL + "/token",
+			"token_endpoint":                ts.URL + "/token",
 		})
 	})
 	mux.HandleFunc("/device", func(w http.ResponseWriter, _ *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"device_code":      "test-code",
 			"user_code":        "TEST-CODE",
 			"verification_uri": ts.URL + "/verify",
@@ -221,7 +225,7 @@ func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
 	})
 	mux.HandleFunc("/token", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		_ = json.NewEncoder(w).Encode(map[string]string{
 			"id_token": authTestJWT,
 		})
 	})
@@ -233,7 +237,9 @@ func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
 	tmpDir := t.TempDir()
 	credsPath := filepath.Join(tmpDir, "credentials.json")
 	skillFile := filepath.Join(tmpDir, "skill.md")
-	os.WriteFile(skillFile, []byte("# Test"), 0644)
+	if err := os.WriteFile(skillFile, []byte("# Test"), 0644); err != nil { //nolint:gosec // test file, 0644 is fine
+		t.Fatalf("write skill file: %v", err)
+	}
 
 	// Step 1: Login (talks to OIDC mock)
 	loginRoot := cmd.NewRootCmd()
@@ -269,14 +275,14 @@ func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		for k, v := range resp.Header {
 			w.Header()[k] = v
 		}
 		w.WriteHeader(resp.StatusCode)
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		w.Write(buf.Bytes())
+		_, _ = buf.ReadFrom(resp.Body)
+		_, _ = w.Write(buf.Bytes())
 	})
 	captureServer := httptest.NewServer(captureMux)
 	t.Cleanup(captureServer.Close)
@@ -304,7 +310,9 @@ func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
 func TestAuthLogout(t *testing.T) {
 	tmpDir := t.TempDir()
 	credsPath := filepath.Join(tmpDir, "credentials.json")
-	os.WriteFile(credsPath, []byte(`{"id_token":"x"}`), 0600)
+	if err := os.WriteFile(credsPath, []byte(`{"id_token":"x"}`), 0600); err != nil {
+		t.Fatalf("write credentials: %v", err)
+	}
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()

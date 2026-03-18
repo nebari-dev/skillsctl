@@ -170,7 +170,7 @@ func PollForToken(ctx context.Context, pending *DeviceFlowPending, pollInterval 
 // decodeJSON reads a limited response body and decodes JSON into v.
 // Returns an error if the status code is not 200 (for GET) or 200/400 (for token endpoints).
 func decodeJSON(resp *http.Response, v any) error {
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body := io.LimitReader(resp.Body, maxResponseBytes)
 	return json.NewDecoder(body).Decode(v)
 }
@@ -185,7 +185,7 @@ func fetchAuthConfig(ctx context.Context, serverURL string) (*authConfigResponse
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return nil, fmt.Errorf("unexpected status %d from %s/auth/config", resp.StatusCode, serverURL)
 	}
 	var cfg authConfigResponse
@@ -205,7 +205,7 @@ func fetchOIDCDiscovery(ctx context.Context, issuerURL string) (*oidcDiscovery, 
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return nil, fmt.Errorf("unexpected status %d from OIDC discovery", resp.StatusCode)
 	}
 	var disc oidcDiscovery
@@ -230,7 +230,7 @@ func requestDeviceCode(ctx context.Context, endpoint, clientID string) (*deviceA
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return nil, fmt.Errorf("unexpected status %d from device authorization endpoint", resp.StatusCode)
 	}
 	var dar deviceAuthResponse
@@ -258,7 +258,7 @@ func pollToken(ctx context.Context, endpoint, clientID, deviceCode string) (*tok
 	// Token endpoint returns 400 for error responses (authorization_pending, etc.)
 	// and 200 for success. Both contain JSON we need to decode.
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusBadRequest {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		return nil, fmt.Errorf("unexpected status %d from token endpoint", resp.StatusCode)
 	}
 	var tok tokenResponse

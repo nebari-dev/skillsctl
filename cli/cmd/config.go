@@ -109,18 +109,18 @@ func runConfigInit(cmd *cobra.Command, _ []string) error {
 }
 
 func writeConfigFile(path string, data map[string]string) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
 		return fmt.Errorf("create config directory: %w", err)
 	}
 	out, err := yaml.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("marshal config: %w", err)
 	}
-	return os.WriteFile(path, out, 0644)
+	return os.WriteFile(path, out, 0600)
 }
 
 func readConfigFile(path string) (map[string]string, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // path is from user config, not untrusted input
 	if os.IsNotExist(err) {
 		return make(map[string]string), nil
 	}

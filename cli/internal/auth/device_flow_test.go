@@ -25,29 +25,29 @@ func setupMockServers(t *testing.T, tokenResponses []string) (skillsctlURL strin
 	oidcServer.Start()
 
 	oidcMux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{
+		_ = json.NewEncoder(w).Encode(map[string]string{
 			"device_authorization_endpoint": oidcServer.URL + "/device",
-			"token_endpoint":               oidcServer.URL + "/token",
+			"token_endpoint":                oidcServer.URL + "/token",
 		})
 	})
 	oidcMux.HandleFunc("/device", func(w http.ResponseWriter, _ *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"device_code":               "test-device-code",
 			"user_code":                 "ABCD-EFGH",
 			"verification_uri":          oidcServer.URL + "/verify",
 			"verification_uri_complete": oidcServer.URL + "/verify?code=ABCD-EFGH",
-			"expires_in":               300,
-			"interval":                 1,
+			"expires_in":                300,
+			"interval":                  1,
 		})
 	})
 	oidcMux.HandleFunc("/token", func(w http.ResponseWriter, _ *http.Request) {
 		idx := int(tokenCallCount.Add(1)) - 1
 		w.Header().Set("Content-Type", "application/json")
 		if idx < len(tokenResponses) {
-			w.Write([]byte(tokenResponses[idx]))
+			_, _ = w.Write([]byte(tokenResponses[idx]))
 			return
 		}
-		json.NewEncoder(w).Encode(map[string]string{
+		_ = json.NewEncoder(w).Encode(map[string]string{
 			"id_token": testJWT,
 		})
 	})
@@ -56,7 +56,7 @@ func setupMockServers(t *testing.T, tokenResponses []string) (skillsctlURL strin
 	skillsctlMux := http.NewServeMux()
 	skillsctlMux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{
+		_ = json.NewEncoder(w).Encode(map[string]any{
 			"enabled":    true,
 			"issuer_url": oidcServer.URL,
 			"client_id":  "test-client",
@@ -77,7 +77,7 @@ func setupDisabledServer(t *testing.T) string {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]any{"enabled": false})
+		_ = json.NewEncoder(w).Encode(map[string]any{"enabled": false})
 	})
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)

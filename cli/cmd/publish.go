@@ -25,7 +25,7 @@ func addPublishCmd(root *cobra.Command) {
 		Use:   "publish",
 		Short: "Publish a skill to the registry",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			content, err := os.ReadFile(filePath)
+			content, err := os.ReadFile(filePath) //nolint:gosec // filePath is from user-provided --file flag
 			if err != nil {
 				return fmt.Errorf("read file %s: %w", filePath, err)
 			}
@@ -55,10 +55,10 @@ func addPublishCmd(root *cobra.Command) {
 	publishCmd.Flags().StringSliceVar(&tags, "tag", nil, "Tags (repeatable)")
 	publishCmd.Flags().StringVar(&changelog, "changelog", "", "Version changelog")
 
-	publishCmd.MarkFlagRequired("name")
-	publishCmd.MarkFlagRequired("version")
-	publishCmd.MarkFlagRequired("description")
-	publishCmd.MarkFlagRequired("file")
+	_ = publishCmd.MarkFlagRequired("name")
+	_ = publishCmd.MarkFlagRequired("version")
+	_ = publishCmd.MarkFlagRequired("description")
+	_ = publishCmd.MarkFlagRequired("file")
 
 	root.AddCommand(publishCmd)
 }

@@ -58,7 +58,7 @@ func Open(path string) (*sql.DB, error) {
 	db.SetMaxOpenConns(1)
 
 	if err := db.Ping(); err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, fmt.Errorf("ping sqlite %s: %w", path, err)
 	}
 
@@ -109,7 +109,7 @@ func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter
 	if err != nil {
 		return nil, "", fmt.Errorf("list skills: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var skills []*skillsctlv1.Skill
 	for rows.Next() {
@@ -145,7 +145,7 @@ func (r *Repository) GetSkill(ctx context.Context, name string) (*skillsctlv1.Sk
 	if err != nil {
 		return nil, nil, fmt.Errorf("get skill versions %s: %w", name, err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var versions []*skillsctlv1.SkillVersion
 	for rows.Next() {
@@ -414,8 +414,11 @@ func scanVersion(rows *sql.Rows) (*skillsctlv1.SkillVersion, error) {
 // validSkillSource returns the SkillSource for a known enum value, or
 // SKILL_SOURCE_UNSPECIFIED if the integer doesn't map to a known value.
 func validSkillSource(v int) skillsctlv1.SkillSource {
-	if _, ok := skillsctlv1.SkillSource_name[int32(v)]; ok {
-		return skillsctlv1.SkillSource(v)
+	if v < 0 || v > int(^int32(0)) {
+		return skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
+	}
+	if _, ok := skillsctlv1.SkillSource_name[int32(v)]; ok { //nolint:gosec // overflow guarded above
+		return skillsctlv1.SkillSource(v) //nolint:gosec // overflow guarded above
 	}
 	return skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
 }

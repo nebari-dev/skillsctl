@@ -55,7 +55,7 @@ func LoadToken(path string) (*CachedToken, error) {
 // Returns (nil, nil) if the file is missing or malformed.
 // Returns the token even if expired (caller checks expiry).
 func LoadTokenRaw(path string) (*CachedToken, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // path is from user config, not untrusted input
 	if os.IsNotExist(err) {
 		return nil, nil
 	}
@@ -74,5 +74,5 @@ func LoadTokenRaw(path string) (*CachedToken, error) {
 
 // DeleteToken removes the credentials file. No error if missing.
 func DeleteToken(path string) {
-	os.Remove(path)
+	_ = os.Remove(path)
 }

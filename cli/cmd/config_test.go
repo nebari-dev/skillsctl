@@ -25,7 +25,7 @@ func TestConfigInit(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(configPath) //nolint:gosec // test file, path is from t.TempDir()
 	if err != nil {
 		t.Fatalf("config file not created: %v", err)
 	}
@@ -41,7 +41,9 @@ func TestConfigInit(t *testing.T) {
 func TestConfigInit_AlreadyExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "config.yaml")
-	os.WriteFile(configPath, []byte("api_url: http://example.com\n"), 0644)
+	if err := os.WriteFile(configPath, []byte("api_url: http://example.com\n"), 0644); err != nil { //nolint:gosec // test file
+		t.Fatalf("write config: %v", err)
+	}
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()
@@ -61,7 +63,9 @@ func TestConfigInit_AlreadyExists(t *testing.T) {
 func TestConfigInit_Force(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "config.yaml")
-	os.WriteFile(configPath, []byte("api_url: http://old.com\n"), 0644)
+	if err := os.WriteFile(configPath, []byte("api_url: http://old.com\n"), 0644); err != nil { //nolint:gosec // test file
+		t.Fatalf("write config: %v", err)
+	}
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()
@@ -74,7 +78,7 @@ func TestConfigInit_Force(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	data, _ := os.ReadFile(configPath)
+	data, _ := os.ReadFile(configPath) //nolint:gosec // test file, path is from t.TempDir()
 	if !strings.Contains(string(data), "http://new.com") {
 		t.Errorf("expected new URL in config, got:\n%s", string(data))
 	}
@@ -90,7 +94,7 @@ func TestConfigSetAndGet(t *testing.T) {
 		t.Fatalf("set: %v", err)
 	}
 
-	data, err := os.ReadFile(configPath)
+	data, err := os.ReadFile(configPath) //nolint:gosec // test file, path is from t.TempDir()
 	if err != nil {
 		t.Fatalf("read config: %v", err)
 	}

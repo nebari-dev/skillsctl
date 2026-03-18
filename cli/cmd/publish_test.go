@@ -18,7 +18,9 @@ func TestPublish(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	skillFile := filepath.Join(tmpDir, "my-skill.md")
-	os.WriteFile(skillFile, []byte("# My Skill\nDoes stuff"), 0644)
+	if err := os.WriteFile(skillFile, []byte("# My Skill\nDoes stuff"), 0644); err != nil { //nolint:gosec // test file
+		t.Fatalf("write skill file: %v", err)
+	}
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()
@@ -71,7 +73,9 @@ func TestPublish_FileTooLarge(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	bigFile := filepath.Join(tmpDir, "big.md")
-	os.WriteFile(bigFile, make([]byte, 1024*1024+1), 0644)
+	if err := os.WriteFile(bigFile, make([]byte, 1024*1024+1), 0644); err != nil { //nolint:gosec // test file
+		t.Fatalf("write big file: %v", err)
+	}
 
 	root := cmd.NewRootCmd()
 	root.SetArgs([]string{
@@ -98,7 +102,9 @@ func TestPublish_AlreadyExists(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	skillFile := filepath.Join(tmpDir, "skill.md")
-	os.WriteFile(skillFile, []byte("content"), 0644)
+	if err := os.WriteFile(skillFile, []byte("content"), 0644); err != nil { //nolint:gosec // test file
+		t.Fatalf("write skill file: %v", err)
+	}
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()

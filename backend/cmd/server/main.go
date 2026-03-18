@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("open database: %v", err)
 	}
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	if err := migrations.Run(context.Background(), db); err != nil {
 		log.Fatalf("run migrations: %v", err)
