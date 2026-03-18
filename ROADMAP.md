@@ -40,6 +40,9 @@ Optional defense-in-depth scan of skill content on publish using an LLM to detec
 ### Admin approval queue (opt-in)
 Optional workflow where new skills or first-time publishers require admin approval before the skill is visible. Off by default. Adds friction and relies on admins actually reviewing content, so likely less effective than automated scanning for most orgs. May be useful for compliance-driven environments.
 
+### Documentation site
+A GitHub Pages site built with Hugo for user-facing documentation: getting started guides, CLI reference, server deployment, skill authoring, API reference. Source lives in `docs/site/` and deploys automatically via GitHub Actions on push to main.
+
 ### Web UI
 A browser-based interface for exploring, searching, and managing skills. Built on a TypeScript client library auto-generated from the proto definitions via buf (ConnectRPC has first-class browser support). The backend already serves JSON over HTTP, so the web UI connects directly with no API gateway needed.
 
