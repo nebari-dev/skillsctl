@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 )
 
 // ErrNotFound is returned when a requested skill does not exist.
@@ -24,8 +24,8 @@ var ErrDigestMismatch = errors.New("digest mismatch")
 //
 // Implementations: Memory (dev/test), SQLite (production).
 type Repository interface {
-	ListSkills(ctx context.Context, tags []string, sourceFilter skillctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillctlv1.Skill, string, error)
-	GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error)
-	CreateSkillVersion(ctx context.Context, skill *skillctlv1.Skill, version *skillctlv1.SkillVersion, content []byte) error
-	GetSkillContent(ctx context.Context, name string, version string, digest string) ([]byte, *skillctlv1.SkillVersion, error)
+	ListSkills(ctx context.Context, tags []string, sourceFilter skillsctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillsctlv1.Skill, string, error)
+	GetSkill(ctx context.Context, name string) (*skillsctlv1.Skill, []*skillsctlv1.SkillVersion, error)
+	CreateSkillVersion(ctx context.Context, skill *skillsctlv1.Skill, version *skillsctlv1.SkillVersion, content []byte) error
+	GetSkillContent(ctx context.Context, name string, version string, digest string) ([]byte, *skillsctlv1.SkillVersion, error)
 }

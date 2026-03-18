@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nebari-dev/skillctl/cli/internal/auth"
+	"github.com/nebari-dev/skillsctl/cli/internal/auth"
 )
 
 func TestSaveAndLoadToken(t *testing.T) {

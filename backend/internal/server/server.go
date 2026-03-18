@@ -6,10 +6,10 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/registry"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/registry"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 )
 
 // Server is the main HTTP server that mounts the health check and ConnectRPC handlers.
@@ -25,7 +25,7 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg
 	mux.HandleFunc("/auth/config", handleAuthConfig(authCfg))
 
 	interceptor := auth.NewInterceptor(authValidator)
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
 		registry.NewService(skillStore),
 		connect.WithInterceptors(interceptor),
 	)

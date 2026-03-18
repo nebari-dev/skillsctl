@@ -9,11 +9,11 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 
-	"github.com/nebari-dev/skillctl/backend/internal/store"
-	sqlitestore "github.com/nebari-dev/skillctl/backend/internal/store/sqlite"
-	"github.com/nebari-dev/skillctl/backend/internal/store/sqlite/migrations"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	sqlitestore "github.com/nebari-dev/skillsctl/backend/internal/store/sqlite"
+	"github.com/nebari-dev/skillsctl/backend/internal/store/sqlite/migrations"
 )
 
 func openTestDB(t *testing.T) *sql.DB {
@@ -55,7 +55,7 @@ func TestRepository_ListSkills(t *testing.T) {
 		name         string
 		seed         bool
 		tags         []string
-		sourceFilter skillctlv1.SkillSource
+		sourceFilter skillsctlv1.SkillSource
 		wantCount    int
 	}{
 		{
@@ -83,13 +83,13 @@ func TestRepository_ListSkills(t *testing.T) {
 		{
 			name:         "filter by source internal",
 			seed:         true,
-			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			sourceFilter: skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 			wantCount:    2,
 		},
 		{
 			name:         "filter by source federated returns none",
 			seed:         true,
-			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_FEDERATED,
+			sourceFilter: skillsctlv1.SkillSource_SKILL_SOURCE_FEDERATED,
 			wantCount:    0,
 		},
 		{
@@ -121,7 +121,7 @@ func TestRepository_ListSkills(t *testing.T) {
 func TestRepository_ListSkills_RejectsPageToken(t *testing.T) {
 	db := openTestDB(t)
 	repo := sqlitestore.New(db)
-	_, _, err := repo.ListSkills(context.Background(), nil, skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "some-token")
+	_, _, err := repo.ListSkills(context.Background(), nil, skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "some-token")
 	if !errors.Is(err, store.ErrPaginationNotSupported) {
 		t.Errorf("expected ErrPaginationNotSupported, got %v", err)
 	}
@@ -215,21 +215,21 @@ func TestRepository_CreateSkillVersion(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(*testing.T, *sql.DB)
-		skill   *skillctlv1.Skill
-		version *skillctlv1.SkillVersion
+		skill   *skillsctlv1.Skill
+		version *skillsctlv1.SkillVersion
 		content []byte
 		wantErr error
 	}{
 		{
 			name:  "first publish creates skill and version",
 			setup: func(t *testing.T, db *sql.DB) {},
-			skill: &skillctlv1.Skill{
+			skill: &skillsctlv1.Skill{
 				Name:        "new-skill",
 				Description: "A new skill",
 				Owner:       "user-123",
 				Tags:        []string{"go", "testing"},
 			},
-			version: &skillctlv1.SkillVersion{
+			version: &skillsctlv1.SkillVersion{
 				Version:     "1.0.0",
 				PublishedBy: "user@example.com",
 				Digest:      "sha256:abc123",
@@ -244,21 +244,21 @@ func TestRepository_CreateSkillVersion(t *testing.T) {
 				t.Helper()
 				repo := sqlitestore.New(db)
 				err := repo.CreateSkillVersion(context.Background(),
-					&skillctlv1.Skill{Name: "existing", Description: "test", Owner: "user-123", Tags: []string{}},
-					&skillctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 5},
+					&skillsctlv1.Skill{Name: "existing", Description: "test", Owner: "user-123", Tags: []string{}},
+					&skillsctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 5},
 					[]byte("v1"),
 				)
 				if err != nil {
 					t.Fatalf("setup: %v", err)
 				}
 			},
-			skill: &skillctlv1.Skill{
+			skill: &skillsctlv1.Skill{
 				Name:        "existing",
 				Description: "updated desc",
 				Owner:       "user-123",
 				Tags:        []string{"updated"},
 			},
-			version: &skillctlv1.SkillVersion{
+			version: &skillsctlv1.SkillVersion{
 				Version:     "2.0.0",
 				PublishedBy: "u@ex.com",
 				Digest:      "sha256:b",
@@ -272,15 +272,15 @@ func TestRepository_CreateSkillVersion(t *testing.T) {
 				t.Helper()
 				repo := sqlitestore.New(db)
 				if err := repo.CreateSkillVersion(context.Background(),
-					&skillctlv1.Skill{Name: "owned", Description: "test", Owner: "user-123", Tags: []string{}},
-					&skillctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 5},
+					&skillsctlv1.Skill{Name: "owned", Description: "test", Owner: "user-123", Tags: []string{}},
+					&skillsctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 5},
 					[]byte("v1"),
 				); err != nil {
 					t.Fatalf("setup: %v", err)
 				}
 			},
-			skill:   &skillctlv1.Skill{Name: "owned", Owner: "other-user"},
-			version: &skillctlv1.SkillVersion{Version: "2.0.0", Digest: "sha256:b", SizeBytes: 5},
+			skill:   &skillsctlv1.Skill{Name: "owned", Owner: "other-user"},
+			version: &skillsctlv1.SkillVersion{Version: "2.0.0", Digest: "sha256:b", SizeBytes: 5},
 			content: []byte("v2"),
 			wantErr: store.ErrPermissionDenied,
 		},
@@ -290,15 +290,15 @@ func TestRepository_CreateSkillVersion(t *testing.T) {
 				t.Helper()
 				repo := sqlitestore.New(db)
 				if err := repo.CreateSkillVersion(context.Background(),
-					&skillctlv1.Skill{Name: "dup", Description: "test", Owner: "user-123", Tags: []string{}},
-					&skillctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 5},
+					&skillsctlv1.Skill{Name: "dup", Description: "test", Owner: "user-123", Tags: []string{}},
+					&skillsctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 5},
 					[]byte("v1"),
 				); err != nil {
 					t.Fatalf("setup: %v", err)
 				}
 			},
-			skill:   &skillctlv1.Skill{Name: "dup", Owner: "user-123"},
-			version: &skillctlv1.SkillVersion{Version: "1.0.0", Digest: "sha256:b", SizeBytes: 5},
+			skill:   &skillsctlv1.Skill{Name: "dup", Owner: "user-123"},
+			version: &skillsctlv1.SkillVersion{Version: "1.0.0", Digest: "sha256:b", SizeBytes: 5},
 			content: []byte("v1-again"),
 			wantErr: store.ErrAlreadyExists,
 		},
@@ -351,8 +351,8 @@ func TestRepository_CreateSkillVersion_SemverLatest(t *testing.T) {
 
 	// Publish 2.0.0 first
 	err := repo.CreateSkillVersion(context.Background(),
-		&skillctlv1.Skill{Name: "sv", Description: "test", Owner: "u", Tags: []string{}},
-		&skillctlv1.SkillVersion{Version: "2.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 2},
+		&skillsctlv1.Skill{Name: "sv", Description: "test", Owner: "u", Tags: []string{}},
+		&skillsctlv1.SkillVersion{Version: "2.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 2},
 		[]byte("v2"),
 	)
 	if err != nil {
@@ -361,8 +361,8 @@ func TestRepository_CreateSkillVersion_SemverLatest(t *testing.T) {
 
 	// Publish 1.0.0 after - latest should stay at 2.0.0
 	err = repo.CreateSkillVersion(context.Background(),
-		&skillctlv1.Skill{Name: "sv", Owner: "u"},
-		&skillctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:b", SizeBytes: 2},
+		&skillsctlv1.Skill{Name: "sv", Owner: "u"},
+		&skillsctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:b", SizeBytes: 2},
 		[]byte("v1"),
 	)
 	if err != nil {
@@ -384,8 +384,8 @@ func TestRepository_CreateSkillVersion_UpdatedAtAlwaysSet(t *testing.T) {
 
 	// Publish 2.0.0
 	err := repo.CreateSkillVersion(context.Background(),
-		&skillctlv1.Skill{Name: "ts", Description: "test", Owner: "u", Tags: []string{}},
-		&skillctlv1.SkillVersion{Version: "2.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 2},
+		&skillsctlv1.Skill{Name: "ts", Description: "test", Owner: "u", Tags: []string{}},
+		&skillsctlv1.SkillVersion{Version: "2.0.0", PublishedBy: "u@ex.com", Digest: "sha256:a", SizeBytes: 2},
 		[]byte("v2"),
 	)
 	if err != nil {
@@ -401,8 +401,8 @@ func TestRepository_CreateSkillVersion_UpdatedAtAlwaysSet(t *testing.T) {
 
 	// Publish 1.0.0 (older version - should NOT update latest_version but SHOULD update updated_at)
 	err = repo.CreateSkillVersion(context.Background(),
-		&skillctlv1.Skill{Name: "ts", Owner: "u"},
-		&skillctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:b", SizeBytes: 2},
+		&skillsctlv1.Skill{Name: "ts", Owner: "u"},
+		&skillsctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:b", SizeBytes: 2},
 		[]byte("v1"),
 	)
 	if err != nil {
@@ -426,8 +426,8 @@ func TestRepository_GetSkillContent(t *testing.T) {
 		db := openTestDB(t)
 		repo := sqlitestore.New(db)
 		err := repo.CreateSkillVersion(context.Background(),
-			&skillctlv1.Skill{Name: "my-skill", Description: "test", Owner: "user-123", Tags: []string{"go"}},
-			&skillctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:abc", SizeBytes: 13, Changelog: "Initial"},
+			&skillsctlv1.Skill{Name: "my-skill", Description: "test", Owner: "user-123", Tags: []string{"go"}},
+			&skillsctlv1.SkillVersion{Version: "1.0.0", PublishedBy: "u@ex.com", Digest: "sha256:abc", SizeBytes: 13, Changelog: "Initial"},
 			[]byte("skill content"),
 		)
 		if err != nil {

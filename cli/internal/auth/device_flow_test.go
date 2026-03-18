@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nebari-dev/skillctl/cli/internal/auth"
+	"github.com/nebari-dev/skillsctl/cli/internal/auth"
 )
 
 // testJWT is a JWT with payload {"sub":"user-1","email":"test@example.com","exp":9999999999}
 const testJWT = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJleHAiOjk5OTk5OTk5OTl9.sig"
 
-func setupMockServers(t *testing.T, tokenResponses []string) (skillctlURL string, cleanup func()) {
+func setupMockServers(t *testing.T, tokenResponses []string) (skillsctlURL string, cleanup func()) {
 	t.Helper()
 
 	// Create OIDC provider mock
@@ -52,9 +52,9 @@ func setupMockServers(t *testing.T, tokenResponses []string) (skillctlURL string
 		})
 	})
 
-	// Create skillctl server mock
-	skillctlMux := http.NewServeMux()
-	skillctlMux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
+	// Create skillsctl server mock
+	skillsctlMux := http.NewServeMux()
+	skillsctlMux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
 			"enabled":    true,
@@ -62,14 +62,14 @@ func setupMockServers(t *testing.T, tokenResponses []string) (skillctlURL string
 			"client_id":  "test-client",
 		})
 	})
-	skillctlServer := httptest.NewServer(skillctlMux)
+	skillsctlServer := httptest.NewServer(skillsctlMux)
 
 	cleanup = func() {
 		oidcServer.Close()
-		skillctlServer.Close()
+		skillsctlServer.Close()
 	}
 
-	return skillctlServer.URL, cleanup
+	return skillsctlServer.URL, cleanup
 }
 
 func setupDisabledServer(t *testing.T) string {

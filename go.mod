@@ -1,4 +1,4 @@
-module github.com/nebari-dev/skillctl
+module github.com/nebari-dev/skillsctl
 
 go 1.25.7
 

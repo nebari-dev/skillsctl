@@ -5,13 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 
-	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
 )
 
-func testSkills() []*skillctlv1.Skill {
-	return []*skillctlv1.Skill{
+func testSkills() []*skillsctlv1.Skill {
+	return []*skillsctlv1.Skill{
 		{
 			Name:          "data-pipeline",
 			Description:   "Data pipeline utilities",
@@ -19,7 +19,7 @@ func testSkills() []*skillctlv1.Skill {
 			Tags:          []string{"data", "spark", "go"},
 			LatestVersion: "1.3.0",
 			InstallCount:  47,
-			Source:        skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			Source:        skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 		},
 		{
 			Name:          "code-review",
@@ -28,7 +28,7 @@ func testSkills() []*skillctlv1.Skill {
 			Tags:          []string{"review", "quality"},
 			LatestVersion: "0.9.1",
 			InstallCount:  23,
-			Source:        skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			Source:        skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 		},
 	}
 }
@@ -37,7 +37,7 @@ func TestMemoryStore_ListSkills(t *testing.T) {
 	tests := []struct {
 		name         string
 		tags         []string
-		sourceFilter skillctlv1.SkillSource
+		sourceFilter skillsctlv1.SkillSource
 		wantCount    int
 	}{
 		{
@@ -56,12 +56,12 @@ func TestMemoryStore_ListSkills(t *testing.T) {
 		},
 		{
 			name:         "filter by source internal",
-			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			sourceFilter: skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 			wantCount:    2,
 		},
 		{
 			name:         "filter by source federated returns none",
-			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_FEDERATED,
+			sourceFilter: skillsctlv1.SkillSource_SKILL_SOURCE_FEDERATED,
 			wantCount:    0,
 		},
 	}
@@ -82,7 +82,7 @@ func TestMemoryStore_ListSkills(t *testing.T) {
 
 func TestMemoryStore_ListSkills_Empty(t *testing.T) {
 	s := store.NewMemory(nil)
-	skills, _, err := s.ListSkills(context.Background(), nil, skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "")
+	skills, _, err := s.ListSkills(context.Background(), nil, skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -132,20 +132,20 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(t *testing.T, m *store.Memory)
-		skill   *skillctlv1.Skill
-		version *skillctlv1.SkillVersion
+		skill   *skillsctlv1.Skill
+		version *skillsctlv1.SkillVersion
 		content []byte
 		wantErr error
 	}{
 		{
 			name: "first publish creates skill",
-			skill: &skillctlv1.Skill{
+			skill: &skillsctlv1.Skill{
 				Name:        "new-skill",
 				Description: "A brand new skill",
 				Owner:       "alice",
 				Tags:        []string{"test"},
 			},
-			version: &skillctlv1.SkillVersion{
+			version: &skillsctlv1.SkillVersion{
 				Version:   "1.0.0",
 				Changelog: "initial release",
 				Digest:    "sha256:abc123",
@@ -156,10 +156,10 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 			name: "second version by same owner succeeds",
 			setup: func(t *testing.T, m *store.Memory) {
 				t.Helper()
-				err := m.CreateSkillVersion(context.Background(), &skillctlv1.Skill{
+				err := m.CreateSkillVersion(context.Background(), &skillsctlv1.Skill{
 					Name:  "existing-skill",
 					Owner: "alice",
-				}, &skillctlv1.SkillVersion{
+				}, &skillsctlv1.SkillVersion{
 					Version: "1.0.0",
 					Digest:  "sha256:abc",
 				}, []byte("v1 content"))
@@ -167,11 +167,11 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 					t.Fatalf("setup: %v", err)
 				}
 			},
-			skill: &skillctlv1.Skill{
+			skill: &skillsctlv1.Skill{
 				Name:  "existing-skill",
 				Owner: "alice",
 			},
-			version: &skillctlv1.SkillVersion{
+			version: &skillsctlv1.SkillVersion{
 				Version: "2.0.0",
 				Digest:  "sha256:def",
 			},
@@ -181,10 +181,10 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 			name: "different owner rejected",
 			setup: func(t *testing.T, m *store.Memory) {
 				t.Helper()
-				err := m.CreateSkillVersion(context.Background(), &skillctlv1.Skill{
+				err := m.CreateSkillVersion(context.Background(), &skillsctlv1.Skill{
 					Name:  "owned-skill",
 					Owner: "alice",
-				}, &skillctlv1.SkillVersion{
+				}, &skillsctlv1.SkillVersion{
 					Version: "1.0.0",
 					Digest:  "sha256:abc",
 				}, []byte("v1 content"))
@@ -192,11 +192,11 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 					t.Fatalf("setup: %v", err)
 				}
 			},
-			skill: &skillctlv1.Skill{
+			skill: &skillsctlv1.Skill{
 				Name:  "owned-skill",
 				Owner: "bob",
 			},
-			version: &skillctlv1.SkillVersion{
+			version: &skillsctlv1.SkillVersion{
 				Version: "2.0.0",
 				Digest:  "sha256:def",
 			},
@@ -207,10 +207,10 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 			name: "duplicate version rejected",
 			setup: func(t *testing.T, m *store.Memory) {
 				t.Helper()
-				err := m.CreateSkillVersion(context.Background(), &skillctlv1.Skill{
+				err := m.CreateSkillVersion(context.Background(), &skillsctlv1.Skill{
 					Name:  "dup-skill",
 					Owner: "alice",
-				}, &skillctlv1.SkillVersion{
+				}, &skillsctlv1.SkillVersion{
 					Version: "1.0.0",
 					Digest:  "sha256:abc",
 				}, []byte("v1 content"))
@@ -218,11 +218,11 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 					t.Fatalf("setup: %v", err)
 				}
 			},
-			skill: &skillctlv1.Skill{
+			skill: &skillsctlv1.Skill{
 				Name:  "dup-skill",
 				Owner: "alice",
 			},
-			version: &skillctlv1.SkillVersion{
+			version: &skillsctlv1.SkillVersion{
 				Version: "1.0.0",
 				Digest:  "sha256:abc",
 			},
@@ -255,7 +255,7 @@ func TestMemoryStore_CreateSkillVersion(t *testing.T) {
 			if getErr != nil {
 				t.Fatalf("GetSkill after create: %v", getErr)
 			}
-			if skill.Source != skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL {
+			if skill.Source != skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL {
 				t.Errorf("expected INTERNAL source, got %v", skill.Source)
 			}
 		})
@@ -266,20 +266,20 @@ func TestMemoryStore_GetSkillContent(t *testing.T) {
 	setupStore := func(t *testing.T) *store.Memory {
 		t.Helper()
 		m := store.NewMemory(nil)
-		err := m.CreateSkillVersion(context.Background(), &skillctlv1.Skill{
+		err := m.CreateSkillVersion(context.Background(), &skillsctlv1.Skill{
 			Name:  "my-skill",
 			Owner: "alice",
-		}, &skillctlv1.SkillVersion{
+		}, &skillsctlv1.SkillVersion{
 			Version: "1.0.0",
 			Digest:  "sha256:aaa",
 		}, []byte("content v1"))
 		if err != nil {
 			t.Fatalf("setup v1: %v", err)
 		}
-		err = m.CreateSkillVersion(context.Background(), &skillctlv1.Skill{
+		err = m.CreateSkillVersion(context.Background(), &skillsctlv1.Skill{
 			Name:  "my-skill",
 			Owner: "alice",
-		}, &skillctlv1.SkillVersion{
+		}, &skillsctlv1.SkillVersion{
 			Version: "2.0.0",
 			Digest:  "sha256:bbb",
 		}, []byte("content v2"))
@@ -371,10 +371,10 @@ func TestMemoryStore_CreateSkillVersion_SemverLatest(t *testing.T) {
 	ctx := context.Background()
 
 	// Publish 2.0.0 first.
-	err := m.CreateSkillVersion(ctx, &skillctlv1.Skill{
+	err := m.CreateSkillVersion(ctx, &skillsctlv1.Skill{
 		Name:  "semver-skill",
 		Owner: "alice",
-	}, &skillctlv1.SkillVersion{
+	}, &skillsctlv1.SkillVersion{
 		Version: "2.0.0",
 		Digest:  "sha256:v2",
 	}, []byte("v2"))
@@ -383,10 +383,10 @@ func TestMemoryStore_CreateSkillVersion_SemverLatest(t *testing.T) {
 	}
 
 	// Publish 1.0.0 after - latest should stay at 2.0.0.
-	err = m.CreateSkillVersion(ctx, &skillctlv1.Skill{
+	err = m.CreateSkillVersion(ctx, &skillsctlv1.Skill{
 		Name:  "semver-skill",
 		Owner: "alice",
-	}, &skillctlv1.SkillVersion{
+	}, &skillsctlv1.SkillVersion{
 		Version: "1.0.0",
 		Digest:  "sha256:v1",
 	}, []byte("v1"))

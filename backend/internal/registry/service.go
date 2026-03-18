@@ -7,11 +7,11 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
 )
 
 // Service implements the RegistryService ConnectRPC handler.
@@ -19,25 +19,25 @@ type Service struct {
 	store store.Repository
 }
 
-var _ skillctlv1connect.RegistryServiceHandler = (*Service)(nil)
+var _ skillsctlv1connect.RegistryServiceHandler = (*Service)(nil)
 
 // NewService creates a RegistryService backed by the given store.
 func NewService(s store.Repository) *Service {
 	return &Service{store: s}
 }
 
-func (s *Service) ListSkills(ctx context.Context, req *connect.Request[skillctlv1.ListSkillsRequest]) (*connect.Response[skillctlv1.ListSkillsResponse], error) {
+func (s *Service) ListSkills(ctx context.Context, req *connect.Request[skillsctlv1.ListSkillsRequest]) (*connect.Response[skillsctlv1.ListSkillsResponse], error) {
 	skills, nextToken, err := s.store.ListSkills(ctx, req.Msg.Tags, req.Msg.SourceFilter, req.Msg.PageSize, req.Msg.PageToken)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	return connect.NewResponse(&skillctlv1.ListSkillsResponse{
+	return connect.NewResponse(&skillsctlv1.ListSkillsResponse{
 		Skills:        skills,
 		NextPageToken: nextToken,
 	}), nil
 }
 
-func (s *Service) GetSkill(ctx context.Context, req *connect.Request[skillctlv1.GetSkillRequest]) (*connect.Response[skillctlv1.GetSkillResponse], error) {
+func (s *Service) GetSkill(ctx context.Context, req *connect.Request[skillsctlv1.GetSkillRequest]) (*connect.Response[skillsctlv1.GetSkillResponse], error) {
 	skill, versions, err := s.store.GetSkill(ctx, req.Msg.Name)
 	if err != nil {
 		if errors.Is(err, store.ErrNotFound) {
@@ -45,13 +45,13 @@ func (s *Service) GetSkill(ctx context.Context, req *connect.Request[skillctlv1.
 		}
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	return connect.NewResponse(&skillctlv1.GetSkillResponse{
+	return connect.NewResponse(&skillsctlv1.GetSkillResponse{
 		Skill:    skill,
 		Versions: versions,
 	}), nil
 }
 
-func (s *Service) PublishSkill(ctx context.Context, req *connect.Request[skillctlv1.PublishSkillRequest]) (*connect.Response[skillctlv1.PublishSkillResponse], error) {
+func (s *Service) PublishSkill(ctx context.Context, req *connect.Request[skillsctlv1.PublishSkillRequest]) (*connect.Response[skillsctlv1.PublishSkillResponse], error) {
 	claims, ok := auth.ClaimsFromContext(ctx)
 	if !ok {
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("authentication required to publish"))
@@ -64,15 +64,15 @@ func (s *Service) PublishSkill(ctx context.Context, req *connect.Request[skillct
 
 	digest := computeDigest(msg.Content)
 
-	skill := &skillctlv1.Skill{
+	skill := &skillsctlv1.Skill{
 		Name:        msg.Name,
 		Description: msg.Description,
 		Owner:       claims.Subject,
 		Tags:        msg.Tags,
-		Source:      skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+		Source:      skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 	}
 
-	ver := &skillctlv1.SkillVersion{
+	ver := &skillsctlv1.SkillVersion{
 		Version:     msg.Version,
 		PublishedBy: claims.Email,
 		Changelog:   msg.Changelog,
@@ -98,7 +98,7 @@ func (s *Service) PublishSkill(ctx context.Context, req *connect.Request[skillct
 
 	// Find the just-published version from the re-fetched list so the response
 	// includes any server-set fields (e.g. published_at).
-	var publishedVer *skillctlv1.SkillVersion
+	var publishedVer *skillsctlv1.SkillVersion
 	for _, v := range versions {
 		if v.Version == msg.Version {
 			publishedVer = v
@@ -110,13 +110,13 @@ func (s *Service) PublishSkill(ctx context.Context, req *connect.Request[skillct
 		publishedVer = ver
 	}
 
-	return connect.NewResponse(&skillctlv1.PublishSkillResponse{
+	return connect.NewResponse(&skillsctlv1.PublishSkillResponse{
 		Skill:   updatedSkill,
 		Version: publishedVer,
 	}), nil
 }
 
-func (s *Service) GetSkillContent(ctx context.Context, req *connect.Request[skillctlv1.GetSkillContentRequest]) (*connect.Response[skillctlv1.GetSkillContentResponse], error) {
+func (s *Service) GetSkillContent(ctx context.Context, req *connect.Request[skillsctlv1.GetSkillContentRequest]) (*connect.Response[skillsctlv1.GetSkillContentResponse], error) {
 	content, ver, err := s.store.GetSkillContent(ctx, req.Msg.Name, req.Msg.Version, req.Msg.Digest)
 	if err != nil {
 		if errors.Is(err, store.ErrNotFound) {
@@ -128,7 +128,7 @@ func (s *Service) GetSkillContent(ctx context.Context, req *connect.Request[skil
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	return connect.NewResponse(&skillctlv1.GetSkillContentResponse{
+	return connect.NewResponse(&skillsctlv1.GetSkillContentResponse{
 		Content: content,
 		Version: ver,
 	}), nil

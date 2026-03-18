@@ -1,4 +1,4 @@
-# skillctl
+# skillsctl
 
 A CLI tool and backend registry for discovering, installing, and publishing [Claude Code](https://claude.ai/code) skills.
 
@@ -7,20 +7,20 @@ A CLI tool and backend registry for discovering, installing, and publishing [Cla
 ### Homebrew (macOS/Linux)
 
     brew tap nebari-dev/tap
-    brew install skillctl
+    brew install skillsctl
 
 ### Shell script (macOS/Linux)
 
-    curl -sSL https://raw.githubusercontent.com/nebari-dev/skillctl/main/install.sh | bash
+    curl -sSL https://raw.githubusercontent.com/nebari-dev/skillsctl/main/install.sh | bash
 
 ### Go
 
-    go install github.com/nebari-dev/skillctl/cli@latest
+    go install github.com/nebari-dev/skillsctl/cli@latest
 
 ### From source
 
-    git clone https://github.com/nebari-dev/skillctl.git
-    cd skillctl && make build-cli
+    git clone https://github.com/nebari-dev/skillsctl.git
+    cd skillsctl && make build-cli
 
 ## Quick Start
 
@@ -32,16 +32,16 @@ Start the backend locally (no external dependencies):
 
 Use the CLI:
 
-    skillctl config init                  # first-time setup
-    skillctl explore                      # browse skills
-    skillctl explore show <name>          # skill details
-    skillctl install <name>               # install latest version
-    skillctl install <name>@1.0.0         # install specific version
-    skillctl publish --name my-skill \
+    skillsctl config init                  # first-time setup
+    skillsctl explore                      # browse skills
+    skillsctl explore show <name>          # skill details
+    skillsctl install <name>               # install latest version
+    skillsctl install <name>@1.0.0         # install specific version
+    skillsctl publish --name my-skill \
       --version 1.0.0 \
       --description "My skill" \
       --file ./skill.md                   # publish a skill
-    skillctl auth login                   # authenticate (production servers)
+    skillsctl auth login                   # authenticate (production servers)
 
 ## Architecture
 
@@ -82,12 +82,12 @@ Use the CLI:
     make test-cli         # CLI tests only
     make lint             # golangci-lint
     make proto            # buf lint + generate
-    make build-cli        # builds ./skillctl
-    make build-backend    # builds ./skillctl-server
+    make build-cli        # builds ./skillsctl
+    make build-backend    # builds ./skillsctl-server
 
 ### Proto Changes
 
-1. Edit `.proto` files in `proto/skillctl/v1/`
+1. Edit `.proto` files in `proto/skillsctl/v1/`
 2. Run `make proto` to lint and regenerate
 3. Verify with `git diff --exit-code gen/` (CI checks for drift)
 

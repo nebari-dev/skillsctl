@@ -6,7 +6,7 @@
 
 ## Decision
 
-Use SQLite (via `modernc.org/sqlite`, pure Go, no CGO) instead of PostgreSQL + Valkey for the skillctl backend storage layer.
+Use SQLite (via `modernc.org/sqlite`, pure Go, no CGO) instead of PostgreSQL + Valkey for the skillsctl backend storage layer.
 
 ## Why
 

@@ -1,4 +1,4 @@
-# skillctl Roadmap
+# skillsctl Roadmap
 
 ## Current - MVP
 
@@ -13,8 +13,8 @@ Core backend and CLI for discovering, installing, and publishing Claude Code ski
 - [x] CLI: OIDC device flow login (discovers settings from server)
 - [x] CLI: Install and publish commands
 - [x] CI/CD pipelines (GitHub Actions, GoReleaser, Docker)
-- [x] Homebrew tap (brew tap nebari-dev/tap && brew install skillctl)
-- [x] Dogfood skill (skillctl-usage.md)
+- [x] Homebrew tap (brew tap nebari-dev/tap && brew install skillsctl)
+- [x] Dogfood skill (skillsctl-usage.md)
 - [ ] Helm chart for Kubernetes deployment
 - [ ] Federation and marketplace management
 
@@ -23,13 +23,13 @@ Core backend and CLI for discovering, installing, and publishing Claude Code ski
 Features planned after the core is stable.
 
 ### Skill manifest file
-A `.claude/skills.yaml` file that declares which skills a project uses, with pinned versions. Run `skillctl install` to sync all skills from the manifest - like pixi.toml or package.json for skills. Includes `skillctl add <name>` to install and add to the manifest, plus a lock file with content digests for reproducible installs.
+A `.claude/skills.yaml` file that declares which skills a project uses, with pinned versions. Run `skillsctl install` to sync all skills from the manifest - like pixi.toml or package.json for skills. Includes `skillsctl add <name>` to install and add to the manifest, plus a lock file with content digests for reproducible installs.
 
 ### OCI artifact storage
 Optional OCI registry backend (via oras-go) for skill content storage. Useful if skills grow beyond small text files to include bundled assets or large payloads. The backend is designed so an OCI-backed storage implementation can be swapped in without changing the API contract.
 
 ### OIDC scopes for publish authorization
-Fine-grained write access control via OIDC scopes or custom claims (e.g., `skillctl:publish`) rather than allowing any authenticated user to publish.
+Fine-grained write access control via OIDC scopes or custom claims (e.g., `skillsctl:publish`) rather than allowing any authenticated user to publish.
 
 ### Signed skills
 Publisher signs skill content cryptographically, users verify on install. Similar to cosign for container images. Provides tamper detection without requiring trust in the registry.

@@ -5,9 +5,9 @@ before:
     - go mod tidy
 
 builds:
-  - id: skillctl
+  - id: skillsctl
     main: ./cli
-    binary: skillctl
+    binary: skillsctl
     env:
       - CGO_ENABLED=0
     goos:
@@ -22,12 +22,12 @@ builds:
         goarch: arm64
     ldflags:
       - -s -w
-      - -X github.com/nebari-dev/skillctl/cli/cmd.version={{.Version}}
-      - -X github.com/nebari-dev/skillctl/cli/cmd.commit={{.ShortCommit}}
+      - -X github.com/nebari-dev/skillsctl/cli/cmd.version={{.Version}}
+      - -X github.com/nebari-dev/skillsctl/cli/cmd.commit={{.ShortCommit}}
 
-  - id: skillctl-server
+  - id: skillsctl-server
     main: ./backend/cmd/server
-    binary: skillctl-server
+    binary: skillsctl-server
     env:
       - CGO_ENABLED=0
     goos:
@@ -40,20 +40,20 @@ builds:
       - -s -w
 
 archives:
-  - id: skillctl
+  - id: skillsctl
     builds:
-      - skillctl
+      - skillsctl
     format: tar.gz
     format_overrides:
       - goos: windows
         format: zip
-    name_template: "skillctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name_template: "skillsctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
-  - id: skillctl-server
+  - id: skillsctl-server
     builds:
-      - skillctl-server
+      - skillsctl-server
     format: tar.gz
-    name_template: "skillctl-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    name_template: "skillsctl-server_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 checksum:
   name_template: "checksums.txt"
@@ -72,10 +72,10 @@ brews:
       owner: nebari-dev
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: https://github.com/nebari-dev/skillctl
+    homepage: https://github.com/nebari-dev/skillsctl
     description: CLI for discovering, installing, and publishing Claude Code skills
     license: MIT
     install: |
-      bin.install "skillctl"
+      bin.install "skillsctl"
     test: |
-      system "#{bin}/skillctl", "--version"
+      system "#{bin}/skillsctl", "--version"

@@ -9,12 +9,12 @@ import (
 
 	"connectrpc.com/connect"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/registry"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/registry"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
 )
 
 type stubValidator struct {
@@ -26,18 +26,18 @@ func (s *stubValidator) Validate(_ context.Context, _ string) (*auth.Claims, err
 	return s.claims, s.err
 }
 
-func newTestServer(t *testing.T, v auth.TokenValidator) (*httptest.Server, skillctlv1connect.RegistryServiceClient) {
+func newTestServer(t *testing.T, v auth.TokenValidator) (*httptest.Server, skillsctlv1connect.RegistryServiceClient) {
 	t.Helper()
 	mux := http.NewServeMux()
 	interceptor := auth.NewInterceptor(v)
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
 		registry.NewService(store.NewMemory(nil)),
 		connect.WithInterceptors(interceptor),
 	)
 	mux.Handle(path, handler)
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
 	return ts, client
 }
 
@@ -92,7 +92,7 @@ func TestInterceptor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, client := newTestServer(t, tt.validator)
-			req := connect.NewRequest(&skillctlv1.ListSkillsRequest{})
+			req := connect.NewRequest(&skillsctlv1.ListSkillsRequest{})
 			if tt.authHeader != "" {
 				req.Header().Set("Authorization", tt.authHeader)
 			}
@@ -133,7 +133,7 @@ func TestInterceptor_DevModeClaimsInContext(t *testing.T) {
 	})
 
 	mux := http.NewServeMux()
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
 		registry.NewService(store.NewMemory(nil)),
 		connect.WithInterceptors(interceptor, capturer),
 	)
@@ -141,8 +141,8 @@ func TestInterceptor_DevModeClaimsInContext(t *testing.T) {
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillctlv1.ListSkillsRequest{}))
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillsctlv1.ListSkillsRequest{}))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -176,7 +176,7 @@ func TestInterceptor_ClaimsInContext(t *testing.T) {
 	})
 
 	mux := http.NewServeMux()
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
 		registry.NewService(store.NewMemory(nil)),
 		connect.WithInterceptors(interceptor, capturer),
 	)
@@ -184,8 +184,8 @@ func TestInterceptor_ClaimsInContext(t *testing.T) {
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	req := connect.NewRequest(&skillctlv1.ListSkillsRequest{})
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	req := connect.NewRequest(&skillsctlv1.ListSkillsRequest{})
 	req.Header().Set("Authorization", "Bearer valid-token")
 	_, err := client.ListSkills(context.Background(), req)
 	if err != nil {

@@ -8,16 +8,16 @@ import (
 	"testing"
 
 	"connectrpc.com/connect"
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/registry"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/registry"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
 )
 
-func testSkills() []*skillctlv1.Skill {
-	return []*skillctlv1.Skill{
+func testSkills() []*skillsctlv1.Skill {
+	return []*skillsctlv1.Skill{
 		{
 			Name:          "data-pipeline",
 			Description:   "Data pipeline utilities",
@@ -25,7 +25,7 @@ func testSkills() []*skillctlv1.Skill {
 			Tags:          []string{"data", "spark", "go"},
 			LatestVersion: "1.3.0",
 			InstallCount:  47,
-			Source:        skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			Source:        skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 		},
 		{
 			Name:          "code-review",
@@ -34,41 +34,41 @@ func testSkills() []*skillctlv1.Skill {
 			Tags:          []string{"review", "quality"},
 			LatestVersion: "0.9.1",
 			InstallCount:  23,
-			Source:        skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			Source:        skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 		},
 	}
 }
 
-func newTestClient(t *testing.T) skillctlv1connect.RegistryServiceClient {
+func newTestClient(t *testing.T) skillsctlv1connect.RegistryServiceClient {
 	t.Helper()
 	svc := registry.NewService(store.NewMemory(testSkills()))
 	mux := http.NewServeMux()
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(svc)
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(svc)
 	mux.Handle(path, handler)
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
-	return skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	return skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
 }
 
 func TestRegistryService_ListSkills(t *testing.T) {
 	tests := []struct {
 		name      string
-		req       *skillctlv1.ListSkillsRequest
+		req       *skillsctlv1.ListSkillsRequest
 		wantCount int
 	}{
 		{
 			name:      "list all",
-			req:       &skillctlv1.ListSkillsRequest{},
+			req:       &skillsctlv1.ListSkillsRequest{},
 			wantCount: 2,
 		},
 		{
 			name:      "filter by tag",
-			req:       &skillctlv1.ListSkillsRequest{Tags: []string{"go"}},
+			req:       &skillsctlv1.ListSkillsRequest{Tags: []string{"go"}},
 			wantCount: 1,
 		},
 		{
 			name:      "filter by nonexistent tag",
-			req:       &skillctlv1.ListSkillsRequest{Tags: []string{"nope"}},
+			req:       &skillsctlv1.ListSkillsRequest{Tags: []string{"nope"}},
 			wantCount: 0,
 		},
 	}
@@ -90,16 +90,16 @@ func TestRegistryService_ListSkills(t *testing.T) {
 func TestRegistryService_GetSkill(t *testing.T) {
 	tests := []struct {
 		name    string
-		req     *skillctlv1.GetSkillRequest
+		req     *skillsctlv1.GetSkillRequest
 		wantErr bool
 	}{
 		{
 			name: "existing skill",
-			req:  &skillctlv1.GetSkillRequest{Name: "data-pipeline"},
+			req:  &skillsctlv1.GetSkillRequest{Name: "data-pipeline"},
 		},
 		{
 			name:    "nonexistent skill",
-			req:     &skillctlv1.GetSkillRequest{Name: "nope"},
+			req:     &skillsctlv1.GetSkillRequest{Name: "nope"},
 			wantErr: true,
 		},
 	}
@@ -127,12 +127,12 @@ func TestRegistryService_GetSkill(t *testing.T) {
 func TestRegistryService_PublishSkill(t *testing.T) {
 	tests := []struct {
 		name     string
-		req      *skillctlv1.PublishSkillRequest
+		req      *skillsctlv1.PublishSkillRequest
 		wantCode connect.Code
 	}{
 		{
 			name: "valid publish",
-			req: &skillctlv1.PublishSkillRequest{
+			req: &skillsctlv1.PublishSkillRequest{
 				Name:        "my-skill",
 				Version:     "1.0.0",
 				Description: "A useful skill",
@@ -142,7 +142,7 @@ func TestRegistryService_PublishSkill(t *testing.T) {
 		},
 		{
 			name: "invalid name",
-			req: &skillctlv1.PublishSkillRequest{
+			req: &skillsctlv1.PublishSkillRequest{
 				Name:        "A",
 				Version:     "1.0.0",
 				Description: "desc",
@@ -152,7 +152,7 @@ func TestRegistryService_PublishSkill(t *testing.T) {
 		},
 		{
 			name: "invalid version",
-			req: &skillctlv1.PublishSkillRequest{
+			req: &skillsctlv1.PublishSkillRequest{
 				Name:        "my-skill",
 				Version:     "not-semver",
 				Description: "desc",
@@ -162,7 +162,7 @@ func TestRegistryService_PublishSkill(t *testing.T) {
 		},
 		{
 			name: "empty content",
-			req: &skillctlv1.PublishSkillRequest{
+			req: &skillsctlv1.PublishSkillRequest{
 				Name:        "my-skill",
 				Version:     "1.0.0",
 				Description: "desc",
@@ -172,7 +172,7 @@ func TestRegistryService_PublishSkill(t *testing.T) {
 		},
 		{
 			name: "empty description",
-			req: &skillctlv1.PublishSkillRequest{
+			req: &skillsctlv1.PublishSkillRequest{
 				Name:        "my-skill",
 				Version:     "1.0.0",
 				Description: "",
@@ -221,7 +221,7 @@ func TestRegistryService_PublishSkill(t *testing.T) {
 
 func TestRegistryService_PublishSkill_Unauthenticated(t *testing.T) {
 	svc := registry.NewService(store.NewMemory(nil))
-	_, err := svc.PublishSkill(context.Background(), connect.NewRequest(&skillctlv1.PublishSkillRequest{
+	_, err := svc.PublishSkill(context.Background(), connect.NewRequest(&skillsctlv1.PublishSkillRequest{
 		Name:        "my-skill",
 		Version:     "1.0.0",
 		Description: "desc",
@@ -246,7 +246,7 @@ func TestRegistryService_GetSkillContent(t *testing.T) {
 		Subject: "user-123",
 		Email:   "user@example.com",
 	})
-	_, err := svc.PublishSkill(ctx, connect.NewRequest(&skillctlv1.PublishSkillRequest{
+	_, err := svc.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
 		Name:        "my-skill",
 		Version:     "1.0.0",
 		Description: "A useful skill",
@@ -258,25 +258,25 @@ func TestRegistryService_GetSkillContent(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		req      *skillctlv1.GetSkillContentRequest
+		req      *skillsctlv1.GetSkillContentRequest
 		wantCode connect.Code
 	}{
 		{
 			name: "get by name and version",
-			req:  &skillctlv1.GetSkillContentRequest{Name: "my-skill", Version: "1.0.0"},
+			req:  &skillsctlv1.GetSkillContentRequest{Name: "my-skill", Version: "1.0.0"},
 		},
 		{
 			name: "get latest",
-			req:  &skillctlv1.GetSkillContentRequest{Name: "my-skill"},
+			req:  &skillsctlv1.GetSkillContentRequest{Name: "my-skill"},
 		},
 		{
 			name:     "nonexistent skill",
-			req:      &skillctlv1.GetSkillContentRequest{Name: "nope", Version: "1.0.0"},
+			req:      &skillsctlv1.GetSkillContentRequest{Name: "nope", Version: "1.0.0"},
 			wantCode: connect.CodeNotFound,
 		},
 		{
 			name:     "digest mismatch",
-			req:      &skillctlv1.GetSkillContentRequest{Name: "my-skill", Version: "1.0.0", Digest: "sha256:wrong"},
+			req:      &skillsctlv1.GetSkillContentRequest{Name: "my-skill", Version: "1.0.0", Digest: "sha256:wrong"},
 			wantCode: connect.CodeFailedPrecondition,
 		},
 	}
@@ -314,7 +314,7 @@ func TestRegistryService_GetSkillContent_Unauthenticated(t *testing.T) {
 		Subject: "user-123",
 		Email:   "user@example.com",
 	})
-	_, err := svc.PublishSkill(ctx, connect.NewRequest(&skillctlv1.PublishSkillRequest{
+	_, err := svc.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
 		Name:        "my-skill",
 		Version:     "1.0.0",
 		Description: "A useful skill",
@@ -325,7 +325,7 @@ func TestRegistryService_GetSkillContent_Unauthenticated(t *testing.T) {
 	}
 
 	// GetSkillContent without claims should succeed (read operation)
-	resp, err := svc.GetSkillContent(context.Background(), connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+	resp, err := svc.GetSkillContent(context.Background(), connect.NewRequest(&skillsctlv1.GetSkillContentRequest{
 		Name:    "my-skill",
 		Version: "1.0.0",
 	}))

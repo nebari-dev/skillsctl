@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/nebari-dev/skillctl/cli/internal/auth"
+	"github.com/nebari-dev/skillsctl/cli/internal/auth"
 )
 
 var credentialsPath string
@@ -106,7 +106,7 @@ func runAuthStatus(cmd *cobra.Command, _ []string) error {
 	}
 
 	if time.Now().After(tok.Expiry) {
-		return fmt.Errorf("session expired. Run 'skillctl auth login' to re-authenticate")
+		return fmt.Errorf("session expired. Run 'skillsctl auth login' to re-authenticate")
 	}
 
 	email, _ := auth.DecodeJWTClaims(tok.IDToken)

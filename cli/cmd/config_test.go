@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nebari-dev/skillctl/cli/cmd"
+	"github.com/nebari-dev/skillsctl/cli/cmd"
 )
 
 func TestConfigInit(t *testing.T) {

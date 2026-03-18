@@ -21,7 +21,7 @@ var validConfigKeys = []string{"api_url", "skills_dir"}
 func addConfigCmd(root *cobra.Command) {
 	configCmd := &cobra.Command{
 		Use:   "config",
-		Short: "Manage skillctl configuration",
+		Short: "Manage skillsctl configuration",
 	}
 
 	initCmd := &cobra.Command{
@@ -61,7 +61,7 @@ func resolveConfigPath() string {
 		return configPath
 	}
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".config", "skillctl", "config.yaml")
+	return filepath.Join(home, ".config", "skillsctl", "config.yaml")
 }
 
 func runConfigInit(cmd *cobra.Command, _ []string) error {
@@ -80,7 +80,7 @@ func runConfigInit(cmd *cobra.Command, _ []string) error {
 
 	reader := bufio.NewReader(cmd.InOrStdin())
 
-	fmt.Fprintf(cmd.ErrOrStderr(), "No configuration found. Let's set up skillctl.\n\n")
+	fmt.Fprintf(cmd.ErrOrStderr(), "No configuration found. Let's set up skillsctl.\n\n")
 	fmt.Fprintf(cmd.ErrOrStderr(), "API URL [%s]: ", defaultAPI)
 	apiInput, _ := reader.ReadString('\n')
 	apiInput = strings.TrimSpace(apiInput)

@@ -8,15 +8,15 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/server"
-	sqlitestore "github.com/nebari-dev/skillctl/backend/internal/store/sqlite"
-	"github.com/nebari-dev/skillctl/backend/internal/store/sqlite/migrations"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/server"
+	sqlitestore "github.com/nebari-dev/skillsctl/backend/internal/store/sqlite"
+	"github.com/nebari-dev/skillsctl/backend/internal/store/sqlite/migrations"
 )
 
 func main() {
 	port := envOr("PORT", "8080")
-	dbPath := envOr("DB_PATH", "skillctl.db")
+	dbPath := envOr("DB_PATH", "skillsctl.db")
 
 	db, err := sqlitestore.Open(dbPath)
 	if err != nil {
@@ -31,7 +31,7 @@ func main() {
 	authCfg := auth.Config{
 		IssuerURL:   envOr("OIDC_ISSUER_URL", ""),
 		ClientID:    envOr("OIDC_CLIENT_ID", ""),
-		AdminGroup:  envOr("OIDC_ADMIN_GROUP", "skillctl-admins"),
+		AdminGroup:  envOr("OIDC_ADMIN_GROUP", "skillsctl-admins"),
 		GroupsClaim: envOr("OIDC_GROUPS_CLAIM", "groups"),
 	}
 

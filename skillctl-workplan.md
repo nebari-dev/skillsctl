@@ -1,4 +1,4 @@
-# skillctl — Complete Work Plan
+# skillsctl — Complete Work Plan
 
 **For:** Claude Code  
 **Project:** A CLI tool + backend registry for discovering, installing, and publishing Claude Code skills, with federated marketplace support and admin-controlled external skill whitelisting  
@@ -29,7 +29,7 @@
 ┌──────────────────────────────────────────────────────────────────────┐
 │                            GCP Project                               │
 │                                                                      │
-│  Cloud Run (skillctl-api)                                            │
+│  Cloud Run (skillsctl-api)                                            │
 │    ├── ConnectRPC server (Go)                                        │
 │    ├── In-memory skill cache (warm from Firestore on startup)        │
 │    ├── Firestore real-time listener (keeps cache fresh)              │
@@ -41,15 +41,15 @@
 │    └── federated_skills/{marketplace}/{name} (cached external skills)│
 │                                                                      │
 │  Cloud Storage                                                       │
-│    ├── gs://skillctl-skills-{env}/   (internal skill .tar.gz)        │
-│    └── gs://skillctl-tfstate/        (OpenTofu state)                │
+│    ├── gs://skillsctl-skills-{env}/   (internal skill .tar.gz)        │
+│    └── gs://skillsctl-tfstate/        (OpenTofu state)                │
 │                                                                      │
 │  Secret Manager                                                       │
 │    └── push-api-tokens (per-team static tokens for writes)           │
 └──────────────────────────────────────────────────────────────────────┘
          │  HTTPS / ConnectRPC (JSON or binary)
 ┌────────┴──────────────────────────────────────────────────────────┐
-│  skillctl (Go CLI binary)                                          │
+│  skillsctl (Go CLI binary)                                          │
 │    Platform targets:                                               │
 │      linux/amd64, linux/arm64                                      │
 │      darwin/amd64, darwin/arm64                                    │
@@ -78,13 +78,13 @@
 External marketplace syncing happens **server-side on a schedule**, not client-side on demand. This is the critical architectural choice that makes the whitelist enforceable:
 
 - Admins whitelist a marketplace once. The server polls it periodically and caches approved skills in Firestore.
-- Devs never talk directly to external marketplaces — they only ever talk to `skillctl-api`. The whitelist cannot be bypassed by a determined dev pointing their client elsewhere, because install downloads are proxied or re-signed through the backend.
-- If a marketplace is removed from the whitelist, its skills immediately disappear from `skillctl explore` and cannot be installed. No client-side config changes required.
+- Devs never talk directly to external marketplaces — they only ever talk to `skillsctl-api`. The whitelist cannot be bypassed by a determined dev pointing their client elsewhere, because install downloads are proxied or re-signed through the backend.
+- If a marketplace is removed from the whitelist, its skills immediately disappear from `skillsctl explore` and cannot be installed. No client-side config changes required.
 
 ### Environments
 
 Two environments: **dev** and **prod**. Each has its own:
-- GCP project (`skillctl-dev`, `skillctl-prod`)
+- GCP project (`skillsctl-dev`, `skillsctl-prod`)
 - Cloud Run service
 - Firestore database
 - GCS buckets
@@ -96,7 +96,7 @@ Dev deploys on every merge to `main`. Prod deploys after blue/green validation s
 ## 2. Repository Structure
 
 ```
-skillctl/
+skillsctl/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci-cli.yml           # CLI pipeline (lint → test → build → e2e → release)
@@ -109,15 +109,15 @@ skillctl/
 ├── proto/
 │   ├── buf.yaml
 │   ├── buf.gen.yaml             # Generates Go + Python clients
-│   └── skillctl/v1/
+│   └── skillsctl/v1/
 │       ├── skill.proto
 │       ├── registry.proto       # Service definition (internal + federated skills)
 │       ├── federation.proto     # Marketplace whitelist admin RPCs
 │       └── auth.proto
 │
 ├── gen/                         # Generated code — committed, not hand-edited
-│   ├── go/skillctl/v1/          # Go generated types + ConnectRPC stubs
-│   └── python/skillctl/v1/      # Python generated types + ConnectRPC stubs
+│   ├── go/skillsctl/v1/          # Go generated types + ConnectRPC stubs
+│   └── python/skillsctl/v1/      # Python generated types + ConnectRPC stubs
 │
 ├── backend/
 │   ├── cmd/server/main.go
@@ -146,19 +146,19 @@ skillctl/
 │   ├── main.go
 │   ├── cmd/
 │   │   ├── root.go              # Cobra root, Viper config binding
-│   │   ├── explore.go           # skillctl explore [--source internal|external|all]
-│   │   ├── install.go           # skillctl install <name>[@version] [--from <marketplace>]
-│   │   ├── push.go              # skillctl push <path> [--draft]
-│   │   ├── auth.go              # skillctl auth login / logout / status
-│   │   ├── update.go            # skillctl update (self-update)
-│   │   ├── marketplace.go       # skillctl marketplace (admin subcommands)
-│   │   └── docs.go              # skillctl docs (generate markdown — CI only)
+│   │   ├── explore.go           # skillsctl explore [--source internal|external|all]
+│   │   ├── install.go           # skillsctl install <name>[@version] [--from <marketplace>]
+│   │   ├── push.go              # skillsctl push <path> [--draft]
+│   │   ├── auth.go              # skillsctl auth login / logout / status
+│   │   ├── update.go            # skillsctl update (self-update)
+│   │   ├── marketplace.go       # skillsctl marketplace (admin subcommands)
+│   │   └── docs.go              # skillsctl docs (generate markdown — CI only)
 │   ├── internal/
 │   │   ├── api/
 │   │   │   └── client.go        # Typed ConnectRPC client wrapper
 │   │   ├── auth/
 │   │   │   ├── device_flow.go   # Google OAuth device flow
-│   │   │   └── token_store.go   # Persist token to ~/.config/skillctl/
+│   │   │   └── token_store.go   # Persist token to ~/.config/skillsctl/
 │   │   ├── skill/
 │   │   │   ├── package.go       # tar.gz pack/unpack
 │   │   │   └── validate.go      # SKILL.md frontmatter validation
@@ -217,20 +217,20 @@ skillctl/
 | CLI framework | **Cobra + Viper** | Standard Go CLI stack. Viper handles config file + env var layering automatically. |
 | Auth (read) | **Google ID token, device flow** | No browser required on headless/remote machines. Token cached locally. |
 | Auth (write) | **ID token + team push token** | Push token stored in GCP Secret Manager, distributed per team via Slack. |
-| Auth (admin) | **ID token + `skillctl-admins` Google Group membership** | Admin role checked against Google Groups API at runtime. No separate token required — group membership is the gate. |
+| Auth (admin) | **ID token + `skillsctl-admins` Google Group membership** | Admin role checked against Google Groups API at runtime. No separate token required — group membership is the gate. |
 | Domain restriction | **openteams.com** | Backend validates `hd` claim in Google ID token on every request. |
 | Federation model | **Server-side poll, server-enforced whitelist** | Clients never talk to external marketplaces directly. Whitelist cannot be bypassed client-side. External skills cached in Firestore, available offline from external sources. |
 | External skill install | **Proxy through backend** | For whitelisted external skills, the backend fetches the archive from the external source, validates it, and serves a short-lived signed URL. This keeps the whitelist enforceable at download time, not just at discovery time. |
 | Search | **In-memory + Firestore real-time listener** | Covers both internal and federated skill caches. |
 | Rate limiting | **Token-bucket, server-side** | Per-IP for read, per-push-token for writes. CLI also backs off on 429. |
 | Container | **Scratch final image** | `CGO_ENABLED=0` static binary. Must be validated with a container smoke test in CI. |
-| State backend | **GCS bucket `skillctl-tfstate`** | Separate from app buckets. State locking via GCS native object versioning. |
+| State backend | **GCS bucket `skillsctl-tfstate`** | Separate from app buckets. State locking via GCS native object versioning. |
 | Windows distribution | **Scoop** | Avoids Windows Defender SmartScreen on unsigned `.exe`. GoReleaser publishes Scoop manifest. |
 | Secrets scanning | **Gitleaks** | Runs as pre-commit hook + CI stage. |
 | DAST | **OWASP ZAP** (baseline scan) | Targets the running dev Cloud Run service post-deploy. |
 | Proto breaking changes | **buf breaking — warn pre-1.0, block post-1.0** | CI fails on breaking changes if `version >= 1.0.0`. |
 | Release automation | **GoReleaser** | Cross-compilation, GitHub Release, Scoop manifest, container push. |
-| Docs | **cobra/doc → GitHub Pages** | `skillctl docs` generates markdown; CI commits to `gh-pages` branch. |
+| Docs | **cobra/doc → GitHub Pages** | `skillsctl docs` generates markdown; CI commits to `gh-pages` branch. |
 
 ---
 
@@ -276,11 +276,11 @@ plugins:
 
 ### 4.3 Proto Service Definitions
 
-#### `proto/skillctl/v1/registry.proto`
+#### `proto/skillsctl/v1/registry.proto`
 
 ```protobuf
 syntax = "proto3";
-package skillctl.v1;
+package skillsctl.v1;
 
 import "google/protobuf/timestamp.proto";
 
@@ -330,11 +330,11 @@ message ListSkillsRequest {
 // ... (remaining request/response messages)
 ```
 
-#### `proto/skillctl/v1/federation.proto`
+#### `proto/skillsctl/v1/federation.proto`
 
 ```protobuf
 syntax = "proto3";
-package skillctl.v1;
+package skillsctl.v1;
 
 import "google/protobuf/timestamp.proto";
 
@@ -386,7 +386,7 @@ enum MarketplaceMode {
 
 In `ci-proto.yml`:
 - Always run `buf lint`
-- Run `buf breaking --against "https://github.com/yourorg/skillctl.git#branch=main"`
+- Run `buf breaking --against "https://github.com/yourorg/skillsctl.git#branch=main"`
 - Parse `VERSION` file: if `>= 1.0.0` fail the job; if `< 1.0.0` post a PR warning comment only
 - Run `buf generate` and `git diff --exit-code gen/` to catch generated code drift
 
@@ -405,7 +405,7 @@ type Role int
 const (
     RoleReader Role = iota  // any authenticated openteams.com user
     RoleWriter              // reader + valid push token header
-    RoleAdmin               // reader + member of skillctl-admins Google Group
+    RoleAdmin               // reader + member of skillsctl-admins Google Group
 )
 
 func NewMiddleware(cfg Config, sm *secretmanager.Client, ga *groupsAPI) connect.Interceptor {
@@ -443,10 +443,10 @@ func NewMiddleware(cfg Config, sm *secretmanager.Client, ga *groupsAPI) connect.
 // Procedure → required role mapping
 func requiredRole(procedure string) Role {
     switch {
-    case strings.HasPrefix(procedure, "/skillctl.v1.FederationService/"):
+    case strings.HasPrefix(procedure, "/skillsctl.v1.FederationService/"):
         return RoleAdmin
-    case strings.HasPrefix(procedure, "/skillctl.v1.RegistryService/Publish"),
-         strings.HasPrefix(procedure, "/skillctl.v1.RegistryService/RecordInstall"):
+    case strings.HasPrefix(procedure, "/skillsctl.v1.RegistryService/Publish"),
+         strings.HasPrefix(procedure, "/skillsctl.v1.RegistryService/RecordInstall"):
         return RoleWriter
     default:
         return RoleReader
@@ -454,7 +454,7 @@ func requiredRole(procedure string) Role {
 }
 ```
 
-**Admin group:** Create a Google Group `skillctl-admins@openteams.com` in Google Workspace Admin. Add admin users to the group. The backend checks membership via the Admin SDK Groups API at request time (cache the result for 5 minutes per email to avoid hammering the API).
+**Admin group:** Create a Google Group `skillsctl-admins@openteams.com` in Google Workspace Admin. Add admin users to the group. The backend checks membership via the Admin SDK Groups API at request time (cache the result for 5 minutes per email to avoid hammering the API).
 
 ### 5.2 In-Memory Cache with Firestore Listener
 
@@ -553,19 +553,19 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -ldflags="-s -w -X main.version=$(cat VERSION)" \
-    -o skillctl-server ./cmd/server
+    -o skillsctl-server ./cmd/server
 
 # Stage 2: security scan
 FROM aquasec/trivy:latest AS scanner
-COPY --from=builder /app/skillctl-server /skillctl-server
-RUN trivy fs --exit-code 1 --severity HIGH,CRITICAL /skillctl-server
+COPY --from=builder /app/skillsctl-server /skillsctl-server
+RUN trivy fs --exit-code 1 --severity HIGH,CRITICAL /skillsctl-server
 
 # Stage 3: final scratch image
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /app/skillctl-server /skillctl-server
+COPY --from=builder /app/skillsctl-server /skillsctl-server
 EXPOSE 8080
-ENTRYPOINT ["/skillctl-server"]
+ENTRYPOINT ["/skillsctl-server"]
 ```
 
 Smoke test in CI:
@@ -581,15 +581,15 @@ docker stop smoke
 ```yaml
 - name: Deploy new revision (no traffic)
   run: |
-    gcloud run deploy skillctl-api \
-      --image ghcr.io/${{ github.repository }}/skillctl-backend:sha-${{ github.sha }} \
+    gcloud run deploy skillsctl-api \
+      --image ghcr.io/${{ github.repository }}/skillsctl-backend:sha-${{ github.sha }} \
       --region us-central1 \
       --no-traffic \
       --tag canary
 
 - name: Run smoke tests against canary
   run: |
-    CANARY_URL=$(gcloud run services describe skillctl-api \
+    CANARY_URL=$(gcloud run services describe skillsctl-api \
       --region us-central1 \
       --format 'value(status.traffic[?tag=="canary"].url)')
     go test ./e2e/backend/... -canary-url=$CANARY_URL -timeout 120s
@@ -597,9 +597,9 @@ docker stop smoke
 - name: Cut over traffic (or rollback)
   run: |
     if [ "${{ steps.smoke.outcome }}" == "success" ]; then
-      gcloud run services update-traffic skillctl-api --to-latest
+      gcloud run services update-traffic skillsctl-api --to-latest
     else
-      REVISION=$(gcloud run revisions list --service skillctl-api \
+      REVISION=$(gcloud run revisions list --service skillsctl-api \
         --filter="metadata.labels.canary=true" --format 'value(name)')
       gcloud run revisions delete $REVISION --quiet
       exit 1
@@ -615,7 +615,7 @@ docker stop smoke
 ```go
 // cli/cmd/root.go
 var rootCmd = &cobra.Command{
-    Use:   "skillctl",
+    Use:   "skillsctl",
     Short: "Discover, install, and publish Claude Code skills",
     PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
         return initConfig()
@@ -625,17 +625,17 @@ var rootCmd = &cobra.Command{
 func initConfig() error {
     viper.SetConfigName("config")
     viper.SetConfigType("yaml")
-    viper.AddConfigPath("$HOME/.config/skillctl/")
+    viper.AddConfigPath("$HOME/.config/skillsctl/")
     viper.AutomaticEnv()
     viper.SetEnvPrefix("SKILLCTL")
     return viper.ReadInConfig()
 }
 ```
 
-Config file: `~/.config/skillctl/config.yaml`
+Config file: `~/.config/skillsctl/config.yaml`
 
 ```yaml
-api_url: https://skillctl-api-xxxx-uc.a.run.app
+api_url: https://skillsctl-api-xxxx-uc.a.run.app
 skills_dir: ~/.claude/skills
 ```
 
@@ -657,9 +657,9 @@ Token refresh is handled transparently before each request.
 
 ### 6.3 CLI Commands Specification
 
-#### `skillctl explore`
+#### `skillsctl explore`
 ```
-skillctl explore [flags]
+skillsctl explore [flags]
 
 Flags:
   --tag string      Filter by tag (repeatable)
@@ -678,15 +678,15 @@ Output (default):
 
 The `INSTALLS` column shows internal install counts only — we don't know how many times
 an external skill has been installed from its upstream source, so we only track installs
-that were made via skillctl.
+that were made via skillsctl.
 
-#### `skillctl explore show <name>`
+#### `skillsctl explore show <name>`
 ```
 For internal skills: description, all versions, changelog, install count, owner, SKILL.md preview.
 For federated skills: same + "Source: <marketplace display name>" + upstream URL.
 ```
 
-#### `skillctl install <name>[@version] [--from <marketplace-id>]`
+#### `skillsctl install <name>[@version] [--from <marketplace-id>]`
 ```
 For internal skills:
   1. Fetches signed GCS download URL from backend
@@ -708,7 +708,7 @@ Name collision (internal + federated have same name):
     the external version, or omit --from to install the internal one."
 ```
 
-#### `skillctl push <path> [--draft] [--changelog "..."]`
+#### `skillsctl push <path> [--draft] [--changelog "..."]`
 ```
 1. Reads and validates SKILL.md frontmatter (name, description, version required)
 2. Checks version is valid semver and doesn't already exist in registry
@@ -718,19 +718,19 @@ Name collision (internal + federated have same name):
 6. If --draft: uploaded but not listed in explore results
 ```
 
-#### `skillctl auth login / logout / status`
+#### `skillsctl auth login / logout / status`
 ```
 login   — runs device flow, saves token
-logout  — deletes ~/.config/skillctl/credentials.json
+logout  — deletes ~/.config/skillsctl/credentials.json
 status  — prints current user email, token expiry, admin group membership, backend connection
 ```
 
-#### `skillctl marketplace` (admin only — returns PermissionDenied if not in admin group)
+#### `skillsctl marketplace` (admin only — returns PermissionDenied if not in admin group)
 ```
-skillctl marketplace list
+skillsctl marketplace list
   Lists all whitelisted marketplaces with status, skill count, last sync time.
 
-skillctl marketplace add <url> [flags]
+skillsctl marketplace add <url> [flags]
   --name string       Display name (required)
   --type string       github-repo | agentskills-io (default: github-repo)
   --mode string       all | specific (default: all)
@@ -738,26 +738,26 @@ skillctl marketplace add <url> [flags]
   Adds a marketplace to the whitelist. Triggers an immediate sync.
   Prints the assigned marketplace ID on success.
 
-skillctl marketplace remove <marketplace-id>
+skillsctl marketplace remove <marketplace-id>
   Removes from whitelist. Federated skills from this marketplace are immediately
   removed from the cache and can no longer be installed.
   Prompts for confirmation unless --force is passed.
 
-skillctl marketplace sync <marketplace-id>
+skillsctl marketplace sync <marketplace-id>
   Triggers an immediate out-of-cycle sync for one marketplace.
   Useful after adding a new skill to a whitelisted upstream repo.
 
-skillctl marketplace allow <marketplace-id> <skill-name>
+skillsctl marketplace allow <marketplace-id> <skill-name>
   When a marketplace is in SPECIFIC mode, adds a skill to its allowlist.
 
-skillctl marketplace block <marketplace-id> <skill-name>
+skillsctl marketplace block <marketplace-id> <skill-name>
   Removes a skill from the allowlist (or adds it to a blocklist in ALL mode).
 
-skillctl marketplace show <marketplace-id>
+skillsctl marketplace show <marketplace-id>
   Shows marketplace details + full list of synced skills + their allowlist status.
 ```
 
-#### `skillctl update`
+#### `skillsctl update`
 ```
 1. Calls GetLatestCLIVersion RPC
 2. Compares to embedded version string
@@ -778,9 +778,9 @@ before:
     - go generate ./...
 
 builds:
-  - id: skillctl
+  - id: skillsctl
     dir: cli/
-    binary: skillctl
+    binary: skillsctl
     ldflags:
       - -s -w
       - -X main.version={{.Version}}
@@ -795,20 +795,20 @@ builds:
         goarch: arm64
 
 archives:
-  - name_template: "skillctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - name_template: "skillsctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
         format: zip
 
 checksum:
-  name_template: "skillctl_{{ .Version }}_checksums.txt"
+  name_template: "skillsctl_{{ .Version }}_checksums.txt"
 
 scoop:
-  name: skillctl
+  name: skillsctl
   bucket:
     owner: yourorg
     name: scoop-bucket
-  homepage: https://github.com/yourorg/skillctl
+  homepage: https://github.com/yourorg/skillsctl
   description: "Discover, install, and publish Claude Code skills"
   license: MIT
 
@@ -831,7 +831,7 @@ changelog:
 ```hcl
 terraform {
   backend "gcs" {
-    bucket = "skillctl-tfstate"
+    bucket = "skillsctl-tfstate"
     prefix = "tofu/state"
   }
   required_providers {
@@ -844,7 +844,7 @@ terraform {
 
 ```hcl
 resource "google_cloud_run_v2_service" "api" {
-  name     = "skillctl-api-${var.env_name}"
+  name     = "skillsctl-api-${var.env_name}"
   location = var.region
 
   template {
@@ -855,7 +855,7 @@ resource "google_cloud_run_v2_service" "api" {
     containers {
       image = var.image
       env { name = "ALLOWED_DOMAIN";     value = var.allowed_domain }
-      env { name = "GCS_BUCKET";         value = "skillctl-skills-${var.env_name}" }
+      env { name = "GCS_BUCKET";         value = "skillsctl-skills-${var.env_name}" }
       env { name = "ENV";                value = var.env_name }
       env { name = "ADMIN_GROUP_EMAIL";  value = var.admin_group_email }
       env {
@@ -875,7 +875,7 @@ resource "google_cloud_run_v2_service" "api" {
 }
 ```
 
-New variable: `admin_group_email = "skillctl-admins@openteams.com"` — passed to the backend so it knows which group to check.
+New variable: `admin_group_email = "skillsctl-admins@openteams.com"` — passed to the backend so it knows which group to check.
 
 The Cloud Run service account needs `roles/admin.directory.groups.readonly` on the Google Workspace domain so it can call the Groups API for admin checks.
 
@@ -907,8 +907,8 @@ resource "google_firestore_index" "federated_by_marketplace" {
 env_name           = "dev"
 min_instances      = 0
 max_instances      = 2
-admin_group_email  = "skillctl-admins@openteams.com"
-image              = "ghcr.io/yourorg/skillctl-backend:latest"
+admin_group_email  = "skillsctl-admins@openteams.com"
+image              = "ghcr.io/yourorg/skillsctl-backend:latest"
 ```
 
 `infra/envs/prod/terraform.tfvars`:
@@ -916,8 +916,8 @@ image              = "ghcr.io/yourorg/skillctl-backend:latest"
 env_name           = "prod"
 min_instances      = 1
 max_instances      = 5
-admin_group_email  = "skillctl-admins@openteams.com"
-image              = "ghcr.io/yourorg/skillctl-backend:latest"
+admin_group_email  = "skillsctl-admins@openteams.com"
+image              = "ghcr.io/yourorg/skillsctl-backend:latest"
 ```
 
 ### 7.5 tfsec
@@ -958,7 +958,7 @@ Stage 5: Release (on tag vX.Y.Z)
 └── goreleaser release → GitHub Release + Scoop manifest PR
 
 Stage 6: Docs (on merge to main)
-└── skillctl docs → gh-pages branch
+└── skillsctl docs → gh-pages branch
 ```
 
 ### 8.2 Backend Pipeline (`ci-backend.yml`)
@@ -978,7 +978,7 @@ Stage 3: Container Build
 Stage 4: E2E + DAST
 ├── Deploy canary to dev Cloud Run
 ├── Run e2e/backend/ smoke suite (includes federation endpoint tests)
-├── OWASP ZAP baseline scan (targets /skillctl.v1.FederationService/ endpoints too)
+├── OWASP ZAP baseline scan (targets /skillsctl.v1.FederationService/ endpoints too)
 └── Cut traffic if pass / rollback if fail
 
 Stage 5: Release (on merge to main)
@@ -1152,7 +1152,7 @@ type GitHubFetcher struct {
 // For a GitHub repo marketplace, fetches the tree at the configured ref,
 // finds all SKILL.md files, reads their frontmatter, and returns FederatedSkill structs.
 // Does not download archives — only reads metadata. Archives are fetched on-demand
-// when a dev runs `skillctl install`.
+// when a dev runs `skillsctl install`.
 func (f *GitHubFetcher) FetchSkills(ctx context.Context, m *Marketplace) ([]*FederatedSkill, error) {
     // GET https://api.github.com/repos/{owner}/{repo}/git/trees/HEAD?recursive=1
     // Filter entries ending in /SKILL.md
@@ -1182,9 +1182,9 @@ This two-step approach means:
 
 If an internal skill and a federated skill share the same name:
 
-- `skillctl explore` lists both, clearly labeled by source
-- `skillctl install <name>` prefers the internal skill and prints a warning
-- `skillctl install <name> --from <marketplace-id>` installs the federated version explicitly
+- `skillsctl explore` lists both, clearly labeled by source
+- `skillsctl install <name>` prefers the internal skill and prints a warning
+- `skillsctl install <name> --from <marketplace-id>` installs the federated version explicitly
 - The backend never silently shadow an internal skill with a federated one
 
 ### 9.6 Pre-Seeded Marketplace Whitelist
@@ -1193,23 +1193,23 @@ On first deployment, seed the whitelist via a one-time migration script (not in 
 
 ```bash
 # scripts/seed-marketplaces.sh
-skillctl marketplace add https://github.com/anthropics/skills \
+skillsctl marketplace add https://github.com/anthropics/skills \
   --name "Anthropic Official Skills" \
   --mode all \
   --sync 60
 
-skillctl marketplace add https://github.com/obra/superpowers \
+skillsctl marketplace add https://github.com/obra/superpowers \
   --name "Superpowers" \
   --mode specific \
   --sync 120
 
 # Then explicitly allow the superpowers skills your org has reviewed:
-skillctl marketplace allow superpowers brainstorm
-skillctl marketplace allow superpowers write-plan
-skillctl marketplace allow superpowers execute-plan
+skillsctl marketplace allow superpowers brainstorm
+skillsctl marketplace allow superpowers write-plan
+skillsctl marketplace allow superpowers execute-plan
 ```
 
-Document this script in the repo. New approved marketplaces are added by running `skillctl marketplace add` — no deployment required.
+Document this script in the repo. New approved marketplaces are added by running `skillsctl marketplace add` — no deployment required.
 
 ### 9.7 Audit Log
 
@@ -1224,7 +1224,7 @@ audit_log/{auto-id}
   timestamp:    <timestamp>
 ```
 
-This is append-only. No deletion. Admins can query it via `skillctl marketplace audit` (future feature — leave as a stub for now).
+This is append-only. No deletion. Admins can query it via `skillsctl marketplace audit` (future feature — leave as a stub for now).
 
 ---
 
@@ -1253,7 +1253,7 @@ tags: [go, release, ci, goreleaser, packaging]
  multi-platform build matrix, container publishing, Scoop manifest setup, etc.]
 ```
 
-Push this as part of the initial setup so new team members can `skillctl install goreleaser` immediately.
+Push this as part of the initial setup so new team members can `skillsctl install goreleaser` immediately.
 
 ---
 
@@ -1263,9 +1263,9 @@ Push this as part of the initial setup so new team members can `skillctl install
 
 | SA | Roles | Used by |
 |---|---|---|
-| `skillctl-backend@...` | `roles/datastore.user`, `roles/storage.objectAdmin`, `roles/secretmanager.secretAccessor`, `roles/admin.directory.groups.readonly` | Cloud Run runtime |
-| `skillctl-deployer@...` | `roles/run.developer`, `roles/storage.objectAdmin` | CI deploy job |
-| `skillctl-tofu@...` | `roles/editor` (narrow later) | OpenTofu apply |
+| `skillsctl-backend@...` | `roles/datastore.user`, `roles/storage.objectAdmin`, `roles/secretmanager.secretAccessor`, `roles/admin.directory.groups.readonly` | Cloud Run runtime |
+| `skillsctl-deployer@...` | `roles/run.developer`, `roles/storage.objectAdmin` | CI deploy job |
+| `skillsctl-tofu@...` | `roles/editor` (narrow later) | OpenTofu apply |
 
 Note: `roles/admin.directory.groups.readonly` is a Google Workspace role, not a GCP role. It must be granted in Google Workspace Admin console, not via OpenTofu.
 
@@ -1274,12 +1274,12 @@ Note: `roles/admin.directory.groups.readonly` is a Google Workspace role, not a 
 | Var | Description |
 |---|---|
 | `ALLOWED_DOMAIN` | `openteams.com` |
-| `GCS_BUCKET` | `skillctl-skills-{env}` |
+| `GCS_BUCKET` | `skillsctl-skills-{env}` |
 | `FIRESTORE_PROJECT` | GCP project ID |
 | `PORT` | `8080` |
 | `ENV` | `dev` or `prod` |
 | `PUSH_TOKENS` | JSON object mapping token→team, from Secret Manager |
-| `ADMIN_GROUP_EMAIL` | `skillctl-admins@openteams.com` |
+| `ADMIN_GROUP_EMAIL` | `skillsctl-admins@openteams.com` |
 | `GROUPS_API_CACHE_TTL_SEC` | `300` (5 min cache for group membership checks) |
 | `FEDERATION_POLL_INTERVAL_SEC` | `60` (how often the poller wakes to check sync schedules) |
 | `GITHUB_TOKEN` | Optional; Secret Manager. Raises GitHub API rate limit for federation sync. |
@@ -1290,13 +1290,13 @@ Note: `roles/admin.directory.groups.readonly` is a Google Workspace role, not a 
 
 1. **Google OAuth Client ID** — Create an OAuth 2.0 client in GCP Console under openteams.com Workspace. Set authorized redirect URI to `urn:ietf:wg:oauth:2.0:oob` for device flow. Client ID is safe to embed in the binary.
 
-2. **Admin Google Group** — Create `skillctl-admins@openteams.com` in Google Workspace Admin before deploying. The backend SA needs `roles/admin.directory.groups.readonly` granted in Workspace Admin, not GCP IAM.
+2. **Admin Google Group** — Create `skillsctl-admins@openteams.com` in Google Workspace Admin before deploying. The backend SA needs `roles/admin.directory.groups.readonly` granted in Workspace Admin, not GCP IAM.
 
 3. **Scoop bucket** — Requires a separate public GitHub repo `yourorg/scoop-bucket`. Create before first GoReleaser run.
 
 4. **Proto versioning** — The buf breaking-change block on >= 1.0.0 reads a `VERSION` file in the repo root. Maintain it; it should match the latest git tag.
 
-5. **GCS bucket naming** — GCS names are globally unique. Use `ot-skillctl-skills-dev` / `ot-skillctl-skills-prod`. The federated cache bucket can share the same bucket under a `federated-cache/` prefix.
+5. **GCS bucket naming** — GCS names are globally unique. Use `ot-skillsctl-skills-dev` / `ot-skillsctl-skills-prod`. The federated cache bucket can share the same bucket under a `federated-cache/` prefix.
 
 6. **OWASP ZAP + ConnectRPC** — ZAP targets the JSON/HTTP mode. Ensure `/healthz` is unauthenticated and configure `zap-baseline.yaml` with the ConnectRPC JSON endpoint paths, including the new FederationService endpoints.
 
@@ -1312,7 +1312,7 @@ Note: `roles/admin.directory.groups.readonly` is a Google Workspace role, not a 
 
 12. **Private external marketplaces** — The current design assumes all whitelisted marketplaces are public GitHub repos. If a future marketplace is a private repo (e.g., a partner org's skill repo), the GitHub fetcher needs to support injecting a per-marketplace PAT. Design the fetcher interface to accept optional auth credentials from the marketplace document — leave a `auth_secret_name` field in the Firestore schema as a placeholder even if it's unused initially.
 
-13. **Federated skill version pinning** — The poller tracks `latest_version` for each external skill. `skillctl install <name>@<version>` for a federated skill requires the poller to have synced that specific version. Add a `versions` subcollection under `federated_skills/{marketplace_id}/{name}` mirroring the internal skill version structure.
+13. **Federated skill version pinning** — The poller tracks `latest_version` for each external skill. `skillsctl install <name>@<version>` for a federated skill requires the poller to have synced that specific version. Add a `versions` subcollection under `federated_skills/{marketplace_id}/{name}` mirroring the internal skill version structure.
 
 14. **Rate limit values** — Starting values: 100 req/min per IP (reads), 10 req/min per push token (writes), 30 req/min per email (admin). Store as env vars so they can be changed without a redeploy.
 

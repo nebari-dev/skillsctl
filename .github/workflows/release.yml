@@ -45,7 +45,7 @@ jobs:
       packages: write
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: nebari-dev/skillctl-backend
+      IMAGE_NAME: nebari-dev/skillsctl-backend
     steps:
       - uses: actions/checkout@v4
       - uses: docker/login-action@v3

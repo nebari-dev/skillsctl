@@ -1,4 +1,4 @@
-# skillctl — Complete Work Plan v2
+# skillsctl — Complete Work Plan v2
 
 **For:** Claude Code  
 **Project:** A cloud-native CLI tool + backend registry for discovering, installing, and publishing Claude Code skills, with federated marketplace support and admin-controlled external skill whitelisting  
@@ -11,7 +11,7 @@
 
 1. [Two-Repo Split](#1-two-repo-split)
 2. [Architecture Overview](#2-architecture-overview)
-3. [Repo 1: `skillctl` (OSS tool)](#3-repo-1-skillctl-oss-tool)
+3. [Repo 1: `skillsctl` (OSS tool)](#3-repo-1-skillsctl-oss-tool)
    - 3.1 Repository Structure
    - 3.2 Technology Decisions
    - 3.3 Phase 1 — Protobuf & ConnectRPC
@@ -19,7 +19,7 @@
    - 3.5 Phase 3 — Helm Chart
    - 3.6 Phase 4 — CLI
    - 3.7 Phase 5 — CI/CD Pipelines
-4. [Repo 2: `skillctl-deploy` (org GitOps)](#4-repo-2-skillctl-deploy-org-gitops)
+4. [Repo 2: `skillsctl-deploy` (org GitOps)](#4-repo-2-skillsctl-deploy-org-gitops)
    - 4.1 Repository Structure
    - 4.2 ArgoCD Application Manifests
    - 4.3 Org Values Overlay
@@ -35,23 +35,23 @@
 
 | Repo | Audience | What it contains |
 |---|---|---|
-| `yourorg/skillctl` | Public / OSS | CLI binary, backend server, Helm chart, proto definitions, CI/CD, docs |
-| `yourorg/skillctl-deploy` | Internal / private | ArgoCD Application manifests, org-specific Helm values, Keycloak client config, NebariApp CRD overlay |
+| `yourorg/skillsctl` | Public / OSS | CLI binary, backend server, Helm chart, proto definitions, CI/CD, docs |
+| `yourorg/skillsctl-deploy` | Internal / private | ArgoCD Application manifests, org-specific Helm values, Keycloak client config, NebariApp CRD overlay |
 
 ### Why this split
 
-`skillctl` is a generic tool — any team on any K8s cluster with any OIDC provider can deploy it. It ships with no org-specific configuration. The `skillctl-deploy` repo is where OpenTeams-specific configuration lives: Keycloak issuer URL, realm, admin group name, ingress hostname, storage class names, and the NebariApp CRD that wires it into the Nebari platform.
+`skillsctl` is a generic tool — any team on any K8s cluster with any OIDC provider can deploy it. It ships with no org-specific configuration. The `skillsctl-deploy` repo is where OpenTeams-specific configuration lives: Keycloak issuer URL, realm, admin group name, ingress hostname, storage class names, and the NebariApp CRD that wires it into the Nebari platform.
 
-This means `skillctl` can be open-sourced without leaking internal infrastructure details, and the org repo can reference pinned chart versions from ghcr.io rather than building anything itself.
+This means `skillsctl` can be open-sourced without leaking internal infrastructure details, and the org repo can reference pinned chart versions from ghcr.io rather than building anything itself.
 
 ### Deployment flow
 
 ```
-skillctl repo (CI)
-  → builds + pushes ghcr.io/yourorg/skillctl-backend:vX.Y.Z
-  → pushes oci://ghcr.io/yourorg/charts/skillctl:vX.Y.Z
+skillsctl repo (CI)
+  → builds + pushes ghcr.io/yourorg/skillsctl-backend:vX.Y.Z
+  → pushes oci://ghcr.io/yourorg/charts/skillsctl:vX.Y.Z
 
-skillctl-deploy repo (ArgoCD)
+skillsctl-deploy repo (ArgoCD)
   → Application manifest references chart vX.Y.Z
   → values.yaml points at Keycloak, sets storage class, enables NebariApp
   → ArgoCD syncs to cluster
@@ -66,8 +66,8 @@ skillctl-deploy repo (ArgoCD)
 │                      Kubernetes Cluster                             │
 │  (Nebari or plain K8s)                                              │
 │                                                                     │
-│  skillctl namespace                                                 │
-│  ├── Deployment: skillctl-server                                    │
+│  skillsctl namespace                                                 │
+│  ├── Deployment: skillsctl-server                                    │
 │  │     ├── ConnectRPC API                                           │
 │  │     ├── In-memory skill cache (warm from PostgreSQL)             │
 │  │     ├── Valkey subscriber (cache invalidation pub/sub)           │
@@ -87,19 +87,19 @@ skillctl-deploy repo (ArgoCD)
 │            (skill archives stored as OCI artifacts via oras)        │
 │                                                                     │
 │  [If Nebari] nebari-operator watches NebariApp CRD:                 │
-│  ├── Envoy Gateway HTTPRoute → skillctl-server Service              │
+│  ├── Envoy Gateway HTTPRoute → skillsctl-server Service              │
 │  ├── cert-manager TLS certificate                                   │
 │  └── Keycloak OIDC SecurityPolicy on the route                     │
 └─────────────────────────────────────────────────────────────────────┘
           │  HTTPS / ConnectRPC
 ┌─────────┴──────────────────────────────────────────────────────────┐
-│  skillctl CLI (Go binary)                                           │
+│  skillsctl CLI (Go binary)                                           │
 │    linux/amd64, linux/arm64                                         │
 │    darwin/amd64, darwin/arm64                                       │
 │    windows/amd64                                                    │
 │                                                                     │
 │  Auth: Generic OIDC device flow                                     │
-│    Issuer URL, client ID: read from ~/.config/skillctl/config.yaml  │
+│    Issuer URL, client ID: read from ~/.config/skillsctl/config.yaml  │
 │    Configured by org during onboarding (or pre-set in binary        │
 │    build via ldflags for org-specific distribution)                 │
 └────────────────────────────────────────────────────────────────────┘
@@ -118,16 +118,16 @@ skillctl-deploy repo (ArgoCD)
 
 **Valkey** handles cache invalidation only — not primary storage. When a server instance writes to PostgreSQL (skill publish, marketplace update), it publishes an invalidation message to a Valkey channel. All server instances (there may be multiple replicas) subscribe and drop their in-memory cache entry, triggering a reload from PostgreSQL. This replaces the Firestore real-time listener from v1 with a standard K8s-native pub/sub pattern.
 
-**OCI registry** stores skill archives. When a developer runs `skillctl push`, the server packages the skill as an OCI artifact and pushes it to the configured registry using the `oras` library. On `skillctl install`, the server generates a short-lived pull token and returns the OCI reference + token to the CLI. The CLI pulls directly using the oras client library. This reuses your existing container registry infrastructure — no separate object store needed.
+**OCI registry** stores skill archives. When a developer runs `skillsctl push`, the server packages the skill as an OCI artifact and pushes it to the configured registry using the `oras` library. On `skillsctl install`, the server generates a short-lived pull token and returns the OCI reference + token to the CLI. The CLI pulls directly using the oras client library. This reuses your existing container registry infrastructure — no separate object store needed.
 
 ---
 
-## 3. Repo 1: `skillctl` (OSS Tool)
+## 3. Repo 1: `skillsctl` (OSS Tool)
 
 ### 3.1 Repository Structure
 
 ```
-skillctl/
+skillsctl/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci-cli.yml           # lint → test → build → e2e → release
@@ -140,15 +140,15 @@ skillctl/
 ├── proto/
 │   ├── buf.yaml
 │   ├── buf.gen.yaml
-│   └── skillctl/v1/
+│   └── skillsctl/v1/
 │       ├── skill.proto
 │       ├── registry.proto
 │       ├── federation.proto
 │       └── auth.proto
 │
 ├── gen/
-│   ├── go/skillctl/v1/
-│   └── python/skillctl/v1/
+│   ├── go/skillsctl/v1/
+│   └── python/skillsctl/v1/
 │
 ├── backend/
 │   ├── cmd/server/main.go
@@ -257,8 +257,8 @@ skillctl/
 | Skill archive storage | OCI registry via oras-go | Reuses existing container registry. Content-addressed. No separate object store. |
 | CLI auth | Generic OIDC device flow | Configurable issuer URL + client ID. Works with Keycloak, Okta, Dex, etc. |
 | Backend auth | OIDC token validation | Validates JWT signature against issuer's JWKS. Checks `groups` claim for admin role. No provider-specific SDK. |
-| Admin role | OIDC `groups` claim | Admins are members of a group (e.g. `skillctl-admins`) that Keycloak includes in the token's `groups` claim. No separate API call needed at runtime. |
-| Helm chart distribution | OCI registry (ghcr.io) | `helm install oci://ghcr.io/yourorg/charts/skillctl --version X.Y.Z` |
+| Admin role | OIDC `groups` claim | Admins are members of a group (e.g. `skillsctl-admins`) that Keycloak includes in the token's `groups` claim. No separate API call needed at runtime. |
+| Helm chart distribution | OCI registry (ghcr.io) | `helm install oci://ghcr.io/yourorg/charts/skillsctl --version X.Y.Z` |
 | Nebari integration | NebariApp CRD, opt-in via `nebari.enabled=true` | When enabled, renders a NebariApp resource that the nebari-operator picks up for routing + TLS + Keycloak OIDC |
 | DB migrations | goose (embedded) | Server runs migrations on startup via goose's embed FS support. No separate init container needed. |
 | Container | Scratch final image | Same as v1 — CGO_ENABLED=0, static binary |
@@ -292,7 +292,7 @@ Breaking change policy: same as v1 (warn pre-1.0, block post-1.0).
 type Config struct {
     IssuerURL   string // e.g. https://keycloak.example.com/realms/myrealm
     ClientID    string
-    AdminGroup  string // e.g. "skillctl-admins"
+    AdminGroup  string // e.g. "skillsctl-admins"
     // AllowedDomain is optional — if set, checks the "email" claim's domain.
     // Leave empty to allow any authenticated user from the OIDC provider.
     AllowedDomain string
@@ -421,7 +421,7 @@ Each server instance maintains an in-memory skill cache loaded from PostgreSQL o
 ```go
 // internal/cache/valkey.go
 
-const invalidationChannel = "skillctl:cache:invalidate"
+const invalidationChannel = "skillsctl:cache:invalidate"
 
 type Invalidator struct {
     client *valkey.Client
@@ -453,7 +453,7 @@ func (inv *Invalidator) Subscribe(ctx context.Context) {
 
 import "oras.land/oras-go/v2"
 
-const skillMediaType = "application/vnd.skillctl.skill.v1.tar+gzip"
+const skillMediaType = "application/vnd.skillsctl.skill.v1.tar+gzip"
 
 func (s *OCIStore) PushSkill(ctx context.Context, name, version string, archive []byte) (digest string, err error) {
     ref := fmt.Sprintf("%s/skills/%s:%s", s.registry, name, version)
@@ -484,7 +484,7 @@ Same pattern as v1 — deploy with `--set image.tag=sha-<sha>` as a second Helm 
 
 ```yaml
 apiVersion: v2
-name: skillctl
+name: skillsctl
 description: A Kubernetes-native registry for Claude Code skills
 type: application
 version: 0.1.0      # chart version, bumped independently of app version
@@ -499,7 +499,7 @@ dependencies:
 
 ```yaml
 image:
-  repository: ghcr.io/yourorg/skillctl-backend
+  repository: ghcr.io/yourorg/skillsctl-backend
   tag: ""           # defaults to .Chart.AppVersion
   pullPolicy: IfNotPresent
 
@@ -551,7 +551,7 @@ auth:
     issuerURL: ""   # REQUIRED — e.g. https://keycloak.example.com/realms/myrealm
     clientID: ""    # REQUIRED
     allowedDomain: ""    # optional — restrict to email domain
-    adminGroup: "skillctl-admins"  # OIDC groups claim value for admins
+    adminGroup: "skillsctl-admins"  # OIDC groups claim value for admins
   pushTokens: {}    # map of token→team for write auth, stored in a K8s Secret
 
 # Rate limiting (env vars passed to server)
@@ -568,8 +568,8 @@ federation:
 nebari:
   enabled: false
   app:
-    displayName: "skillctl"
-    subdomain: "skillctl"    # results in skillctl.{nebari-domain}
+    displayName: "skillsctl"
+    subdomain: "skillsctl"    # results in skillsctl.{nebari-domain}
     icon: ""                 # optional URL to icon
     description: "Claude Code skill registry"
     # Keycloak client ID for the Nebari OIDC SecurityPolicy.
@@ -591,10 +591,10 @@ ingress:
 apiVersion: nebari.dev/v1alpha1
 kind: NebariApp
 metadata:
-  name: {{ include "skillctl.fullname" . }}
+  name: {{ include "skillsctl.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "skillctl.labels" . | nindent 4 }}
+    {{- include "skillsctl.labels" . | nindent 4 }}
 spec:
   displayName: {{ .Values.nebari.app.displayName | quote }}
   subdomain: {{ .Values.nebari.app.subdomain | quote }}
@@ -603,7 +603,7 @@ spec:
   icon: {{ .Values.nebari.app.icon | quote }}
   {{- end }}
   service:
-    name: {{ include "skillctl.fullname" . }}
+    name: {{ include "skillsctl.fullname" . }}
     port: {{ .Values.service.port }}
   auth:
     keycloakClientID: {{ required "nebari.app.keycloakClientID is required when nebari.enabled=true" .Values.nebari.app.keycloakClientID | quote }}
@@ -628,32 +628,32 @@ On PR:
 
 On merge to main / tag:
 └── helm package chart/ --app-version $TAG --version $TAG
-└── helm push skillctl-$TAG.tgz oci://ghcr.io/yourorg/charts
+└── helm push skillsctl-$TAG.tgz oci://ghcr.io/yourorg/charts
 ```
 
 Install command for users:
 ```bash
-helm install skillctl oci://ghcr.io/yourorg/charts/skillctl \
+helm install skillsctl oci://ghcr.io/yourorg/charts/skillsctl \
   --version 0.1.0 \
-  --namespace skillctl --create-namespace \
+  --namespace skillsctl --create-namespace \
   -f my-values.yaml
 ```
 
 ### 3.6 Phase 4 — CLI
 
-#### Config file: `~/.config/skillctl/config.yaml`
+#### Config file: `~/.config/skillsctl/config.yaml`
 
 ```yaml
-api_url: https://skillctl.example.com
+api_url: https://skillsctl.example.com
 skills_dir: ~/.claude/skills
 
 auth:
   oidc_issuer: https://keycloak.example.com/realms/myrealm
-  client_id: skillctl-cli
-  # token cached at ~/.config/skillctl/credentials.json after login
+  client_id: skillsctl-cli
+  # token cached at ~/.config/skillsctl/credentials.json after login
 ```
 
-The `auth.oidc_issuer` and `auth.client_id` values are set once during onboarding (`skillctl config set auth.oidc_issuer <url>`). The org documents the correct values in their internal README.
+The `auth.oidc_issuer` and `auth.client_id` values are set once during onboarding (`skillsctl config set auth.oidc_issuer <url>`). The org documents the correct values in their internal README.
 
 Optionally, the org can build a pre-configured binary via GoReleaser ldflags:
 
@@ -661,11 +661,11 @@ Optionally, the org can build a pre-configured binary via GoReleaser ldflags:
 # in .goreleaser.yml, for an org-specific build
 ldflags:
   - -X main.defaultOIDCIssuer=https://keycloak.example.com/realms/myrealm
-  - -X main.defaultClientID=skillctl-cli
-  - -X main.defaultAPIURL=https://skillctl.openteams.com
+  - -X main.defaultClientID=skillsctl-cli
+  - -X main.defaultAPIURL=https://skillsctl.openteams.com
 ```
 
-This means new devs can run `skillctl auth login` immediately without any config step.
+This means new devs can run `skillsctl auth login` immediately without any config step.
 
 #### Generic OIDC device flow
 
@@ -691,7 +691,7 @@ func (c *OIDCConfig) Login(ctx context.Context) error {
     // 4. Poll token_endpoint until user completes or timeout
     tok, err := pollForToken(ctx, meta.TokenEndpoint, c.ClientID, dc)
 
-    // 5. Save to ~/.config/skillctl/credentials.json
+    // 5. Save to ~/.config/skillsctl/credentials.json
     return saveToken(tok)
 }
 ```
@@ -713,7 +713,7 @@ func PullSkill(ctx context.Context, ociRef, pullToken, destDir string) error {
             AccessToken: pullToken,
         }),
     }
-    // Pull the skill layer (application/vnd.skillctl.skill.v1.tar+gzip)
+    // Pull the skill layer (application/vnd.skillsctl.skill.v1.tar+gzip)
     // Extract to destDir
 }
 ```
@@ -721,9 +721,9 @@ func PullSkill(ctx context.Context, ociRef, pullToken, destDir string) error {
 #### CLI commands
 
 All commands from v1 are unchanged in behavior. The differences are:
-- `skillctl auth login` uses OIDC device flow against the configured issuer instead of Google OAuth
-- `skillctl install` pulls from OCI registry via oras instead of a GCS signed URL
-- `skillctl config set auth.oidc_issuer <url>` and `skillctl config set auth.client_id <id>` are new subcommands
+- `skillsctl auth login` uses OIDC device flow against the configured issuer instead of Google OAuth
+- `skillsctl install` pulls from OCI registry via oras instead of a GCS signed URL
+- `skillsctl config set auth.oidc_issuer <url>` and `skillsctl config set auth.client_id <id>` are new subcommands
 
 ### 3.7 Phase 5 — CI/CD Pipelines
 
@@ -750,7 +750,7 @@ Stage 3: Container build → Trivy scan → smoke test → push sha-tagged image
 Stage 4: E2E + DAST
 ├── Spin up kind cluster
 ├── Install CloudNativePG operator
-├── helm install skillctl ./chart -f chart/ci/test-values.yaml
+├── helm install skillsctl ./chart -f chart/ci/test-values.yaml
 │     (test-values.yaml uses in-cluster Valkey, disables Nebari)
 ├── Wait for rollout
 ├── Run e2e/backend/ suite + marketplace tests
@@ -772,16 +772,16 @@ On PR (paths: chart/**):
 
 On tag vX.Y.Z:
 ├── helm package --version $TAG --app-version $TAG
-└── helm push oci://ghcr.io/yourorg/charts/skillctl:$TAG
+└── helm push oci://ghcr.io/yourorg/charts/skillsctl:$TAG
 ```
 
 #### Proto pipeline (`ci-proto.yml`) — same as v1
 
 #### Infrastructure: none in this repo
 
-No OpenTofu in `skillctl`. All infra lives in the org GitOps repo. The `skillctl` repo is purely application code.
+No OpenTofu in `skillsctl`. All infra lives in the org GitOps repo. The `skillsctl` repo is purely application code.
 
-#### GitHub Actions Required Secrets (skillctl repo)
+#### GitHub Actions Required Secrets (skillsctl repo)
 
 | Secret | Description |
 |---|---|
@@ -794,14 +794,14 @@ No OpenTofu in `skillctl`. All infra lives in the org GitOps repo. The `skillctl
 
 ---
 
-## 4. Repo 2: `skillctl-deploy` (Org GitOps)
+## 4. Repo 2: `skillsctl-deploy` (Org GitOps)
 
 This repo is internal-only. It contains everything org-specific.
 
 ### 4.1 Repository Structure
 
 ```
-skillctl-deploy/
+skillsctl-deploy/
 ├── argocd/
 │   ├── dev/
 │   │   └── application.yaml     # ArgoCD Application for dev namespace
@@ -817,9 +817,9 @@ skillctl-deploy/
 │       └── values.yaml          # Prod overrides (HA postgres, HPA settings)
 │
 ├── keycloak/
-│   └── skillctl-client.yaml     # Keycloak client config (realm export fragment)
-│                                # Defines the skillctl-cli client with device flow
-│                                # and the skillctl-admins group mapping
+│   └── skillsctl-client.yaml     # Keycloak client config (realm export fragment)
+│                                # Defines the skillsctl-cli client with device flow
+│                                # and the skillsctl-admins group mapping
 │
 ├── scripts/
 │   └── seed-marketplaces.sh     # One-time script: adds Anthropic + Superpowers
@@ -834,24 +834,24 @@ skillctl-deploy/
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: skillctl-prod
+  name: skillsctl-prod
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: ghcr.io/yourorg/charts
-    chart: skillctl
+    chart: skillsctl
     targetRevision: 0.3.1          # pin to a specific chart version
     helm:
       valueFiles:
         - $values/helm-values/base/values.yaml
         - $values/helm-values/prod/values.yaml
   sources:
-    - repoURL: https://github.com/yourorg/skillctl-deploy
+    - repoURL: https://github.com/yourorg/skillsctl-deploy
       targetRevision: main
       ref: values
     - repoURL: ghcr.io/yourorg/charts
-      chart: skillctl
+      chart: skillsctl
       targetRevision: 0.3.1
       helm:
         valueFiles:
@@ -859,7 +859,7 @@ spec:
           - $values/helm-values/prod/values.yaml
   destination:
     server: https://kubernetes.default.svc
-    namespace: skillctl-prod
+    namespace: skillsctl-prod
   syncPolicy:
     automated:
       prune: true
@@ -876,22 +876,22 @@ spec:
 auth:
   oidc:
     issuerURL: https://keycloak.openteams.com/realms/openteams
-    clientID: skillctl-cli
+    clientID: skillsctl-cli
     allowedDomain: openteams.com
-    adminGroup: skillctl-admins
+    adminGroup: skillsctl-admins
 
 oci:
   registry: ghcr.io
   repository: openteams/skills
-  credentialsSecret: skillctl-oci-credentials
+  credentialsSecret: skillsctl-oci-credentials
 
 nebari:
   enabled: true
   app:
-    displayName: "skillctl"
-    subdomain: "skillctl"
+    displayName: "skillsctl"
+    subdomain: "skillsctl"
     description: "Internal Claude Code skill registry"
-    keycloakClientID: skillctl-server
+    keycloakClientID: skillsctl-server
 ```
 
 ```yaml
@@ -911,28 +911,28 @@ valkey:
     storageClass: ssd
 
 image:
-  tag: "0.3.1"    # bumped by automated PR when new skillctl release is tagged
+  tag: "0.3.1"    # bumped by automated PR when new skillsctl release is tagged
 ```
 
 ### 4.4 NebariApp CRD
 
-The NebariApp CRD is installed by Helm from the `chart/crds/` directory in the skillctl chart. No separate step needed. The `nebari.enabled=true` value in base values.yaml activates the NebariApp resource, which the nebari-operator picks up to configure:
+The NebariApp CRD is installed by Helm from the `chart/crds/` directory in the skillsctl chart. No separate step needed. The `nebari.enabled=true` value in base values.yaml activates the NebariApp resource, which the nebari-operator picks up to configure:
 
-- An HTTPRoute on the shared Envoy Gateway pointing at the skillctl Service
-- A cert-manager certificate for `skillctl.{nebari-domain}`
+- An HTTPRoute on the shared Envoy Gateway pointing at the skillsctl Service
+- A cert-manager certificate for `skillsctl.{nebari-domain}`
 - A Keycloak OIDC SecurityPolicy (Envoy ExtAuthz) on the route
 
-This means the skillctl server itself does not handle TLS termination — Envoy Gateway does. The server receives pre-authenticated requests with the OIDC token forwarded as a header. The server still validates the token independently (defense in depth — the server should not trust Envoy blindly).
+This means the skillsctl server itself does not handle TLS termination — Envoy Gateway does. The server receives pre-authenticated requests with the OIDC token forwarded as a header. The server still validates the token independently (defense in depth — the server should not trust Envoy blindly).
 
 ### 4.5 Keycloak Client Configuration
 
 ```yaml
-# keycloak/skillctl-client.yaml
+# keycloak/skillsctl-client.yaml
 # Import this into your Keycloak realm via the admin console or Terraform Keycloak provider
 
 clients:
   # CLI client — device flow, public client (no secret)
-  - clientId: skillctl-cli
+  - clientId: skillsctl-cli
     publicClient: true
     standardFlowEnabled: false
     directAccessGrantsEnabled: false
@@ -940,12 +940,12 @@ clients:
     defaultScopes: [openid, email, profile, groups]
 
   # Server client — used by nebari-operator for OIDC SecurityPolicy
-  - clientId: skillctl-server
+  - clientId: skillsctl-server
     publicClient: false
     # clientSecret: managed by nebari-operator
 
 groups:
-  - name: skillctl-admins
+  - name: skillsctl-admins
     # Add admin users here
 
 # Protocol mapper to include groups in token
@@ -992,61 +992,61 @@ Pre-seeded marketplaces via `scripts/seed-marketplaces.sh` — same as v1.
 Full auth flow for reference:
 
 ```
-1. Dev runs: skillctl auth login
+1. Dev runs: skillsctl auth login
    → CLI fetches OIDC discovery doc from issuerURL
    → CLI POSTs to device_authorization_endpoint
    → CLI prints user_code + verification_uri
    → Dev opens browser, logs into Keycloak, enters code
    → CLI polls token_endpoint, receives access_token + refresh_token
-   → Tokens saved to ~/.config/skillctl/credentials.json
+   → Tokens saved to ~/.config/skillsctl/credentials.json
 
-2. Dev runs: skillctl explore
+2. Dev runs: skillsctl explore
    → CLI reads access_token from credentials.json
    → If expired: CLI uses refresh_token to get new access_token (transparent)
    → CLI sends: Authorization: Bearer <access_token>
    → Server validates token: signature (JWKS), expiry, audience (clientID), domain
    → Server serves request
 
-3. Dev runs: skillctl push
+3. Dev runs: skillsctl push
    → Same token flow
    → Server additionally checks X-Push-Token header against push_tokens config
 
-4. Admin runs: skillctl marketplace add
+4. Admin runs: skillsctl marketplace add
    → Same token flow
    → Server checks groups claim in token for adminGroup value
    → No external API call — group membership is in the token
 
-5. [If Nebari] Browser access to skillctl web UI (future)
+5. [If Nebari] Browser access to skillsctl web UI (future)
    → Request hits Envoy Gateway
    → No OIDC session → redirect to Keycloak
    → Keycloak auth → token set as cookie
-   → Envoy forwards request with token header to skillctl-server
-   → skillctl-server validates independently (defense in depth)
+   → Envoy forwards request with token header to skillsctl-server
+   → skillsctl-server validates independently (defense in depth)
 ```
 
 ---
 
 ## 7. Dogfood Skill
 
-Same as v1 — `skills/goreleaser/SKILL.md` in the skillctl repo, pushed to the registry on first deploy via `scripts/seed-marketplaces.sh`.
+Same as v1 — `skills/goreleaser/SKILL.md` in the skillsctl repo, pushed to the registry on first deploy via `scripts/seed-marketplaces.sh`.
 
 ---
 
 ## 8. Outstanding Decisions & Constraints
 
-1. **Keycloak client setup** — The `keycloak/skillctl-client.yaml` file in the org repo documents the required config, but someone must apply it. Options: manual import via Keycloak admin console, the Terraform Keycloak provider (if your Nebari deployment uses it), or a one-time `kcadm.sh` script. Decide which is canonical for your org before deployment.
+1. **Keycloak client setup** — The `keycloak/skillsctl-client.yaml` file in the org repo documents the required config, but someone must apply it. Options: manual import via Keycloak admin console, the Terraform Keycloak provider (if your Nebari deployment uses it), or a one-time `kcadm.sh` script. Decide which is canonical for your org before deployment.
 
-2. **CloudNativePG operator** — Must be installed in the cluster before deploying the skillctl chart. The chart creates a CloudNativePG `Cluster` CR but does not install the operator. Document this as a prerequisite in the org README. If it's not already in your Nebari cluster, add it as a separate ArgoCD Application in the skillctl-deploy repo.
+2. **CloudNativePG operator** — Must be installed in the cluster before deploying the skillsctl chart. The chart creates a CloudNativePG `Cluster` CR but does not install the operator. Document this as a prerequisite in the org README. If it's not already in your Nebari cluster, add it as a separate ArgoCD Application in the skillsctl-deploy repo.
 
-3. **OCI registry credentials** — The skillctl server needs push/pull access to `ghcr.io/openteams/skills`. Create a GitHub machine account or use a GitHub App for this. Store credentials as a K8s secret (`skillctl-oci-credentials`) created out-of-band (not in the GitOps repo). Reference the secret name in values.yaml.
+3. **OCI registry credentials** — The skillsctl server needs push/pull access to `ghcr.io/openteams/skills`. Create a GitHub machine account or use a GitHub App for this. Store credentials as a K8s secret (`skillsctl-oci-credentials`) created out-of-band (not in the GitOps repo). Reference the secret name in values.yaml.
 
-4. **Image tag automation** — When a new skillctl release is tagged, the prod values.yaml needs `image.tag` bumped. Automate this with a GitHub Action in the skillctl-deploy repo that opens a PR on new skillctl releases (listen for release events from the skillctl repo via a workflow_dispatch or repository_dispatch trigger).
+4. **Image tag automation** — When a new skillsctl release is tagged, the prod values.yaml needs `image.tag` bumped. Automate this with a GitHub Action in the skillsctl-deploy repo that opens a PR on new skillsctl releases (listen for release events from the skillsctl repo via a workflow_dispatch or repository_dispatch trigger).
 
 5. **Nebari CRD version pinning** — The `chart/crds/nebariapp-crd.yaml` must be kept in sync with the nebari-operator version running in your cluster. Add a note in `chart/CHANGELOG.md` whenever it is updated. Mismatched CRD versions are a common silent failure mode.
 
-6. **OIDC `groups` claim in Keycloak** — Keycloak does not include group membership in tokens by default. The protocol mapper in `keycloak/skillctl-client.yaml` must be applied for admin checks to work. Without it, `IsAdmin` always returns false and `skillctl marketplace` commands return PermissionDenied for everyone.
+6. **OIDC `groups` claim in Keycloak** — Keycloak does not include group membership in tokens by default. The protocol mapper in `keycloak/skillsctl-client.yaml` must be applied for admin checks to work. Without it, `IsAdmin` always returns false and `skillsctl marketplace` commands return PermissionDenied for everyone.
 
-7. **Pre-configured binary for onboarding** — The org can build a custom binary via GoReleaser ldflags that pre-sets `oidcIssuer`, `clientID`, and `apiURL`. This removes the manual `skillctl config set` step for new devs. Consider hosting the org-specific binary as a private GitHub Release in the skillctl-deploy repo, or distributing via an internal Homebrew tap / Scoop bucket that overrides the public one.
+7. **Pre-configured binary for onboarding** — The org can build a custom binary via GoReleaser ldflags that pre-sets `oidcIssuer`, `clientID`, and `apiURL`. This removes the manual `skillsctl config set` step for new devs. Consider hosting the org-specific binary as a private GitHub Release in the skillsctl-deploy repo, or distributing via an internal Homebrew tap / Scoop bucket that overrides the public one.
 
 8. **Windows self-update** — Use `inconshreveable/go-update` for the locked-binary swap. Same constraint as v1.
 

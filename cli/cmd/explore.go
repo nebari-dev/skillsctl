@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 )
 
 func addExploreCmd(root *cobra.Command) {
@@ -22,12 +22,12 @@ func addExploreCmd(root *cobra.Command) {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			client := getClient()
 
-			sourceFilter := skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
+			sourceFilter := skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
 			switch source {
 			case "internal":
-				sourceFilter = skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL
+				sourceFilter = skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL
 			case "external":
-				sourceFilter = skillctlv1.SkillSource_SKILL_SOURCE_FEDERATED
+				sourceFilter = skillsctlv1.SkillSource_SKILL_SOURCE_FEDERATED
 			}
 
 			skills, err := client.ListSkills(context.Background(), tags, sourceFilter)
@@ -74,12 +74,12 @@ func addExploreCmd(root *cobra.Command) {
 	root.AddCommand(exploreCmd)
 }
 
-func printSkillTable(w io.Writer, skills []*skillctlv1.Skill) {
+func printSkillTable(w io.Writer, skills []*skillsctlv1.Skill) {
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(tw, "SOURCE\tNAME\tOWNER\tTAGS\tINSTALLS\tVERSION")
 	for _, s := range skills {
 		src := "internal"
-		if s.Source == skillctlv1.SkillSource_SKILL_SOURCE_FEDERATED {
+		if s.Source == skillsctlv1.SkillSource_SKILL_SOURCE_FEDERATED {
 			src = "external"
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%d\t%s\n",
@@ -88,7 +88,7 @@ func printSkillTable(w io.Writer, skills []*skillctlv1.Skill) {
 	_ = tw.Flush()
 }
 
-func printSkillDetail(w io.Writer, skill *skillctlv1.Skill, versions []*skillctlv1.SkillVersion) {
+func printSkillDetail(w io.Writer, skill *skillsctlv1.Skill, versions []*skillsctlv1.SkillVersion) {
 	fmt.Fprintf(w, "Name:        %s\n", skill.Name)
 	fmt.Fprintf(w, "Description: %s\n", skill.Description)
 	fmt.Fprintf(w, "Owner:       %s\n", skill.Owner)
@@ -97,7 +97,7 @@ func printSkillDetail(w io.Writer, skill *skillctlv1.Skill, versions []*skillctl
 	fmt.Fprintf(w, "Installs:    %d\n", skill.InstallCount)
 
 	src := "internal"
-	if skill.Source == skillctlv1.SkillSource_SKILL_SOURCE_FEDERATED {
+	if skill.Source == skillsctlv1.SkillSource_SKILL_SOURCE_FEDERATED {
 		src = fmt.Sprintf("external (%s)", skill.MarketplaceId)
 	}
 	fmt.Fprintf(w, "Source:      %s\n", src)

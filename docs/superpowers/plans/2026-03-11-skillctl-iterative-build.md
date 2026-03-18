@@ -1,14 +1,14 @@
-# skillctl - Iterative Build Plan (v2 Architecture)
+# skillsctl - Iterative Build Plan (v2 Architecture)
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build skillctl (CLI + backend registry for Claude Code skills) in thin vertical slices, each delivering testable end-to-end functionality before moving on. Based on v2 workplan (K8s-native, PostgreSQL, Valkey, OCI, generic OIDC, Helm chart).
+**Goal:** Build skillsctl (CLI + backend registry for Claude Code skills) in thin vertical slices, each delivering testable end-to-end functionality before moving on. Based on v2 workplan (K8s-native, PostgreSQL, Valkey, OCI, generic OIDC, Helm chart).
 
 **Architecture:** ConnectRPC backend (Go) deployed via Helm chart on Kubernetes. PostgreSQL (CloudNativePG) for persistence, Valkey for cache invalidation pub/sub, OCI registry (ghcr.io) for skill archives via oras-go. Cobra/Viper CLI communicates via ConnectRPC. Generic OIDC device flow for auth (works with Keycloak, Okta, Dex, etc.). Optional Nebari integration via NebariApp CRD.
 
 **Tech Stack:** Go 1.25+, ConnectRPC, Protocol Buffers (buf), Cobra/Viper, PostgreSQL (pgx), Valkey, oras-go, goose (migrations), Helm, GoReleaser, GitHub Actions
 
-**Reference:** Full architecture in `skillctl-workplan-v2.md`
+**Reference:** Full architecture in `skillsctl-workplan-v2.md`
 
 ---
 
@@ -21,19 +21,19 @@ Each slice is a vertical cut delivering testable value:
 | 1 | Project scaffolding + tooling | `go build ./...`, `buf lint`, `golangci-lint run` |
 | 2 | Proto definitions + code generation | Generated Go types compile, `buf lint` passes |
 | 3 | Backend healthz + ListSkills (in-memory) | `curl localhost:8080/healthz`, `curl` ListSkills JSON endpoint |
-| 4 | CLI explore + show | `skillctl explore` prints table against running backend |
+| 4 | CLI explore + show | `skillsctl explore` prints table against running backend |
 | 5 | PostgreSQL store + goose migrations | Backend reads/writes skills to PostgreSQL, survives restart |
-| 6 | Auth - OIDC middleware + device flow | `skillctl auth login` works, unauthenticated requests rejected |
-| 7 | Publish flow (push + OCI storage) | `skillctl push ./my-skill/` uploads, appears in explore |
-| 8 | Install flow (OCI pull) | `skillctl install <name>` pulls OCI artifact + unpacks |
-| 9 | Search | `skillctl explore --q "data"` filters results |
+| 6 | Auth - OIDC middleware + device flow | `skillsctl auth login` works, unauthenticated requests rejected |
+| 7 | Publish flow (push + OCI storage) | `skillsctl push ./my-skill/` uploads, appears in explore |
+| 8 | Install flow (OCI pull) | `skillsctl install <name>` pulls OCI artifact + unpacks |
+| 9 | Search | `skillsctl explore --q "data"` filters results |
 | 10 | Valkey cache invalidation | Publish on instance A, instance B cache updates |
-| 11 | Helm chart | `helm install skillctl ./chart` works on kind cluster |
+| 11 | Helm chart | `helm install skillsctl ./chart` works on kind cluster |
 | 12 | CI/CD pipelines | PR triggers lint+test, merge triggers build+push |
 | 13 | Rate limiting | Burst requests get 429, CLI backs off |
-| 14 | Self-update | `skillctl update` downloads new binary |
-| 15 | Federation | `skillctl marketplace add <url>`, federated skills in explore |
-| 16 | Dogfood skill | `skillctl install goreleaser` works end-to-end |
+| 14 | Self-update | `skillsctl update` downloads new binary |
+| 15 | Federation | `skillsctl marketplace add <url>`, federated skills in explore |
+| 16 | Dogfood skill | `skillsctl install goreleaser` works end-to-end |
 
 ---
 
@@ -52,15 +52,15 @@ Each slice is a vertical cut delivering testable value:
 - [ ] **Step 1: Initialize Go module** (already done)
 
 ```bash
-go mod init github.com/nebari-dev/skillctl
+go mod init github.com/nebari-dev/skillsctl
 ```
 
 - [ ] **Step 2: Create .gitignore**
 
 ```gitignore
 # Binaries
-skillctl
-skillctl-server
+skillsctl
+skillsctl-server
 *.exe
 
 # IDE
@@ -117,18 +117,18 @@ test-cli:
 	go test ./cli/... -race -coverprofile=coverage.out
 
 build-cli:
-	CGO_ENABLED=0 go build -o skillctl ./cli
+	CGO_ENABLED=0 go build -o skillsctl ./cli
 
 build-backend:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o skillctl-server ./backend/cmd/server
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o skillsctl-server ./backend/cmd/server
 
 clean:
-	rm -f skillctl skillctl-server coverage.out
+	rm -f skillsctl skillsctl-server coverage.out
 ```
 
 - [ ] **Step 6: Create README.md**
 
-Basic project README explaining what skillctl is, how to build, test, and contribute. Reference the workplan for architecture details.
+Basic project README explaining what skillsctl is, how to build, test, and contribute. Reference the workplan for architecture details.
 
 - [ ] **Step 7: Verify go module**
 
@@ -147,8 +147,8 @@ git commit -m "feat: initialize go module and project scaffolding"
 **Files:**
 - Create: `proto/buf.yaml`
 - Create: `proto/buf.gen.yaml`
-- Create: `proto/skillctl/v1/skill.proto`
-- Create: `proto/skillctl/v1/registry.proto`
+- Create: `proto/skillsctl/v1/skill.proto`
+- Create: `proto/skillsctl/v1/registry.proto`
 
 - [ ] **Step 1: Create buf.yaml**
 
@@ -174,7 +174,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/nebari-dev/skillctl/gen/go
+      value: github.com/nebari-dev/skillsctl/gen/go
 plugins:
   - remote: buf.build/protocolbuffers/go
     out: gen/go
@@ -189,15 +189,15 @@ plugins:
 
 - [ ] **Step 3: Create skill.proto with core types**
 
-File: `proto/skillctl/v1/skill.proto`
+File: `proto/skillsctl/v1/skill.proto`
 
 ```protobuf
 syntax = "proto3";
-package skillctl.v1;
+package skillsctl.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/nebari-dev/skillctl/gen/go/skillctl/v1;skillctlv1";
+option go_package = "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1;skillsctlv1";
 
 enum SkillSource {
   SKILL_SOURCE_UNSPECIFIED = 0;
@@ -233,17 +233,17 @@ message SkillVersion {
 
 - [ ] **Step 4: Create registry.proto with RegistryService**
 
-File: `proto/skillctl/v1/registry.proto`
+File: `proto/skillsctl/v1/registry.proto`
 
 Start with only read RPCs. Write RPCs added in Slice 7.
 
 ```protobuf
 syntax = "proto3";
-package skillctl.v1;
+package skillsctl.v1;
 
-import "skillctl/v1/skill.proto";
+import "skillsctl/v1/skill.proto";
 
-option go_package = "github.com/nebari-dev/skillctl/gen/go/skillctl/v1;skillctlv1";
+option go_package = "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1;skillsctlv1";
 
 service RegistryService {
   rpc ListSkills(ListSkillsRequest) returns (ListSkillsResponse);
@@ -280,7 +280,7 @@ Expected: clean exit, no warnings
 - [ ] **Step 6: Generate Go code**
 
 Run: `buf generate proto/`
-Expected: files created under `gen/go/skillctl/v1/`
+Expected: files created under `gen/go/skillsctl/v1/`
 
 - [ ] **Step 7: Verify generated code compiles**
 
@@ -407,7 +407,7 @@ Config defaults: api_url=http://localhost:8080, skills_dir=~/.claude/skills, aut
 
 Typed wrapper around the generated ConnectRPC client. Tests use a real test server (backend registry + memory store).
 
-### Task 3.3: `skillctl explore` + `skillctl explore show` Commands
+### Task 3.3: `skillsctl explore` + `skillsctl explore show` Commands
 
 **Files:**
 - Create: `cli/cmd/explore.go`
@@ -469,7 +469,7 @@ ConnectRPC interceptor. Three roles: Reader (any valid token), Writer (token + p
 - Create: `cli/internal/auth/token_store_test.go`
 - Create: `cli/cmd/auth.go`
 
-Generic OIDC device flow (RFC 8628). Discovers endpoints from issuer's .well-known/openid-configuration. Token cached at ~/.config/skillctl/credentials.json.
+Generic OIDC device flow (RFC 8628). Discovers endpoints from issuer's .well-known/openid-configuration. Token cached at ~/.config/skillsctl/credentials.json.
 
 ---
 
@@ -492,7 +492,7 @@ Modify registry.proto, regenerate.
 
 Push skill archives as OCI artifacts. Generate short-lived pull tokens.
 
-### Task 6.4: PublishSkill Handler + `skillctl push`
+### Task 6.4: PublishSkill Handler + `skillsctl push`
 
 Wire it all together. End-to-end: push a skill, see it in explore.
 

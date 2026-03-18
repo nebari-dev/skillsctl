@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nebari-dev/skillctl/cli/cmd"
-	cliauth "github.com/nebari-dev/skillctl/cli/internal/auth"
-	"github.com/nebari-dev/skillctl/cli/internal/testutil"
+	"github.com/nebari-dev/skillsctl/cli/cmd"
+	cliauth "github.com/nebari-dev/skillsctl/cli/internal/auth"
+	"github.com/nebari-dev/skillsctl/cli/internal/testutil"
 )
 
 // testJWT has payload {"sub":"user-1","email":"test@example.com","exp":9999999999}
@@ -187,7 +187,7 @@ func TestAuthStatus_Expired(t *testing.T) {
 }
 
 func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
-	// Set up a combined OIDC + skillctl stub server
+	// Set up a combined OIDC + skillsctl stub server
 	var gotAuth string
 
 	mux := http.NewServeMux()

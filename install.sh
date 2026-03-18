@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="nebari-dev/skillctl"
+REPO="nebari-dev/skillsctl"
 INSTALL_DIR="/usr/local/bin"
 FALLBACK_DIR="$HOME/.local/bin"
 
@@ -41,10 +41,10 @@ if [ -z "$VERSION" ]; then
 fi
 VERSION_NUM="${VERSION#v}"
 
-echo "Installing skillctl $VERSION for ${OS}/${ARCH}..."
+echo "Installing skillsctl $VERSION for ${OS}/${ARCH}..."
 
 # Download
-ARCHIVE="skillctl_${VERSION_NUM}_${OS}_${ARCH}.tar.gz"
+ARCHIVE="skillsctl_${VERSION_NUM}_${OS}_${ARCH}.tar.gz"
 URL="https://github.com/$REPO/releases/download/${VERSION}/${ARCHIVE}"
 CHECKSUMS_URL="https://github.com/$REPO/releases/download/${VERSION}/checksums.txt"
 
@@ -88,12 +88,12 @@ tar -xzf "$TMPDIR/$ARCHIVE" -C "$TMPDIR"
 
 # Install
 if [ -w "$INSTALL_DIR" ]; then
-  mv "$TMPDIR/skillctl" "$INSTALL_DIR/skillctl"
-  echo "Installed to $INSTALL_DIR/skillctl"
+  mv "$TMPDIR/skillsctl" "$INSTALL_DIR/skillsctl"
+  echo "Installed to $INSTALL_DIR/skillsctl"
 else
   mkdir -p "$FALLBACK_DIR"
-  mv "$TMPDIR/skillctl" "$FALLBACK_DIR/skillctl"
-  echo "Installed to $FALLBACK_DIR/skillctl"
+  mv "$TMPDIR/skillsctl" "$FALLBACK_DIR/skillsctl"
+  echo "Installed to $FALLBACK_DIR/skillsctl"
   case ":$PATH:" in
     *":$FALLBACK_DIR:"*) ;;
     *) echo "Add $FALLBACK_DIR to your PATH: export PATH=\"$FALLBACK_DIR:\$PATH\"" ;;
@@ -101,4 +101,4 @@ else
 fi
 
 # Verify
-skillctl --version 2>/dev/null || echo "Install complete. Run 'skillctl --version' to verify."
+skillsctl --version 2>/dev/null || echo "Install complete. Run 'skillsctl --version' to verify."

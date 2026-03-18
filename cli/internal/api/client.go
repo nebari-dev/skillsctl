@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"connectrpc.com/connect"
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 )
 
 // ClientOption configures the API client.
@@ -19,9 +19,9 @@ func WithToken(token string) ClientOption {
 	}
 }
 
-// Client is the skillctl API client.
+// Client is the skillsctl API client.
 type Client struct {
-	registry skillctlv1connect.RegistryServiceClient
+	registry skillsctlv1connect.RegistryServiceClient
 	token    string
 }
 
@@ -42,7 +42,7 @@ func NewClient(baseURL string, opts ...ClientOption) *Client {
 		}
 	}
 
-	c.registry = skillctlv1connect.NewRegistryServiceClient(httpClient, baseURL)
+	c.registry = skillsctlv1connect.NewRegistryServiceClient(httpClient, baseURL)
 	return c
 }
 
@@ -57,8 +57,8 @@ func (t *tokenRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 	return t.base.RoundTrip(req)
 }
 
-func (c *Client) ListSkills(ctx context.Context, tags []string, source skillctlv1.SkillSource) ([]*skillctlv1.Skill, error) {
-	resp, err := c.registry.ListSkills(ctx, connect.NewRequest(&skillctlv1.ListSkillsRequest{
+func (c *Client) ListSkills(ctx context.Context, tags []string, source skillsctlv1.SkillSource) ([]*skillsctlv1.Skill, error) {
+	resp, err := c.registry.ListSkills(ctx, connect.NewRequest(&skillsctlv1.ListSkillsRequest{
 		Tags:         tags,
 		SourceFilter: source,
 	}))
@@ -68,8 +68,8 @@ func (c *Client) ListSkills(ctx context.Context, tags []string, source skillctlv
 	return resp.Msg.Skills, nil
 }
 
-func (c *Client) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error) {
-	resp, err := c.registry.GetSkill(ctx, connect.NewRequest(&skillctlv1.GetSkillRequest{
+func (c *Client) GetSkill(ctx context.Context, name string) (*skillsctlv1.Skill, []*skillsctlv1.SkillVersion, error) {
+	resp, err := c.registry.GetSkill(ctx, connect.NewRequest(&skillsctlv1.GetSkillRequest{
 		Name: name,
 	}))
 	if err != nil {
@@ -78,8 +78,8 @@ func (c *Client) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, 
 	return resp.Msg.Skill, resp.Msg.Versions, nil
 }
 
-func (c *Client) GetSkillContent(ctx context.Context, name, version, digest string) ([]byte, *skillctlv1.SkillVersion, error) {
-	resp, err := c.registry.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+func (c *Client) GetSkillContent(ctx context.Context, name, version, digest string) ([]byte, *skillsctlv1.SkillVersion, error) {
+	resp, err := c.registry.GetSkillContent(ctx, connect.NewRequest(&skillsctlv1.GetSkillContentRequest{
 		Name:    name,
 		Version: version,
 		Digest:  digest,
@@ -90,8 +90,8 @@ func (c *Client) GetSkillContent(ctx context.Context, name, version, digest stri
 	return resp.Msg.Content, resp.Msg.Version, nil
 }
 
-func (c *Client) PublishSkill(ctx context.Context, name, version, description, changelog string, tags []string, content []byte) (*skillctlv1.Skill, *skillctlv1.SkillVersion, error) {
-	resp, err := c.registry.PublishSkill(ctx, connect.NewRequest(&skillctlv1.PublishSkillRequest{
+func (c *Client) PublishSkill(ctx context.Context, name, version, description, changelog string, tags []string, content []byte) (*skillsctlv1.Skill, *skillsctlv1.SkillVersion, error) {
+	resp, err := c.registry.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
 		Name:        name,
 		Version:     version,
 		Description: description,

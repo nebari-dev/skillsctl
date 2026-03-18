@@ -13,13 +13,13 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/server"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
-	sqlitestore "github.com/nebari-dev/skillctl/backend/internal/store/sqlite"
-	"github.com/nebari-dev/skillctl/backend/internal/store/sqlite/migrations"
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/server"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	sqlitestore "github.com/nebari-dev/skillsctl/backend/internal/store/sqlite"
+	"github.com/nebari-dev/skillsctl/backend/internal/store/sqlite/migrations"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 )
 
 type stubValidator struct {
@@ -58,8 +58,8 @@ func TestRPC_RequiresAuth(t *testing.T) {
 	ts := httptest.NewServer(srv.Handler())
 	defer ts.Close()
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	req := connect.NewRequest(&skillctlv1.ListSkillsRequest{})
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	req := connect.NewRequest(&skillsctlv1.ListSkillsRequest{})
 	req.Header().Set("Authorization", "Bearer bad-token")
 	_, err := client.ListSkills(context.Background(), req)
 	if err == nil {
@@ -79,8 +79,8 @@ func TestRPC_NilValidator_PassesThrough(t *testing.T) {
 	ts := httptest.NewServer(srv.Handler())
 	defer ts.Close()
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillctlv1.ListSkillsRequest{}))
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillsctlv1.ListSkillsRequest{}))
 	if err != nil {
 		t.Fatalf("expected success, got: %v", err)
 	}
@@ -105,11 +105,11 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	ts := httptest.NewServer(srv.Handler())
 	t.Cleanup(ts.Close)
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
 	ctx := context.Background()
 
 	// Step 1: Publish v1.0.0
-	pubResp, err := client.PublishSkill(ctx, connect.NewRequest(&skillctlv1.PublishSkillRequest{
+	pubResp, err := client.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
 		Name:        "integration-test",
 		Version:     "1.0.0",
 		Description: "Integration test skill",
@@ -135,7 +135,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	v1Digest := pubResp.Msg.Version.Digest
 
 	// Step 2: List skills - should contain the published skill.
-	listResp, err := client.ListSkills(ctx, connect.NewRequest(&skillctlv1.ListSkillsRequest{}))
+	listResp, err := client.ListSkills(ctx, connect.NewRequest(&skillsctlv1.ListSkillsRequest{}))
 	if err != nil {
 		t.Fatalf("ListSkills: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 3: Get skill details with versions.
-	getResp, err := client.GetSkill(ctx, connect.NewRequest(&skillctlv1.GetSkillRequest{
+	getResp, err := client.GetSkill(ctx, connect.NewRequest(&skillsctlv1.GetSkillRequest{
 		Name: "integration-test",
 	}))
 	if err != nil {
@@ -161,7 +161,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 4: Get content by version.
-	contentResp, err := client.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+	contentResp, err := client.GetSkillContent(ctx, connect.NewRequest(&skillsctlv1.GetSkillContentRequest{
 		Name:    "integration-test",
 		Version: "1.0.0",
 	}))
@@ -173,7 +173,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 5: Get content with matching digest.
-	_, err = client.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+	_, err = client.GetSkillContent(ctx, connect.NewRequest(&skillsctlv1.GetSkillContentRequest{
 		Name:    "integration-test",
 		Version: "1.0.0",
 		Digest:  v1Digest,
@@ -183,7 +183,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 6: Get content with wrong digest - should fail.
-	_, err = client.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+	_, err = client.GetSkillContent(ctx, connect.NewRequest(&skillsctlv1.GetSkillContentRequest{
 		Name:    "integration-test",
 		Version: "1.0.0",
 		Digest:  "sha256:wrong",
@@ -197,7 +197,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 7: Publish v2.0.0 - latest should advance.
-	_, err = client.PublishSkill(ctx, connect.NewRequest(&skillctlv1.PublishSkillRequest{
+	_, err = client.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
 		Name:        "integration-test",
 		Version:     "2.0.0",
 		Description: "Updated description",
@@ -208,7 +208,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 		t.Fatalf("PublishSkill v2.0.0: %v", err)
 	}
 
-	getResp2, err := client.GetSkill(ctx, connect.NewRequest(&skillctlv1.GetSkillRequest{
+	getResp2, err := client.GetSkill(ctx, connect.NewRequest(&skillsctlv1.GetSkillRequest{
 		Name: "integration-test",
 	}))
 	if err != nil {
@@ -222,7 +222,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 8: Get latest content (empty version) - should return v2.
-	latestResp, err := client.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+	latestResp, err := client.GetSkillContent(ctx, connect.NewRequest(&skillsctlv1.GetSkillContentRequest{
 		Name: "integration-test",
 	}))
 	if err != nil {
@@ -233,7 +233,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 9: Duplicate version - should fail.
-	_, err = client.PublishSkill(ctx, connect.NewRequest(&skillctlv1.PublishSkillRequest{
+	_, err = client.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
 		Name:        "integration-test",
 		Version:     "1.0.0",
 		Description: "dup",
@@ -247,7 +247,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 
 	// Step 10: Nonexistent skill - should 404.
-	_, err = client.GetSkillContent(ctx, connect.NewRequest(&skillctlv1.GetSkillContentRequest{
+	_, err = client.GetSkillContent(ctx, connect.NewRequest(&skillsctlv1.GetSkillContentRequest{
 		Name:    "does-not-exist",
 		Version: "1.0.0",
 	}))
@@ -262,7 +262,7 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 func TestAuthConfig_Enabled(t *testing.T) {
 	cfg := auth.Config{
 		IssuerURL: "https://keycloak.example.com/realms/test",
-		ClientID:  "skillctl-cli",
+		ClientID:  "skillsctl-cli",
 	}
 	srv := server.New(store.NewMemory(nil), nil, cfg)
 	ts := httptest.NewServer(srv.Handler())

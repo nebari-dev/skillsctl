@@ -65,7 +65,7 @@ func atomicWrite(destPath string, data []byte) error {
 		return fmt.Errorf("create directory %s: %w", dir, err)
 	}
 
-	tmp, err := os.CreateTemp(dir, ".skillctl-*.tmp")
+	tmp, err := os.CreateTemp(dir, ".skillsctl-*.tmp")
 	if err != nil {
 		return fmt.Errorf("create temp file: %w", err)
 	}

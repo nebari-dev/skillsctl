@@ -1,9 +1,9 @@
 syntax = "proto3";
-package skillctl.v1;
+package skillsctl.v1;
 
-import "skillctl/v1/skill.proto";
+import "skillsctl/v1/skill.proto";
 
-option go_package = "github.com/openteams-ai/skill-share/gen/go/skillctl/v1;skillctlv1";
+option go_package = "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1;skillsctlv1";
 
 service RegistryService {
   // Read - requires valid OIDC token

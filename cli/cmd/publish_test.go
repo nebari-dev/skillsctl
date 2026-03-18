@@ -9,8 +9,8 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/nebari-dev/skillctl/cli/cmd"
-	"github.com/nebari-dev/skillctl/cli/internal/testutil"
+	"github.com/nebari-dev/skillsctl/cli/cmd"
+	"github.com/nebari-dev/skillsctl/cli/internal/testutil"
 )
 
 func TestPublish(t *testing.T) {

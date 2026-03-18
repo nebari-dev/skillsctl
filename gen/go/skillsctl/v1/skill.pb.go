@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: skillctl/v1/skill.proto
+// source: skillsctl/v1/skill.proto
 
-package skillctlv1
+package skillsctlv1
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -55,11 +55,11 @@ func (x SkillSource) String() string {
 }
 
 func (SkillSource) Descriptor() protoreflect.EnumDescriptor {
-	return file_skillctl_v1_skill_proto_enumTypes[0].Descriptor()
+	return file_skillsctl_v1_skill_proto_enumTypes[0].Descriptor()
 }
 
 func (SkillSource) Type() protoreflect.EnumType {
-	return &file_skillctl_v1_skill_proto_enumTypes[0]
+	return &file_skillsctl_v1_skill_proto_enumTypes[0]
 }
 
 func (x SkillSource) Number() protoreflect.EnumNumber {
@@ -68,7 +68,7 @@ func (x SkillSource) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use SkillSource.Descriptor instead.
 func (SkillSource) EnumDescriptor() ([]byte, []int) {
-	return file_skillctl_v1_skill_proto_rawDescGZIP(), []int{0}
+	return file_skillsctl_v1_skill_proto_rawDescGZIP(), []int{0}
 }
 
 type Skill struct {
@@ -81,7 +81,7 @@ type Skill struct {
 	InstallCount  int64                  `protobuf:"varint,6,opt,name=install_count,json=installCount,proto3" json:"install_count,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Source        SkillSource            `protobuf:"varint,9,opt,name=source,proto3,enum=skillctl.v1.SkillSource" json:"source,omitempty"`
+	Source        SkillSource            `protobuf:"varint,9,opt,name=source,proto3,enum=skillsctl.v1.SkillSource" json:"source,omitempty"`
 	MarketplaceId string                 `protobuf:"bytes,10,opt,name=marketplace_id,json=marketplaceId,proto3" json:"marketplace_id,omitempty"`
 	UpstreamUrl   string                 `protobuf:"bytes,11,opt,name=upstream_url,json=upstreamUrl,proto3" json:"upstream_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -90,7 +90,7 @@ type Skill struct {
 
 func (x *Skill) Reset() {
 	*x = Skill{}
-	mi := &file_skillctl_v1_skill_proto_msgTypes[0]
+	mi := &file_skillsctl_v1_skill_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -102,7 +102,7 @@ func (x *Skill) String() string {
 func (*Skill) ProtoMessage() {}
 
 func (x *Skill) ProtoReflect() protoreflect.Message {
-	mi := &file_skillctl_v1_skill_proto_msgTypes[0]
+	mi := &file_skillsctl_v1_skill_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +115,7 @@ func (x *Skill) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Skill.ProtoReflect.Descriptor instead.
 func (*Skill) Descriptor() ([]byte, []int) {
-	return file_skillctl_v1_skill_proto_rawDescGZIP(), []int{0}
+	return file_skillsctl_v1_skill_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Skill) GetName() string {
@@ -211,7 +211,7 @@ type SkillVersion struct {
 
 func (x *SkillVersion) Reset() {
 	*x = SkillVersion{}
-	mi := &file_skillctl_v1_skill_proto_msgTypes[1]
+	mi := &file_skillsctl_v1_skill_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -223,7 +223,7 @@ func (x *SkillVersion) String() string {
 func (*SkillVersion) ProtoMessage() {}
 
 func (x *SkillVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_skillctl_v1_skill_proto_msgTypes[1]
+	mi := &file_skillsctl_v1_skill_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -236,7 +236,7 @@ func (x *SkillVersion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SkillVersion.ProtoReflect.Descriptor instead.
 func (*SkillVersion) Descriptor() ([]byte, []int) {
-	return file_skillctl_v1_skill_proto_rawDescGZIP(), []int{1}
+	return file_skillsctl_v1_skill_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SkillVersion) GetVersion() string {
@@ -295,11 +295,11 @@ func (x *SkillVersion) GetDraft() bool {
 	return false
 }
 
-var File_skillctl_v1_skill_proto protoreflect.FileDescriptor
+var File_skillsctl_v1_skill_proto protoreflect.FileDescriptor
 
-const file_skillctl_v1_skill_proto_rawDesc = "" +
+const file_skillsctl_v1_skill_proto_rawDesc = "" +
 	"\n" +
-	"\x17skillctl/v1/skill.proto\x12\vskillctl.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa5\x03\n" +
+	"\x18skillsctl/v1/skill.proto\x12\fskillsctl.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x03\n" +
 	"\x05Skill\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
@@ -310,8 +310,8 @@ const file_skillctl_v1_skill_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x120\n" +
-	"\x06source\x18\t \x01(\x0e2\x18.skillctl.v1.SkillSourceR\x06source\x12%\n" +
+	"updated_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x121\n" +
+	"\x06source\x18\t \x01(\x0e2\x19.skillsctl.v1.SkillSourceR\x06source\x12%\n" +
 	"\x0emarketplace_id\x18\n" +
 	" \x01(\tR\rmarketplaceId\x12!\n" +
 	"\fupstream_url\x18\v \x01(\tR\vupstreamUrl\"\x8e\x02\n" +
@@ -328,35 +328,35 @@ const file_skillctl_v1_skill_proto_rawDesc = "" +
 	"\vSkillSource\x12\x1c\n" +
 	"\x18SKILL_SOURCE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15SKILL_SOURCE_INTERNAL\x10\x01\x12\x1a\n" +
-	"\x16SKILL_SOURCE_FEDERATED\x10\x02B\xa8\x01\n" +
-	"\x0fcom.skillctl.v1B\n" +
-	"SkillProtoP\x01Z<github.com/nebari-dev/skillctl/gen/go/skillctl/v1;skillctlv1\xa2\x02\x03SXX\xaa\x02\vSkillctl.V1\xca\x02\vSkillctl\\V1\xe2\x02\x17Skillctl\\V1\\GPBMetadata\xea\x02\fSkillctl::V1b\x06proto3"
+	"\x16SKILL_SOURCE_FEDERATED\x10\x02B\xb0\x01\n" +
+	"\x10com.skillsctl.v1B\n" +
+	"SkillProtoP\x01Z?github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1;skillsctlv1\xa2\x02\x03SXX\xaa\x02\fSkillsctl.V1\xca\x02\fSkillsctl\\V1\xe2\x02\x18Skillsctl\\V1\\GPBMetadata\xea\x02\rSkillsctl::V1b\x06proto3"
 
 var (
-	file_skillctl_v1_skill_proto_rawDescOnce sync.Once
-	file_skillctl_v1_skill_proto_rawDescData []byte
+	file_skillsctl_v1_skill_proto_rawDescOnce sync.Once
+	file_skillsctl_v1_skill_proto_rawDescData []byte
 )
 
-func file_skillctl_v1_skill_proto_rawDescGZIP() []byte {
-	file_skillctl_v1_skill_proto_rawDescOnce.Do(func() {
-		file_skillctl_v1_skill_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_skillctl_v1_skill_proto_rawDesc), len(file_skillctl_v1_skill_proto_rawDesc)))
+func file_skillsctl_v1_skill_proto_rawDescGZIP() []byte {
+	file_skillsctl_v1_skill_proto_rawDescOnce.Do(func() {
+		file_skillsctl_v1_skill_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_skillsctl_v1_skill_proto_rawDesc), len(file_skillsctl_v1_skill_proto_rawDesc)))
 	})
-	return file_skillctl_v1_skill_proto_rawDescData
+	return file_skillsctl_v1_skill_proto_rawDescData
 }
 
-var file_skillctl_v1_skill_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_skillctl_v1_skill_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_skillctl_v1_skill_proto_goTypes = []any{
-	(SkillSource)(0),              // 0: skillctl.v1.SkillSource
-	(*Skill)(nil),                 // 1: skillctl.v1.Skill
-	(*SkillVersion)(nil),          // 2: skillctl.v1.SkillVersion
+var file_skillsctl_v1_skill_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_skillsctl_v1_skill_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_skillsctl_v1_skill_proto_goTypes = []any{
+	(SkillSource)(0),              // 0: skillsctl.v1.SkillSource
+	(*Skill)(nil),                 // 1: skillsctl.v1.Skill
+	(*SkillVersion)(nil),          // 2: skillsctl.v1.SkillVersion
 	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
-var file_skillctl_v1_skill_proto_depIdxs = []int32{
-	3, // 0: skillctl.v1.Skill.created_at:type_name -> google.protobuf.Timestamp
-	3, // 1: skillctl.v1.Skill.updated_at:type_name -> google.protobuf.Timestamp
-	0, // 2: skillctl.v1.Skill.source:type_name -> skillctl.v1.SkillSource
-	3, // 3: skillctl.v1.SkillVersion.published_at:type_name -> google.protobuf.Timestamp
+var file_skillsctl_v1_skill_proto_depIdxs = []int32{
+	3, // 0: skillsctl.v1.Skill.created_at:type_name -> google.protobuf.Timestamp
+	3, // 1: skillsctl.v1.Skill.updated_at:type_name -> google.protobuf.Timestamp
+	0, // 2: skillsctl.v1.Skill.source:type_name -> skillsctl.v1.SkillSource
+	3, // 3: skillsctl.v1.SkillVersion.published_at:type_name -> google.protobuf.Timestamp
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -364,27 +364,27 @@ var file_skillctl_v1_skill_proto_depIdxs = []int32{
 	0, // [0:4] is the sub-list for field type_name
 }
 
-func init() { file_skillctl_v1_skill_proto_init() }
-func file_skillctl_v1_skill_proto_init() {
-	if File_skillctl_v1_skill_proto != nil {
+func init() { file_skillsctl_v1_skill_proto_init() }
+func file_skillsctl_v1_skill_proto_init() {
+	if File_skillsctl_v1_skill_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillctl_v1_skill_proto_rawDesc), len(file_skillctl_v1_skill_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_skillsctl_v1_skill_proto_rawDesc), len(file_skillsctl_v1_skill_proto_rawDesc)),
 			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_skillctl_v1_skill_proto_goTypes,
-		DependencyIndexes: file_skillctl_v1_skill_proto_depIdxs,
-		EnumInfos:         file_skillctl_v1_skill_proto_enumTypes,
-		MessageInfos:      file_skillctl_v1_skill_proto_msgTypes,
+		GoTypes:           file_skillsctl_v1_skill_proto_goTypes,
+		DependencyIndexes: file_skillsctl_v1_skill_proto_depIdxs,
+		EnumInfos:         file_skillsctl_v1_skill_proto_enumTypes,
+		MessageInfos:      file_skillsctl_v1_skill_proto_msgTypes,
 	}.Build()
-	File_skillctl_v1_skill_proto = out.File
-	file_skillctl_v1_skill_proto_goTypes = nil
-	file_skillctl_v1_skill_proto_depIdxs = nil
+	File_skillsctl_v1_skill_proto = out.File
+	file_skillsctl_v1_skill_proto_goTypes = nil
+	file_skillsctl_v1_skill_proto_depIdxs = nil
 }

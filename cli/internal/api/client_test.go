@@ -6,17 +6,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 
-	"github.com/nebari-dev/skillctl/cli/internal/api"
-	"github.com/nebari-dev/skillctl/cli/internal/testutil"
+	"github.com/nebari-dev/skillsctl/cli/internal/api"
+	"github.com/nebari-dev/skillsctl/cli/internal/testutil"
 )
 
 func TestClient_ListSkills(t *testing.T) {
 	ts := testutil.NewStubServer(t, testutil.SeedSkills())
 	client := api.NewClient(ts.URL)
 
-	skills, err := client.ListSkills(context.Background(), nil, skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED)
+	skills, err := client.ListSkills(context.Background(), nil, skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

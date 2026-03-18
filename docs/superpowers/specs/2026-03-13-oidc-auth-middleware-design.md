@@ -6,7 +6,7 @@
 
 ## Context
 
-The skillctl backend needs to authenticate incoming requests using OIDC tokens. The system supports three auth tiers (read, write, admin), but only read auth is needed now since the current RPCs (ListSkills, GetSkill) only require a valid identity.
+The skillsctl backend needs to authenticate incoming requests using OIDC tokens. The system supports three auth tiers (read, write, admin), but only read auth is needed now since the current RPCs (ListSkills, GetSkill) only require a valid identity.
 
 The design is provider-agnostic - it works with any standard OIDC provider (Keycloak, Okta, Dex, etc.). Domain filtering is the IdP's responsibility, not the server's.
 
@@ -36,7 +36,7 @@ AllowlistMiddleware (/healthz -> skip auth, exact match only)
 http.ServeMux
   |
   +-- /healthz (no auth, allowlisted)
-  +-- /skillctl.v1.RegistryService/* (ConnectRPC)
+  +-- /skillsctl.v1.RegistryService/* (ConnectRPC)
   |     |
   |     v
   |   AuthInterceptor (extract Bearer token, validate, inject claims)
@@ -77,7 +77,7 @@ type Config struct {
 Configured via environment variables:
 - `OIDC_ISSUER_URL` - required in production, empty disables auth (local dev)
 - `OIDC_CLIENT_ID` - required when issuer is set
-- `OIDC_ADMIN_GROUP` - defaults to `"skillctl-admins"`
+- `OIDC_ADMIN_GROUP` - defaults to `"skillsctl-admins"`
 - `OIDC_GROUPS_CLAIM` - defaults to `"groups"`
 
 **Startup validation:** `main.go` must validate that `OIDC_ISSUER_URL` and `OIDC_CLIENT_ID` are either both set or both empty. If only one is set, the server must `log.Fatalf` with a clear error message. This prevents accidentally running in production with auth misconfigured.
@@ -149,7 +149,7 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator) *Server
     mux.HandleFunc("/healthz", handleHealthz)
 
     interceptor := auth.NewInterceptor(authValidator)
-    path, handler := skillctlv1connect.NewRegistryServiceHandler(
+    path, handler := skillsctlv1connect.NewRegistryServiceHandler(
         registry.NewService(skillStore),
         connect.WithInterceptors(interceptor),
     )
@@ -165,7 +165,7 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator) *Server
 authCfg := auth.Config{
     IssuerURL:   env("OIDC_ISSUER_URL", ""),
     ClientID:    env("OIDC_CLIENT_ID", ""),
-    AdminGroup:  env("OIDC_ADMIN_GROUP", "skillctl-admins"),
+    AdminGroup:  env("OIDC_ADMIN_GROUP", "skillsctl-admins"),
     GroupsClaim: env("OIDC_GROUPS_CLAIM", "groups"),
 }
 

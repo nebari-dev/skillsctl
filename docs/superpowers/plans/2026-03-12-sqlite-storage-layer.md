@@ -196,7 +196,7 @@ import (
 	"strings"
 	"time"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -226,12 +226,12 @@ func OpenSQLite(path string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter skillctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillctlv1.Skill, string, error) {
+func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter skillsctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillsctlv1.Skill, string, error) {
 	query := `SELECT name, description, owner, tags, latest_version, install_count, created_at, updated_at, source, marketplace_id, upstream_url FROM skills`
 	var conditions []string
 	var args []any
 
-	if sourceFilter != skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED {
+	if sourceFilter != skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED {
 		conditions = append(conditions, "source = ?")
 		args = append(args, int(sourceFilter))
 	}
@@ -266,7 +266,7 @@ func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter ski
 	}
 	defer rows.Close()
 
-	var skills []*skillctlv1.Skill
+	var skills []*skillsctlv1.Skill
 	for rows.Next() {
 		skill, err := scanSkill(rows)
 		if err != nil {
@@ -280,7 +280,7 @@ func (s *SQLite) ListSkills(ctx context.Context, tags []string, sourceFilter ski
 	return skills, "", nil
 }
 
-func (s *SQLite) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error) {
+func (s *SQLite) GetSkill(ctx context.Context, name string) (*skillsctlv1.Skill, []*skillsctlv1.SkillVersion, error) {
 	row := s.db.QueryRowContext(ctx,
 		`SELECT name, description, owner, tags, latest_version, install_count, created_at, updated_at, source, marketplace_id, upstream_url FROM skills WHERE name = ?`,
 		name,
@@ -302,7 +302,7 @@ func (s *SQLite) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, 
 	}
 	defer rows.Close()
 
-	var versions []*skillctlv1.SkillVersion
+	var versions []*skillsctlv1.SkillVersion
 	for rows.Next() {
 		v, err := scanVersion(rows)
 		if err != nil {
@@ -322,7 +322,7 @@ type scanner interface {
 	Scan(dest ...any) error
 }
 
-func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
+func scanSkillFields(sc scanner) (*skillsctlv1.Skill, error) {
 	var (
 		name, desc, owner, tagsJSON, version string
 		installs                             int64
@@ -339,14 +339,14 @@ func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
 		return nil, fmt.Errorf("unmarshal tags for %s: %w", name, err)
 	}
 
-	skill := &skillctlv1.Skill{
+	skill := &skillsctlv1.Skill{
 		Name:          name,
 		Description:   desc,
 		Owner:         owner,
 		Tags:          tags,
 		LatestVersion: version,
 		InstallCount:  installs,
-		Source:        skillctlv1.SkillSource(source),
+		Source:        skillsctlv1.SkillSource(source),
 		MarketplaceId: marketplaceID,
 		UpstreamUrl:   upstreamURL,
 	}
@@ -361,15 +361,15 @@ func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
 	return skill, nil
 }
 
-func scanSkill(rows *sql.Rows) (*skillctlv1.Skill, error) {
+func scanSkill(rows *sql.Rows) (*skillsctlv1.Skill, error) {
 	return scanSkillFields(rows)
 }
 
-func scanSkillRow(row *sql.Row) (*skillctlv1.Skill, error) {
+func scanSkillRow(row *sql.Row) (*skillsctlv1.Skill, error) {
 	return scanSkillFields(row)
 }
 
-func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
+func scanVersion(rows *sql.Rows) (*skillsctlv1.SkillVersion, error) {
 	var (
 		version, changelog, ociRef, digest, publishedBy string
 		sizeBytes                                       int64
@@ -380,7 +380,7 @@ func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
 		return nil, fmt.Errorf("scan version: %w", err)
 	}
 
-	v := &skillctlv1.SkillVersion{
+	v := &skillsctlv1.SkillVersion{
 		Version:     version,
 		Changelog:   changelog,
 		OciRef:      ociRef,
@@ -429,9 +429,9 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
-	"github.com/nebari-dev/skillctl/backend/internal/store/migrations"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/store/migrations"
 )
 
 // openTestDB creates an in-memory SQLite database with pragmas and migrations applied.
@@ -474,7 +474,7 @@ func TestSQLiteStore_ListSkills(t *testing.T) {
 	tests := []struct {
 		name         string
 		tags         []string
-		sourceFilter skillctlv1.SkillSource
+		sourceFilter skillsctlv1.SkillSource
 		wantCount    int
 	}{
 		{
@@ -493,12 +493,12 @@ func TestSQLiteStore_ListSkills(t *testing.T) {
 		},
 		{
 			name:         "filter by source internal",
-			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			sourceFilter: skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 			wantCount:    2,
 		},
 		{
 			name:         "filter by source federated returns none",
-			sourceFilter: skillctlv1.SkillSource_SKILL_SOURCE_FEDERATED,
+			sourceFilter: skillsctlv1.SkillSource_SKILL_SOURCE_FEDERATED,
 			wantCount:    0,
 		},
 		{
@@ -527,7 +527,7 @@ func TestSQLiteStore_ListSkills(t *testing.T) {
 func TestSQLiteStore_ListSkills_Empty(t *testing.T) {
 	db := openTestDB(t)
 	s := store.NewSQLite(db)
-	skills, _, err := s.ListSkills(context.Background(), nil, skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "")
+	skills, _, err := s.ListSkills(context.Background(), nil, skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED, 20, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -656,9 +656,9 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/nebari-dev/skillctl/backend/internal/server"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
-	"github.com/nebari-dev/skillctl/backend/internal/store/migrations"
+	"github.com/nebari-dev/skillsctl/backend/internal/server"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/store/migrations"
 )
 
 func main() {
@@ -669,7 +669,7 @@ func main() {
 
 	dbPath := os.Getenv("DB_PATH")
 	if dbPath == "" {
-		dbPath = "skillctl.db"
+		dbPath = "skillsctl.db"
 	}
 
 	db, err := store.OpenSQLite(dbPath)
@@ -692,7 +692,7 @@ func main() {
 }
 ```
 
-Note: `DB_PATH` env var configures the database path. Default is `skillctl.db` in the working directory. Use `:memory:` for ephemeral testing. WAL mode is silently ignored for `:memory:` databases but all other pragmas still apply.
+Note: `DB_PATH` env var configures the database path. Default is `skillsctl.db` in the working directory. Use `:memory:` for ephemeral testing. WAL mode is silently ignored for `:memory:` databases but all other pragmas still apply.
 
 - [ ] **Step 2: Verify build**
 

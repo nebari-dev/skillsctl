@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 )
 
 // TestAllowlistMiddleware verifies the middleware passes all requests through.

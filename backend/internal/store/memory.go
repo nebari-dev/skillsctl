@@ -5,28 +5,28 @@ import (
 	"fmt"
 	"sync"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 	"golang.org/x/mod/semver"
 )
 
 type memoryVersion struct {
-	meta    *skillctlv1.SkillVersion
+	meta    *skillsctlv1.SkillVersion
 	content []byte
 }
 
 // Memory is an in-memory Repository for local development and testing.
 type Memory struct {
 	mu       sync.Mutex
-	skills   []*skillctlv1.Skill
+	skills   []*skillsctlv1.Skill
 	versions map[string][]memoryVersion // keyed by skill name
 }
 
 var _ Repository = (*Memory)(nil)
 
 // NewMemory creates an in-memory store pre-populated with the given skills.
-func NewMemory(skills []*skillctlv1.Skill) *Memory {
+func NewMemory(skills []*skillsctlv1.Skill) *Memory {
 	if skills == nil {
-		skills = []*skillctlv1.Skill{}
+		skills = []*skillsctlv1.Skill{}
 	}
 	return &Memory{
 		skills:   skills,
@@ -34,7 +34,7 @@ func NewMemory(skills []*skillctlv1.Skill) *Memory {
 	}
 }
 
-func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skillctlv1.SkillSource, _ int32, pageToken string) ([]*skillctlv1.Skill, string, error) {
+func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skillsctlv1.SkillSource, _ int32, pageToken string) ([]*skillsctlv1.Skill, string, error) {
 	if pageToken != "" {
 		return nil, "", ErrPaginationNotSupported
 	}
@@ -42,9 +42,9 @@ func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skill
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	var result []*skillctlv1.Skill
+	var result []*skillsctlv1.Skill
 	for _, s := range m.skills {
-		if sourceFilter != skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED && s.Source != sourceFilter {
+		if sourceFilter != skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED && s.Source != sourceFilter {
 			continue
 		}
 		if len(tags) > 0 && !hasAnyTag(s.Tags, tags) {
@@ -55,13 +55,13 @@ func (m *Memory) ListSkills(_ context.Context, tags []string, sourceFilter skill
 	return result, "", nil
 }
 
-func (m *Memory) GetSkill(_ context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error) {
+func (m *Memory) GetSkill(_ context.Context, name string) (*skillsctlv1.Skill, []*skillsctlv1.SkillVersion, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	for _, s := range m.skills {
 		if s.Name == name {
-			var vers []*skillctlv1.SkillVersion
+			var vers []*skillsctlv1.SkillVersion
 			for _, v := range m.versions[name] {
 				vers = append(vers, v.meta)
 			}
@@ -71,12 +71,12 @@ func (m *Memory) GetSkill(_ context.Context, name string) (*skillctlv1.Skill, []
 	return nil, nil, fmt.Errorf("%w: %s", ErrNotFound, name)
 }
 
-func (m *Memory) CreateSkillVersion(_ context.Context, skill *skillctlv1.Skill, version *skillctlv1.SkillVersion, content []byte) error {
+func (m *Memory) CreateSkillVersion(_ context.Context, skill *skillsctlv1.Skill, version *skillsctlv1.SkillVersion, content []byte) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	// Look for an existing skill with this name.
-	var existing *skillctlv1.Skill
+	var existing *skillsctlv1.Skill
 	for _, s := range m.skills {
 		if s.Name == skill.Name {
 			existing = s
@@ -103,13 +103,13 @@ func (m *Memory) CreateSkillVersion(_ context.Context, skill *skillctlv1.Skill, 
 		}
 	} else {
 		// First publish: create a new skill entry.
-		newSkill := &skillctlv1.Skill{
+		newSkill := &skillsctlv1.Skill{
 			Name:          skill.Name,
 			Description:   skill.Description,
 			Owner:         skill.Owner,
 			Tags:          skill.Tags,
 			LatestVersion: version.Version,
-			Source:        skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
+			Source:        skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL,
 		}
 		m.skills = append(m.skills, newSkill)
 	}
@@ -122,12 +122,12 @@ func (m *Memory) CreateSkillVersion(_ context.Context, skill *skillctlv1.Skill, 
 	return nil
 }
 
-func (m *Memory) GetSkillContent(_ context.Context, name string, version string, digest string) ([]byte, *skillctlv1.SkillVersion, error) {
+func (m *Memory) GetSkillContent(_ context.Context, name string, version string, digest string) ([]byte, *skillsctlv1.SkillVersion, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	// Find the skill.
-	var skill *skillctlv1.Skill
+	var skill *skillsctlv1.Skill
 	for _, s := range m.skills {
 		if s.Name == name {
 			skill = s

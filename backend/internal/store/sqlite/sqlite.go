@@ -19,9 +19,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	sqlite "modernc.org/sqlite"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 
-	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
 )
 
 // Repository is a SQLite-backed store.Repository implementation.
@@ -65,7 +65,7 @@ func Open(path string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter skillctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillctlv1.Skill, string, error) {
+func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter skillsctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillsctlv1.Skill, string, error) {
 	if pageToken != "" {
 		return nil, "", store.ErrPaginationNotSupported
 	}
@@ -74,7 +74,7 @@ func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter
 	var conditions []string
 	var args []any
 
-	if sourceFilter != skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED {
+	if sourceFilter != skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED {
 		conditions = append(conditions, "source = ?")
 		args = append(args, int(sourceFilter))
 	}
@@ -111,7 +111,7 @@ func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter
 	}
 	defer rows.Close()
 
-	var skills []*skillctlv1.Skill
+	var skills []*skillsctlv1.Skill
 	for rows.Next() {
 		skill, err := scanSkillFields(rows)
 		if err != nil {
@@ -125,7 +125,7 @@ func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter
 	return skills, "", nil
 }
 
-func (r *Repository) GetSkill(ctx context.Context, name string) (*skillctlv1.Skill, []*skillctlv1.SkillVersion, error) {
+func (r *Repository) GetSkill(ctx context.Context, name string) (*skillsctlv1.Skill, []*skillsctlv1.SkillVersion, error) {
 	row := r.db.QueryRowContext(ctx,
 		`SELECT name, description, owner, tags, latest_version, install_count, created_at, updated_at, source, marketplace_id, upstream_url FROM skills WHERE name = ?`,
 		name,
@@ -147,7 +147,7 @@ func (r *Repository) GetSkill(ctx context.Context, name string) (*skillctlv1.Ski
 	}
 	defer rows.Close()
 
-	var versions []*skillctlv1.SkillVersion
+	var versions []*skillsctlv1.SkillVersion
 	for rows.Next() {
 		v, err := scanVersion(rows)
 		if err != nil {
@@ -162,7 +162,7 @@ func (r *Repository) GetSkill(ctx context.Context, name string) (*skillctlv1.Ski
 	return skill, versions, nil
 }
 
-func (r *Repository) CreateSkillVersion(ctx context.Context, skill *skillctlv1.Skill, version *skillctlv1.SkillVersion, content []byte) error {
+func (r *Repository) CreateSkillVersion(ctx context.Context, skill *skillsctlv1.Skill, version *skillsctlv1.SkillVersion, content []byte) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
@@ -183,7 +183,7 @@ func (r *Repository) CreateSkillVersion(ctx context.Context, skill *skillctlv1.S
 		_, err = tx.ExecContext(ctx,
 			`INSERT INTO skills (name, description, owner, tags, latest_version, source) VALUES (?, ?, ?, ?, ?, ?)`,
 			skill.Name, skill.Description, skill.Owner, string(tagsJSON), version.Version,
-			int(skillctlv1.SkillSource_SKILL_SOURCE_INTERNAL),
+			int(skillsctlv1.SkillSource_SKILL_SOURCE_INTERNAL),
 		)
 		if err != nil {
 			return fmt.Errorf("insert skill: %w", err)
@@ -247,7 +247,7 @@ func (r *Repository) CreateSkillVersion(ctx context.Context, skill *skillctlv1.S
 	return tx.Commit()
 }
 
-func (r *Repository) GetSkillContent(ctx context.Context, name string, version string, digest string) ([]byte, *skillctlv1.SkillVersion, error) {
+func (r *Repository) GetSkillContent(ctx context.Context, name string, version string, digest string) ([]byte, *skillsctlv1.SkillVersion, error) {
 	// Build query - use a subquery to resolve latest version atomically when
 	// version is empty, avoiding a TOCTOU race between two separate reads.
 	query := `SELECT version, changelog, oci_ref, digest, size_bytes, published_by, published_at, draft, content
@@ -264,7 +264,7 @@ func (r *Repository) GetSkillContent(ctx context.Context, name string, version s
 	}
 
 	var (
-		v           skillctlv1.SkillVersion
+		v           skillsctlv1.SkillVersion
 		content     []byte
 		publishedAt string
 		draft       int
@@ -332,7 +332,7 @@ type scanner interface {
 	Scan(dest ...any) error
 }
 
-func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
+func scanSkillFields(sc scanner) (*skillsctlv1.Skill, error) {
 	var (
 		name, desc, owner, tagsJSON, version string
 		installs                             int64
@@ -349,7 +349,7 @@ func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
 		return nil, fmt.Errorf("unmarshal tags for %s: %w", name, err)
 	}
 
-	skill := &skillctlv1.Skill{
+	skill := &skillsctlv1.Skill{
 		Name:          name,
 		Description:   desc,
 		Owner:         owner,
@@ -379,7 +379,7 @@ func scanSkillFields(sc scanner) (*skillctlv1.Skill, error) {
 	return skill, nil
 }
 
-func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
+func scanVersion(rows *sql.Rows) (*skillsctlv1.SkillVersion, error) {
 	var (
 		version, changelog, ociRef, digest, publishedBy string
 		sizeBytes                                       int64
@@ -390,7 +390,7 @@ func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
 		return nil, fmt.Errorf("scan version: %w", err)
 	}
 
-	v := &skillctlv1.SkillVersion{
+	v := &skillsctlv1.SkillVersion{
 		Version:     version,
 		Changelog:   changelog,
 		OciRef:      ociRef,
@@ -413,11 +413,11 @@ func scanVersion(rows *sql.Rows) (*skillctlv1.SkillVersion, error) {
 
 // validSkillSource returns the SkillSource for a known enum value, or
 // SKILL_SOURCE_UNSPECIFIED if the integer doesn't map to a known value.
-func validSkillSource(v int) skillctlv1.SkillSource {
-	if _, ok := skillctlv1.SkillSource_name[int32(v)]; ok {
-		return skillctlv1.SkillSource(v)
+func validSkillSource(v int) skillsctlv1.SkillSource {
+	if _, ok := skillsctlv1.SkillSource_name[int32(v)]; ok {
+		return skillsctlv1.SkillSource(v)
 	}
-	return skillctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
+	return skillsctlv1.SkillSource_SKILL_SOURCE_UNSPECIFIED
 }
 
 // parseTimestamp tries multiple time formats because the canonical format from

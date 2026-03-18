@@ -26,7 +26,7 @@ func Load() *Config {
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(filepath.Join(home, ".config", "skillctl"))
+	viper.AddConfigPath(filepath.Join(home, ".config", "skillsctl"))
 	viper.SetEnvPrefix("SKILLCTL")
 	viper.AutomaticEnv()
 

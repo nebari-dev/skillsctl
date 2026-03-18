@@ -17,10 +17,10 @@ test-cli:
 	go test ./cli/... -race -coverprofile=coverage.out
 
 build-cli:
-	CGO_ENABLED=0 go build -o skillctl ./cli
+	CGO_ENABLED=0 go build -o skillsctl ./cli
 
 build-backend:
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o skillctl-server ./backend/cmd/server
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o skillsctl-server ./backend/cmd/server
 
 clean:
-	rm -f skillctl skillctl-server coverage.out
+	rm -f skillsctl skillsctl-server coverage.out

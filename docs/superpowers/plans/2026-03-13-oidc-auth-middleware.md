@@ -81,7 +81,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 )
 
 func TestClaimsContext_RoundTrip(t *testing.T) {
@@ -216,7 +216,7 @@ import (
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 )
 
 type fakeOIDC struct {
@@ -314,12 +314,12 @@ func (f *fakeOIDC) mintToken(t *testing.T, tc tokenClaims) string {
 
 func TestValidator_Validate(t *testing.T) {
 	fake := newFakeOIDC(t)
-	clientID := "skillctl-cli"
+	clientID := "skillsctl-cli"
 
 	cfg := auth.Config{
 		IssuerURL:   fake.server.URL,
 		ClientID:    clientID,
-		AdminGroup:  "skillctl-admins",
+		AdminGroup:  "skillsctl-admins",
 		GroupsClaim: "groups",
 	}
 
@@ -410,7 +410,7 @@ func TestValidator_Validate(t *testing.T) {
 
 func TestValidator_Validate_CustomGroupsClaim(t *testing.T) {
 	fake := newFakeOIDC(t)
-	clientID := "skillctl-cli"
+	clientID := "skillsctl-cli"
 
 	cfg := auth.Config{
 		IssuerURL:   fake.server.URL,
@@ -446,7 +446,7 @@ func TestValidator_IsAdmin(t *testing.T) {
 	cfg := auth.Config{
 		IssuerURL:   fake.server.URL,
 		ClientID:    "test",
-		AdminGroup:  "skillctl-admins",
+		AdminGroup:  "skillsctl-admins",
 		GroupsClaim: "groups",
 	}
 	v, err := auth.NewValidator(context.Background(), cfg)
@@ -459,7 +459,7 @@ func TestValidator_IsAdmin(t *testing.T) {
 		groups []string
 		want   bool
 	}{
-		{"admin member", []string{"devs", "skillctl-admins"}, true},
+		{"admin member", []string{"devs", "skillsctl-admins"}, true},
 		{"not admin", []string{"devs"}, false},
 		{"empty groups", nil, false},
 	}
@@ -611,12 +611,12 @@ import (
 
 	"connectrpc.com/connect"
 
-	skillctlv1 "github.com/nebari-dev/skillctl/gen/go/skillctl/v1"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/registry"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/registry"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
 )
 
 // stubValidator is a test double for auth.TokenValidator.
@@ -629,18 +629,18 @@ func (s *stubValidator) Validate(_ context.Context, _ string) (*auth.Claims, err
 	return s.claims, s.err
 }
 
-func newTestServer(t *testing.T, v auth.TokenValidator) (*httptest.Server, skillctlv1connect.RegistryServiceClient) {
+func newTestServer(t *testing.T, v auth.TokenValidator) (*httptest.Server, skillsctlv1connect.RegistryServiceClient) {
 	t.Helper()
 	mux := http.NewServeMux()
 	interceptor := auth.NewInterceptor(v)
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
 		registry.NewService(store.NewMemory(nil)),
 		connect.WithInterceptors(interceptor),
 	)
 	mux.Handle(path, handler)
 	ts := httptest.NewServer(mux)
 	t.Cleanup(ts.Close)
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
 	return ts, client
 }
 
@@ -695,7 +695,7 @@ func TestInterceptor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, client := newTestServer(t, tt.validator)
-			req := connect.NewRequest(&skillctlv1.ListSkillsRequest{})
+			req := connect.NewRequest(&skillsctlv1.ListSkillsRequest{})
 			if tt.authHeader != "" {
 				req.Header().Set("Authorization", tt.authHeader)
 			}
@@ -740,7 +740,7 @@ func TestInterceptor_ClaimsInContext(t *testing.T) {
 	})
 
 	mux := http.NewServeMux()
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
 		registry.NewService(store.NewMemory(nil)),
 		connect.WithInterceptors(interceptor, capturer),
 	)
@@ -748,8 +748,8 @@ func TestInterceptor_ClaimsInContext(t *testing.T) {
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	req := connect.NewRequest(&skillctlv1.ListSkillsRequest{})
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	req := connect.NewRequest(&skillsctlv1.ListSkillsRequest{})
 	req.Header().Set("Authorization", "Bearer valid-token")
 	_, err := client.ListSkills(context.Background(), req)
 	if err != nil {
@@ -854,7 +854,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 )
 
 func TestAllowlistMiddleware(t *testing.T) {
@@ -967,8 +967,8 @@ func TestRPC_RequiresAuth(t *testing.T) {
 	ts := httptest.NewServer(srv.Handler())
 	defer ts.Close()
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillctlv1.ListSkillsRequest{}))
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillsctlv1.ListSkillsRequest{}))
 	if err == nil {
 		t.Fatal("expected auth error, got nil")
 	}
@@ -986,15 +986,15 @@ func TestRPC_NilValidator_PassesThrough(t *testing.T) {
 	ts := httptest.NewServer(srv.Handler())
 	defer ts.Close()
 
-	client := skillctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
-	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillctlv1.ListSkillsRequest{}))
+	client := skillsctlv1connect.NewRegistryServiceClient(http.DefaultClient, ts.URL)
+	_, err := client.ListSkills(context.Background(), connect.NewRequest(&skillsctlv1.ListSkillsRequest{}))
 	if err != nil {
 		t.Fatalf("expected success, got: %v", err)
 	}
 }
 ```
 
-The test file will need a local `stubValidator` (same pattern as in `interceptor_test.go`) and additional imports for `connect`, `skillctlv1`, `skillctlv1connect`, `auth`, `context`, and `errors`.
+The test file will need a local `stubValidator` (same pattern as in `interceptor_test.go`) and additional imports for `connect`, `skillsctlv1`, `skillsctlv1connect`, `auth`, `context`, and `errors`.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
@@ -1016,10 +1016,10 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/registry"
-	"github.com/nebari-dev/skillctl/backend/internal/store"
-	"github.com/nebari-dev/skillctl/gen/go/skillctl/v1/skillctlv1connect"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/registry"
+	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
 )
 
 type Server struct {
@@ -1031,7 +1031,7 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator) *Server
 	mux.HandleFunc("/healthz", handleHealthz)
 
 	interceptor := auth.NewInterceptor(authValidator)
-	path, handler := skillctlv1connect.NewRegistryServiceHandler(
+	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
 		registry.NewService(skillStore),
 		connect.WithInterceptors(interceptor),
 	)
@@ -1068,15 +1068,15 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
-	"github.com/nebari-dev/skillctl/backend/internal/server"
-	sqlitestore "github.com/nebari-dev/skillctl/backend/internal/store/sqlite"
-	"github.com/nebari-dev/skillctl/backend/internal/store/sqlite/migrations"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/server"
+	sqlitestore "github.com/nebari-dev/skillsctl/backend/internal/store/sqlite"
+	"github.com/nebari-dev/skillsctl/backend/internal/store/sqlite/migrations"
 )
 
 func main() {
 	port := envOr("PORT", "8080")
-	dbPath := envOr("DB_PATH", "skillctl.db")
+	dbPath := envOr("DB_PATH", "skillsctl.db")
 
 	db, err := sqlitestore.Open(dbPath)
 	if err != nil {
@@ -1091,7 +1091,7 @@ func main() {
 	authCfg := auth.Config{
 		IssuerURL:   envOr("OIDC_ISSUER_URL", ""),
 		ClientID:    envOr("OIDC_CLIENT_ID", ""),
-		AdminGroup:  envOr("OIDC_ADMIN_GROUP", "skillctl-admins"),
+		AdminGroup:  envOr("OIDC_ADMIN_GROUP", "skillsctl-admins"),
 		GroupsClaim: envOr("OIDC_GROUPS_CLAIM", "groups"),
 	}
 
@@ -1174,7 +1174,7 @@ Expected: `ok`
 - [ ] **Step 3: Verify RPC works without auth (dev mode)**
 
 ```bash
-curl -s -X POST http://localhost:8080/skillctl.v1.RegistryService/ListSkills \
+curl -s -X POST http://localhost:8080/skillsctl.v1.RegistryService/ListSkills \
   -H 'Content-Type: application/json' \
   -d '{}'
 ```

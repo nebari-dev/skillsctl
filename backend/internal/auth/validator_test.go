@@ -14,7 +14,7 @@ import (
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 )
 
 type fakeOIDC struct {
@@ -112,12 +112,12 @@ func (f *fakeOIDC) mintToken(t *testing.T, tc tokenClaims) string {
 
 func TestValidator_Validate(t *testing.T) {
 	fake := newFakeOIDC(t)
-	clientID := "skillctl-cli"
+	clientID := "skillsctl-cli"
 
 	cfg := auth.Config{
 		IssuerURL:   fake.server.URL,
 		ClientID:    clientID,
-		AdminGroup:  "skillctl-admins",
+		AdminGroup:  "skillsctl-admins",
 		GroupsClaim: "groups",
 	}
 
@@ -208,7 +208,7 @@ func TestValidator_Validate(t *testing.T) {
 
 func TestValidator_Validate_CustomGroupsClaim(t *testing.T) {
 	fake := newFakeOIDC(t)
-	clientID := "skillctl-cli"
+	clientID := "skillsctl-cli"
 
 	cfg := auth.Config{
 		IssuerURL:   fake.server.URL,
@@ -245,7 +245,7 @@ func TestIsAdmin(t *testing.T) {
 		groups []string
 		want   bool
 	}{
-		{"admin member", []string{"devs", "skillctl-admins"}, true},
+		{"admin member", []string{"devs", "skillsctl-admins"}, true},
 		{"not admin", []string{"devs"}, false},
 		{"empty groups", nil, false},
 	}
@@ -253,14 +253,14 @@ func TestIsAdmin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			claims := &auth.Claims{Groups: tt.groups}
-			if got := auth.IsAdmin("skillctl-admins", claims); got != tt.want {
+			if got := auth.IsAdmin("skillsctl-admins", claims); got != tt.want {
 				t.Errorf("IsAdmin: got %v, want %v", got, tt.want)
 			}
 		})
 	}
 
 	t.Run("nil claims", func(t *testing.T) {
-		if auth.IsAdmin("skillctl-admins", nil) {
+		if auth.IsAdmin("skillsctl-admins", nil) {
 			t.Error("expected false for nil claims")
 		}
 	})

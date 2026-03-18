@@ -13,10 +13,10 @@ type CachedToken struct {
 	Expiry  time.Time `json:"expiry"`
 }
 
-// DefaultCredentialsPath returns ~/.config/skillctl/credentials.json.
+// DefaultCredentialsPath returns ~/.config/skillsctl/credentials.json.
 func DefaultCredentialsPath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".config", "skillctl", "credentials.json")
+	return filepath.Join(home, ".config", "skillsctl", "credentials.json")
 }
 
 // FarFuture returns a time far in the future, useful for test tokens.

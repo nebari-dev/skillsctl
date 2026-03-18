@@ -72,7 +72,7 @@ func mapPublishError(err error, name, version string) error {
 	case connect.CodeAlreadyExists:
 		return fmt.Errorf("version %s of %s already exists", version, name)
 	case connect.CodeUnauthenticated:
-		return fmt.Errorf("not authenticated. Run 'skillctl auth login' first")
+		return fmt.Errorf("not authenticated. Run 'skillsctl auth login' first")
 	case connect.CodePermissionDenied:
 		return fmt.Errorf("permission denied. You are not the owner of this skill")
 	case connect.CodeInvalidArgument:

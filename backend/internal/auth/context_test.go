@@ -5,7 +5,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/nebari-dev/skillctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 )
 
 func TestClaimsContext_RoundTrip(t *testing.T) {

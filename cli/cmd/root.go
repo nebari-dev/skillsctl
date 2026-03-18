@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/nebari-dev/skillctl/cli/internal/api"
-	"github.com/nebari-dev/skillctl/cli/internal/auth"
+	"github.com/nebari-dev/skillsctl/cli/internal/api"
+	"github.com/nebari-dev/skillsctl/cli/internal/auth"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 
 func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "skillctl",
+		Use:   "skillsctl",
 		Short: "Discover, install, and publish Claude Code skills",
 	}
 	rootCmd.Version = version
@@ -33,7 +33,7 @@ func NewRootCmd() *cobra.Command {
 		viper.SetDefault("skills_dir", filepath.Join(home, ".claude", "skills"))
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
-		viper.AddConfigPath(home + "/.config/skillctl")
+		viper.AddConfigPath(home + "/.config/skillsctl")
 		viper.SetEnvPrefix("SKILLCTL")
 		viper.AutomaticEnv()
 		_ = viper.ReadInConfig()
