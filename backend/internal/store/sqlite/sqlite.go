@@ -65,6 +65,7 @@ func Open(path string) (*sql.DB, error) {
 	return db, nil
 }
 
+//nolint:gosec // G202: query is built with string concatenation but all user values use ? parameters
 func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter skillsctlv1.SkillSource, pageSize int32, pageToken string) ([]*skillsctlv1.Skill, string, error) {
 	if pageToken != "" {
 		return nil, "", store.ErrPaginationNotSupported
@@ -103,7 +104,8 @@ func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter
 	if pageSize <= 0 {
 		pageSize = defaultPageSize
 	}
-	query += fmt.Sprintf(" LIMIT %d", pageSize)
+	query += " LIMIT ?"
+	args = append(args, pageSize)
 
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {

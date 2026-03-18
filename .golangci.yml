@@ -27,10 +27,10 @@ linters:
           disabled: true
         - name: exported
           disabled: true
-exclusions:
-  paths:
-    - gen/
-  rules:
-    - path: "_test\\.go"
-      linters:
-        - gosec
+  exclusions:
+    paths:
+      - gen/
+    rules:
+      - path: "_test\\.go"
+        linters:
+          - gosec
