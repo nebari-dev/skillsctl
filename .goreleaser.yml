@@ -1,0 +1,61 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: skillctl
+    main: ./cli
+    binary: skillctl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/nebari-dev/skillctl/cli/cmd.version={{.Version}}
+      - -X github.com/nebari-dev/skillctl/cli/cmd.commit={{.ShortCommit}}
+
+archives:
+  - id: skillctl
+    builds:
+      - skillctl
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: "skillctl_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+brews:
+  - repository:
+      owner: nebari-dev
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://github.com/nebari-dev/skillctl
+    description: CLI for discovering, installing, and publishing Claude Code skills
+    license: MIT
+    install: |
+      bin.install "skillctl"
+    test: |
+      system "#{bin}/skillctl", "--version"
