@@ -11,13 +11,18 @@ import (
 	"github.com/nebari-dev/skillctl/cli/internal/auth"
 )
 
-var apiURL string
+var (
+	apiURL  string
+	version = "dev"
+	commit  = ""
+)
 
 func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "skillctl",
 		Short: "Discover, install, and publish Claude Code skills",
 	}
+	rootCmd.Version = version
 
 	rootCmd.PersistentFlags().StringVar(&apiURL, "api-url", "", "Backend API URL")
 	rootCmd.PersistentFlags().StringVar(&credentialsPath, "credentials-path", "", "Credentials file path (for testing)")
