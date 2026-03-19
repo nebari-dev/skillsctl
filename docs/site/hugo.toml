@@ -11,6 +11,8 @@ languageCode = "en-us"
   BookSection = "/"
   BookToC = true
   BookSearch = true
+  BookTheme = "auto"
+  BookPortableLinks = true
 
 [markup.goldmark.renderer]
   unsafe = true
