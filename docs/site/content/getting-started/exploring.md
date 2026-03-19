@@ -1,11 +1,11 @@
 ---
-title: "Exploring Skills"
+title: "Exploring skills"
 weight: 30
 ---
 
-# Exploring Skills
+# Exploring skills
 
-The `skillsctl explore` command lets you browse and search skills in the internal.
+The `skillsctl explore` command lets you browse and search skills in the registry.
 
 ## List all skills
 
@@ -72,15 +72,15 @@ Name:        git-commit
 Description: Helps write clear, conventional commit messages following team standards
 Owner:       bob@corp.dev
 Tags:        git, workflow
-Source:      internal
+Version:     2.0.1
 Installs:    98
-Latest:      2.0.1
+Source:      internal
 
-Version History:
-  2.0.1  published by bob@corp.dev  "add support for breaking change footer"
-  2.0.0  published by bob@corp.dev  "rewrite for conventional commits v1.0"
-  1.1.0  published by bob@corp.dev  "add --scope flag guidance"
-  1.0.0  published by bob@corp.dev  "initial release"
+Versions:
+  2.0.1
+  2.0.0
+  1.1.0
+  1.0.0
 ```
 
 ## View skill content
@@ -96,16 +96,17 @@ Name:        git-commit
 Description: Helps write clear, conventional commit messages following team standards
 Owner:       bob@corp.dev
 Tags:        git, workflow
-Source:      internal
+Version:     2.0.1
 Installs:    98
-Latest:      2.0.1
+Source:      internal
 
-Version History:
-  2.0.1  published by bob@corp.dev  "add support for breaking change footer"
-  ...
+Versions:
+  2.0.1
+  2.0.0
+  1.1.0
+  1.0.0
 
-Content (2.0.1):
----
+--- Content ---
 You are helping write a git commit message. Follow conventional commits format:
 
 <type>(<scope>): <subject>

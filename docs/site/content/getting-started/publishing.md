@@ -1,9 +1,9 @@
 ---
-title: "Publishing Skills"
+title: "Publishing skills"
 weight: 50
 ---
 
-# Publishing Skills
+# Publishing skills
 
 Skills are Markdown files that provide Claude Code with specialized instructions, context, or behavior. Publishing a skill makes it available to everyone with access to your registry.
 
@@ -81,11 +81,10 @@ Flags:
 On success:
 
 ```
-Published sql-writer@1.0.0
-Digest: sha256:c4e8f2a1b3d567890abcdef1234567890abcdef1234567890abcdef1234567890
+Published sql-writer@1.0.0 (sha256:c4e8f2a1b3d567890abcdef1234567890abcdef1234567890abcdef1234567890)
 ```
 
-Save the digest if you want to share a verified install command with your team.
+The digest is printed inline. Save it if you want to share a verified install command with your team.
 
 ## Versions are immutable
 

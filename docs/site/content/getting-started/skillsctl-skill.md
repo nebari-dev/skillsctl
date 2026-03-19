@@ -1,5 +1,5 @@
 ---
-title: "Using the skillsctl Skill"
+title: "Using the skillsctl skill"
 weight: 70
 ---
 
@@ -31,8 +31,7 @@ skillsctl install skillsctl
 ```
 
 ```
-Installing skillsctl@latest...
-Saved to /home/you/.claude/skills/skillsctl.md
+Installed skillsctl@1.0.0 to /home/you/.claude/skills/skillsctl.md
 ```
 
 That's the entire bootstrap process. Claude Code picks up the new skill file on the next session start.
@@ -67,10 +66,9 @@ You: Yes, install it.
 
 Claude: $ skillsctl install code-review
 
-  Installing code-review@1.3.0...
-  Saved to /home/you/.claude/skills/code-review.md
+  Installed code-review@1.3.0 to /home/you/.claude/skills/code-review.md
 
-  Done. The code-review skill is installed. Start a new session and it will be active.
+  The code-review skill is installed. Start a new session and it will be active.
 ```
 
 ## Example: publishing a skill through Claude Code

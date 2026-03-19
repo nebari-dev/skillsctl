@@ -1,9 +1,9 @@
 ---
-title: "Quick Start"
+title: "Quick start"
 weight: 20
 ---
 
-# Quick Start
+# Quick start
 
 This guide walks you through running a local skillsctl registry server and connecting the CLI to it. The whole process takes about five minutes.
 

@@ -44,15 +44,14 @@ skillsctl publish \
   --changelog "add output format instructions, fix typo in section 2"
 ```
 
-Changelogs are visible in `skillsctl explore show my-skill --verbose`. They help users decide whether to update.
+Changelogs are stored with each version and help users decide whether to update.
 
 ### Digest verification
 
 Every version has a SHA-256 digest computed from its content. The digest is displayed when you publish:
 
 ```
-Published my-skill@1.0.0
-Digest: sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+Published my-skill@1.0.0 (sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855)
 ```
 
 Pin a version with its digest to detect if the content has been tampered with:

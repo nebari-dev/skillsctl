@@ -1,9 +1,9 @@
 ---
-title: "Installing Skills"
+title: "Installing skills"
 weight: 40
 ---
 
-# Installing Skills
+# Installing skills
 
 The `skillsctl install` command downloads a skill from the registry and saves it where Claude Code can find it.
 
@@ -14,8 +14,7 @@ skillsctl install git-commit
 ```
 
 ```
-Installing git-commit@2.0.1...
-Saved to /home/you/.claude/skills/git-commit.md
+Installed git-commit@2.0.1 to /home/you/.claude/skills/git-commit.md
 ```
 
 ## Install a pinned version
@@ -27,8 +26,7 @@ skillsctl install git-commit@1.1.0
 ```
 
 ```
-Installing git-commit@1.1.0...
-Saved to /home/you/.claude/skills/git-commit.md
+Installed git-commit@1.1.0 to /home/you/.claude/skills/git-commit.md
 ```
 
 Pinning a version is useful in team environments where you want everyone using the same skill revision, or when a newer version changed behavior you rely on.

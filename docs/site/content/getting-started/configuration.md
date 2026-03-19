@@ -16,8 +16,12 @@ skillsctl config init
 ```
 
 ```
-Server URL [http://localhost:8080]: https://skills.corp.example.com
-Configuration written to /home/you/.config/skillsctl/config.yaml
+No configuration found. Let's set up skillsctl.
+
+API URL [http://localhost:8080]: https://skills.corp.example.com
+Skills directory [/home/you/.claude/skills]:
+
+Config saved to /home/you/.config/skillsctl/config.yaml
 ```
 
 This writes a config file with the values you entered. Run it again any time to change them.
@@ -59,6 +63,7 @@ Updated api_url in /home/you/.config/skillsctl/config.yaml
 | Key | Description | Default |
 |-----|-------------|---------|
 | `api_url` | Registry server URL | `http://localhost:8080` |
+| `skills_dir` | Directory where skills are installed | `~/.claude/skills` |
 
 ## Environment variables
 

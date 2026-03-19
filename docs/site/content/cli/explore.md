@@ -73,17 +73,17 @@ skillsctl explore show git-conventional
 
 ```
 Name:        git-conventional
-Version:     1.2.0
-Source:      internal
 Description: Enforce conventional commit messages
-Tags:        git, commits
 Owner:       alice
-Published:   2026-02-14
+Tags:        git, commits
+Version:     1.2.0
+Installs:    85
+Source:      internal
 
 Versions:
-  1.2.0  2026-02-14  Fix scope validation for monorepo paths
-  1.1.0  2026-01-30  Add breaking change detection
-  1.0.0  2026-01-10  Initial release
+  1.2.0
+  1.1.0
+  1.0.0
 ```
 
 Show details including the full skill content:
@@ -92,7 +92,7 @@ Show details including the full skill content:
 skillsctl explore show git-conventional --verbose
 ```
 
-The output adds a `Content:` section after the version list with the raw skill text.
+The output adds a `--- Content ---` section after the version list with the raw skill markdown.
 
 ## Common errors
 
