@@ -5,7 +5,7 @@ weight: 50
 
 # Security
 
-This page explains the threat model for skillsctl, the mitigations currently in place, the limitations of those mitigations, and best practices for users and operators.
+This page explains the threat model for SkillsCtl, the mitigations currently in place, the limitations of those mitigations, and best practices for users and operators.
 
 ## The core risk
 
@@ -21,7 +21,7 @@ Concretely, a malicious skill could instruct Claude to:
 
 This is not a hypothetical risk. Skills are instructions, and instructions can be malicious. The risk is equivalent to running an untrusted shell script, except that the attack surface is natural language and the harm can be harder to detect.
 
-## What skillsctl does to mitigate risk
+## What SkillsCtl does to mitigate risk
 
 ### Ownership enforcement
 
@@ -40,7 +40,7 @@ Immutability only protects pinned versions. If you install `latest`, you will ge
 Every version has a SHA-256 digest. You can pin both a version and its digest:
 
 ```bash
-skillsctl install code-review@1.3.0 --digest sha256:abc123...
+SkillsCtl install code-review@1.3.0 --digest sha256:abc123...
 ```
 
 If the digest does not match what the server returns, installation fails. This protects against a compromised server returning altered content for a known version.

@@ -10,7 +10,7 @@ The `skillsctl explore` command lets you browse and search skills in the registr
 ## List all skills
 
 ```bash
-skillsctl explore
+SkillsCtl explore
 ```
 
 Output is a table showing key metadata for each skill:
@@ -40,7 +40,7 @@ Columns:
 Use `--tag` to narrow results to skills with a specific tag. You can repeat the flag to require multiple tags:
 
 ```bash
-skillsctl explore --tag git
+SkillsCtl explore --tag git
 ```
 
 ```
@@ -50,7 +50,7 @@ internal  pr-description  carol@corp.dev  git,github,workflow  38     1.2.0
 ```
 
 ```bash
-skillsctl explore --tag git --tag workflow
+SkillsCtl explore --tag git --tag workflow
 ```
 
 ```
@@ -64,7 +64,7 @@ internal  pr-description  carol@corp.dev  git,github,workflow  38        1.2.0
 Use `explore show` to see full metadata for a skill, including its version history:
 
 ```bash
-skillsctl explore show git-commit
+SkillsCtl explore show git-commit
 ```
 
 ```
@@ -88,7 +88,7 @@ Versions:
 Add `--verbose` to include the full skill content in the output:
 
 ```bash
-skillsctl explore show git-commit --verbose
+SkillsCtl explore show git-commit --verbose
 ```
 
 ```

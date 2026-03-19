@@ -5,7 +5,7 @@ weight: 30
 
 # Auth model
 
-skillsctl uses OIDC for authentication. The server validates tokens; the CLI gets tokens via the RFC 8628 device flow. Neither component requires manual OIDC configuration from the user.
+SkillsCtl uses OIDC for authentication. The server validates tokens; the CLI gets tokens via the RFC 8628 device flow. Neither component requires manual OIDC configuration from the user.
 
 ## Server-side validation
 
@@ -22,7 +22,7 @@ The server does not maintain sessions. Each request carries the token directly.
 
 When a user runs `skillsctl auth login`, the CLI first calls `GET /auth/config` on the configured server. This endpoint returns the OIDC issuer URL and client ID. The CLI uses those values to start the device flow - the user does not need to configure OIDC settings manually.
 
-This means you can point the CLI at any skillsctl server and authentication just works. The server is the single source of truth for OIDC configuration.
+This means you can point the CLI at any SkillsCtl server and authentication just works. The server is the single source of truth for OIDC configuration.
 
 ## Device flow (RFC 8628)
 
@@ -38,7 +38,7 @@ The CLI uses the RFC 8628 device authorization flow:
 Example flow:
 
 ```
-$ skillsctl auth login
+$ SkillsCtl auth login
 
 To authorize, open: https://keycloak.example.com/device
 Enter code: ABCD-EFGH
@@ -53,18 +53,18 @@ The device flow works without a redirect URI, making it suitable for CLI tools w
 
 Tokens are stored at `~/.config/skillsctl/credentials.json`. The file is written with `0600` permissions (readable only by the owner). The file contains the access token and ID token as returned by the OIDC provider.
 
-skillsctl does not currently handle refresh tokens. When the token expires, re-run `skillsctl auth login` to get a new one. Most OIDC providers issue tokens valid for at least an hour; some issue longer-lived tokens.
+SkillsCtl does not currently handle refresh tokens. When the token expires, re-run `skillsctl auth login` to get a new one. Most OIDC providers issue tokens valid for at least an hour; some issue longer-lived tokens.
 
 Check token status:
 
 ```bash
-skillsctl auth status
+SkillsCtl auth status
 ```
 
 Log out (deletes the credentials file):
 
 ```bash
-skillsctl auth logout
+SkillsCtl auth logout
 ```
 
 ## Ownership and identity

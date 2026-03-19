@@ -10,8 +10,8 @@ Browse skills available in the registry. With no arguments, lists all skills. Us
 ## Synopsis
 
 ```
-skillsctl explore [--tag TAG] [--source all|internal|external]
-skillsctl explore show NAME [--verbose]
+SkillsCtl explore [--tag TAG] [--source all|internal|external]
+SkillsCtl explore show NAME [--verbose]
 ```
 
 ## Subcommands
@@ -33,7 +33,7 @@ skillsctl explore show NAME [--verbose]
 List all skills:
 
 ```bash
-skillsctl explore
+SkillsCtl explore
 ```
 
 ```
@@ -46,7 +46,7 @@ k8s-yaml-lint           0.1.0     external   Lint Kubernetes YAML manifests
 Filter by tag:
 
 ```bash
-skillsctl explore --tag git
+SkillsCtl explore --tag git
 ```
 
 ```
@@ -57,7 +57,7 @@ git-conventional        1.2.0     internal   Enforce conventional commit message
 Filter by source:
 
 ```bash
-skillsctl explore --source external
+SkillsCtl explore --source external
 ```
 
 ```
@@ -68,7 +68,7 @@ k8s-yaml-lint           0.1.0     external   Lint Kubernetes YAML manifests
 Show details for a skill:
 
 ```bash
-skillsctl explore show git-conventional
+SkillsCtl explore show git-conventional
 ```
 
 ```
@@ -89,7 +89,7 @@ Versions:
 Show details including the full skill content:
 
 ```bash
-skillsctl explore show git-conventional --verbose
+SkillsCtl explore show git-conventional --verbose
 ```
 
 The output adds a `--- Content ---` section after the version list with the raw skill markdown.

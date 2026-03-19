@@ -40,24 +40,24 @@ This skill defines a scope (what to look for), constraints (what to skip), and a
 
 **Use imperative language.** "Check for missing error handling" is clearer than "Error handling should be considered."
 
-## The skillsctl skill as an example
+## The SkillsCtl skill as an example
 
-skillsctl ships a skill that teaches Claude Code how to use skillsctl itself. Install it with:
+SkillsCtl ships a skill that teaches Claude Code how to use SkillsCtl itself. Install it with:
 
 ```bash
-skillsctl install skillsctl
+SkillsCtl install SkillsCtl
 ```
 
-This skill demonstrates a common pattern: teaching Claude the interface of a specific tool. It includes the command reference, common workflows, and examples. Once installed, you can ask Claude to run skillsctl commands on your behalf or guide you through publishing a new skill.
+This skill demonstrates a common pattern: teaching Claude the interface of a specific tool. It includes the command reference, common workflows, and examples. Once installed, you can ask Claude to run SkillsCtl commands on your behalf or guide you through publishing a new skill.
 
-The skillsctl skill is also a working example of the bootstrap pattern: the tool for managing skills is itself published as a skill in the registry.
+The SkillsCtl skill is also a working example of the bootstrap pattern: the tool for managing skills is itself published as a skill in the registry.
 
 ## Publishing a skill
 
 Once you have a skill file ready, publish it to the registry:
 
 ```bash
-skillsctl publish \
+SkillsCtl publish \
   --name my-skill \
   --version 1.0.0 \
   --description "Short description of what this skill does" \

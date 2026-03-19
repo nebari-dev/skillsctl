@@ -26,7 +26,7 @@ These flags apply to every command.
 |------|-------------|
 | `--api-url URL` | Registry server URL. Overrides `api_url` from config. |
 | `--credentials-path PATH` | Path to credentials file. Default: `~/.config/skillsctl/credentials.json`. |
-| `--version` | Print the skillsctl version and exit. |
+| `--version` | Print the SkillsCtl version and exit. |
 | `--help` | Print help for the current command. |
 
 ## Configuration

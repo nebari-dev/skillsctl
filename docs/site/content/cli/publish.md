@@ -10,7 +10,7 @@ Upload a skill file to the registry. Requires authentication unless the server i
 ## Synopsis
 
 ```
-skillsctl publish --name NAME --version VERSION --description DESC --file PATH \
+SkillsCtl publish --name NAME --version VERSION --description DESC --file PATH \
   [--tag TAG ...] [--changelog TEXT]
 ```
 
@@ -37,7 +37,7 @@ skillsctl publish --name NAME --version VERSION --description DESC --file PATH \
 Publish a new skill:
 
 ```bash
-skillsctl publish \
+SkillsCtl publish \
   --name git-conventional \
   --version 1.0.0 \
   --description "Enforce conventional commit messages" \
@@ -51,7 +51,7 @@ Published git-conventional@1.0.0
 Publish with tags and a changelog:
 
 ```bash
-skillsctl publish \
+SkillsCtl publish \
   --name git-conventional \
   --version 1.1.0 \
   --description "Enforce conventional commit messages" \

@@ -10,9 +10,9 @@ Manage authentication with the registry. Uses the OIDC device authorization flow
 ## Synopsis
 
 ```
-skillsctl auth login
-skillsctl auth status
-skillsctl auth logout
+SkillsCtl auth login
+SkillsCtl auth status
+SkillsCtl auth logout
 ```
 
 ## Subcommands
@@ -28,7 +28,7 @@ skillsctl auth logout
 Fetches OIDC configuration from the server (`GET /auth/config`), then starts a device authorization flow. You are given a URL and a user code to enter in a browser. Once you authorize in the browser, the CLI receives a token and caches it at `~/.config/skillsctl/credentials.json`.
 
 ```bash
-skillsctl auth login
+SkillsCtl auth login
 ```
 
 ```
@@ -46,7 +46,7 @@ Logged in as alice@example.com
 Prints the current authentication state and exits with code 0 if the token is valid, or code 1 if no credentials exist or the token has expired.
 
 ```bash
-skillsctl auth status
+SkillsCtl auth status
 ```
 
 ```
@@ -57,7 +57,7 @@ Token expires: 2026-04-18 10:00:00 UTC
 If not logged in:
 
 ```bash
-skillsctl auth status
+SkillsCtl auth status
 echo $?
 ```
 
@@ -71,7 +71,7 @@ Not logged in.
 Deletes the credentials file. The next command that requires authentication will prompt you to log in again.
 
 ```bash
-skillsctl auth logout
+SkillsCtl auth logout
 ```
 
 ```

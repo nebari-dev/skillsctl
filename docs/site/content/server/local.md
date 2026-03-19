@@ -5,7 +5,7 @@ weight: 10
 
 # Local and Docker
 
-This page covers running the skillsctl server on a local machine, either from source or with Docker.
+This page covers running the SkillsCtl server on a local machine, either from source or with Docker.
 
 ## Running from source
 
@@ -13,7 +13,7 @@ You need Go 1.21 or later. Clone the repository if you haven't already:
 
 ```bash
 git clone https://github.com/nebari-dev/skillsctl.git
-cd skillsctl
+cd SkillsCtl
 ```
 
 Start the server:
@@ -33,7 +33,7 @@ Expected startup output:
 
 ```
 2026/03/18 10:00:00 auth disabled (no OIDC_ISSUER_URL)
-2026/03/18 10:00:00 starting server on :8080 (db: skillsctl.db)
+2026/03/18 10:00:00 starting server on :8080 (db: SkillsCtl.db)
 ```
 
 The server listens on `:8080` and creates `skillsctl.db` in the current directory.
@@ -86,7 +86,7 @@ Run with a local volume for the database:
 
 ```bash
 docker run -d \
-  --name skillsctl \
+  --name SkillsCtl \
   -p 8080:8080 \
   -v skillsctl-data:/data \
   -e DB_PATH=/data/skillsctl.db \
@@ -131,7 +131,7 @@ docker compose up -d
 Once the server is running, configure the CLI to point at it:
 
 ```bash
-skillsctl config init
+SkillsCtl config init
 ```
 
 Accept the default `http://localhost:8080` when prompted. If the server is on a different host or port, enter that URL instead.

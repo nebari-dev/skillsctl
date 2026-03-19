@@ -5,18 +5,18 @@ weight: 60
 
 # Configuration
 
-skillsctl reads configuration from a YAML file at `~/.config/skillsctl/config.yaml`. You can also override any setting with environment variables or command-line flags.
+SkillsCtl reads configuration from a YAML file at `~/.config/skillsctl/config.yaml`. You can also override any setting with environment variables or command-line flags.
 
 ## Initialize configuration
 
 Run the interactive setup to create the config file:
 
 ```bash
-skillsctl config init
+SkillsCtl config init
 ```
 
 ```
-No configuration found. Let's set up skillsctl.
+No configuration found. Let's set up SkillsCtl.
 
 API URL [http://localhost:8080]: https://skills.corp.example.com
 Skills directory [/home/you/.claude/skills]:
@@ -31,7 +31,7 @@ This writes a config file with the values you entered. Run it again any time to 
 List all current configuration values:
 
 ```bash
-skillsctl config list
+SkillsCtl config list
 ```
 
 ```
@@ -41,7 +41,7 @@ api_url: https://skills.corp.example.com
 ## Get a single value
 
 ```bash
-skillsctl config get api_url
+SkillsCtl config get api_url
 ```
 
 ```
@@ -51,7 +51,7 @@ https://skills.corp.example.com
 ## Set a value
 
 ```bash
-skillsctl config set api_url https://skills-staging.corp.example.com
+SkillsCtl config set api_url https://skills-staging.corp.example.com
 ```
 
 ```
@@ -76,12 +76,12 @@ Every configuration key has a corresponding environment variable with the `SKILL
 Environment variables are useful in CI/CD pipelines and containerized environments where you don't want a config file on disk:
 
 ```bash
-SKILLCTL_API_URL=https://skills.corp.example.com skillsctl explore
+SKILLCTL_API_URL=https://skills.corp.example.com SkillsCtl explore
 ```
 
 ## Precedence
 
-When the same setting is provided in multiple places, skillsctl uses this order (highest to lowest priority):
+When the same setting is provided in multiple places, SkillsCtl uses this order (highest to lowest priority):
 
 1. **Flag** - e.g. `--api-url https://...` on the command line
 2. **Environment variable** - e.g. `SKILLCTL_API_URL`
@@ -98,7 +98,7 @@ The config file is standard YAML:
 api_url: https://skills.corp.example.com
 ```
 
-You can edit it directly with any text editor. skillsctl writes config values with go.yaml.in/yaml/v3 directly (not Viper) so environment variables are never baked into the file.
+You can edit it directly with any text editor. SkillsCtl writes config values with go.yaml.in/yaml/v3 directly (not Viper) so environment variables are never baked into the file.
 
 ## Credentials file
 

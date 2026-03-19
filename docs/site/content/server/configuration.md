@@ -5,7 +5,7 @@ weight: 40
 
 # Configuration reference
 
-The skillsctl server is configured entirely through environment variables. There is no configuration file.
+The SkillsCtl server is configured entirely through environment variables. There is no configuration file.
 
 ## Environment variables
 

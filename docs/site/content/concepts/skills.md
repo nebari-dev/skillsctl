@@ -28,7 +28,7 @@ Installing a skill with `skillsctl install` downloads the content from the regis
 ~/.claude/skills/
   code-review.md
   terraform-modules.md
-  skillsctl.md
+  SkillsCtl.md
 ```
 
 Deleting the file removes the skill. There is no install database - the directory contents are the ground truth.
@@ -41,7 +41,7 @@ Claude does not load skills selectively. Every file in the skills directory is l
 
 ## The registry
 
-The skillsctl registry stores skills and their versions centrally so they can be shared across a team or organization. Skills in the registry are identified by name (e.g., `code-review`) and version (e.g., `1.3.0`). Each version is immutable once published.
+The SkillsCtl registry stores skills and their versions centrally so they can be shared across a team or organization. Skills in the registry are identified by name (e.g., `code-review`) and version (e.g., `1.3.0`). Each version is immutable once published.
 
 The registry tracks:
 

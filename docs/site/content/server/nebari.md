@@ -5,17 +5,17 @@ weight: 30
 
 # Nebari integration
 
-If you are running skillsctl on a cluster managed by [Nebari](https://nebari.dev), you can use the `NebariApp` CRD instead of configuring an Ingress manually. The nebari-operator handles routing, TLS, and OIDC authentication automatically.
+If you are running SkillsCtl on a cluster managed by [Nebari](https://nebari.dev), you can use the `NebariApp` CRD instead of configuring an Ingress manually. The nebari-operator handles routing, TLS, and OIDC authentication automatically.
 
 ## What NebariApp does
 
 When `nebariapp.enabled=true`, the Helm chart creates a `NebariApp` resource. The nebari-operator processes that resource and provisions:
 
-- An `HTTPRoute` to route traffic to the skillsctl service
+- An `HTTPRoute` to route traffic to the SkillsCtl service
 - A TLS certificate for the hostname
 - OIDC authentication via the cluster's Keycloak instance
 
-This means you do not need to configure Ingress, cert-manager, or an external OIDC provider separately. The cluster's existing Keycloak instance becomes the OIDC issuer for skillsctl.
+This means you do not need to configure Ingress, cert-manager, or an external OIDC provider separately. The cluster's existing Keycloak instance becomes the OIDC issuer for SkillsCtl.
 
 ## When to use NebariApp vs Ingress
 
@@ -45,10 +45,10 @@ Keep `ingress.enabled` at its default (`false`).
 Deploy:
 
 ```bash
-helm install skillsctl nebari/skillsctl -f values.yaml
+helm install SkillsCtl nebari/skillsctl -f values.yaml
 ```
 
-The nebari-operator will create the HTTPRoute and TLS certificate. The skillsctl server will be reachable at `https://skills.your-nebari-domain.com`.
+The nebari-operator will create the HTTPRoute and TLS certificate. The SkillsCtl server will be reachable at `https://skills.your-nebari-domain.com`.
 
 ## OIDC configuration with NebariApp
 
@@ -61,15 +61,15 @@ nebariapp:
 
 oidc:
   issuerURL: https://keycloak.your-nebari-domain.com/realms/nebari
-  clientID: skillsctl
+  clientID: SkillsCtl
   adminGroup: platform-admins
 ```
 
-The `clientID` must exist in Keycloak before deploying. Create a client for skillsctl in the Keycloak admin console with:
+The `clientID` must exist in Keycloak before deploying. Create a client for SkillsCtl in the Keycloak admin console with:
 
 - Client authentication: on
 - Authentication flow: Standard flow + Device authorization grant (for CLI device flow)
-- Valid redirect URIs: the skillsctl hostname
+- Valid redirect URIs: the SkillsCtl hostname
 
 ## Verifying the deployment
 

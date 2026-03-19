@@ -5,7 +5,7 @@ weight: 10
 
 # Installation
 
-skillsctl is distributed as a single static binary. Choose the method that fits your environment.
+SkillsCtl is distributed as a single static binary. Choose the method that fits your environment.
 
 ## Homebrew (recommended for macOS and Linux)
 
@@ -13,13 +13,13 @@ Homebrew is the recommended install method for macOS and Linux users. It handles
 
 ```bash
 brew tap nebari-dev/tap
-brew install skillsctl
+brew install SkillsCtl
 ```
 
 To upgrade later:
 
 ```bash
-brew upgrade skillsctl
+brew upgrade SkillsCtl
 ```
 
 ## curl installer
@@ -52,14 +52,14 @@ Clone the repository and build manually:
 
 ```bash
 git clone https://github.com/nebari-dev/skillsctl.git
-cd skillsctl
-CGO_ENABLED=0 go build -o skillsctl ./cli
+cd SkillsCtl
+CGO_ENABLED=0 go build -o SkillsCtl ./cli
 ```
 
 Move the binary somewhere on your `PATH`:
 
 ```bash
-mv skillsctl /usr/local/bin/
+mv SkillsCtl /usr/local/bin/
 ```
 
 ## Verify the installation
@@ -67,28 +67,28 @@ mv skillsctl /usr/local/bin/
 After installing, confirm the binary is reachable and check the version:
 
 ```bash
-skillsctl --version
+SkillsCtl --version
 ```
 
 Expected output:
 
 ```
-skillsctl version 0.1.0
+SkillsCtl version 0.1.0
 ```
 
 ## Shell completion
 
-skillsctl supports shell completion for bash, zsh, fish, and PowerShell. Generate and install the completion script for your shell:
+SkillsCtl supports shell completion for bash, zsh, fish, and PowerShell. Generate and install the completion script for your shell:
 
 ```bash
 # bash
-skillsctl completion bash > /etc/bash_completion.d/skillsctl
+SkillsCtl completion bash > /etc/bash_completion.d/skillsctl
 
 # zsh (add to ~/.zshrc or a file sourced by it)
-skillsctl completion zsh > "${fpath[1]}/_skillsctl"
+SkillsCtl completion zsh > "${fpath[1]}/_skillsctl"
 
 # fish
-skillsctl completion fish > ~/.config/fish/completions/skillsctl.fish
+SkillsCtl completion fish > ~/.config/fish/completions/skillsctl.fish
 ```
 
 ## Next steps

@@ -6,7 +6,7 @@ bookCollapseSection: true
 
 # Server
 
-The skillsctl server is the registry backend. It stores skills, enforces ownership, and serves the ConnectRPC API that the CLI talks to.
+The SkillsCtl server is the registry backend. It stores skills, enforces ownership, and serves the ConnectRPC API that the CLI talks to.
 
 ## Deployment options
 

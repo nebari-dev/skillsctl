@@ -5,7 +5,7 @@ weight: 20
 
 # Kubernetes (Helm)
 
-skillsctl ships a Helm chart for deploying the registry server to Kubernetes.
+SkillsCtl ships a Helm chart for deploying the registry server to Kubernetes.
 
 ## Prerequisites
 
@@ -20,13 +20,13 @@ Add the Helm repository and install:
 ```bash
 helm repo add nebari https://nebari-dev.github.io/helm-repository
 helm repo update
-helm install skillsctl nebari/skillsctl
+helm install SkillsCtl nebari/skillsctl
 ```
 
 Alternatively, install from the OCI registry:
 
 ```bash
-helm install skillsctl oci://quay.io/nebari/skillsctl
+helm install SkillsCtl oci://quay.io/nebari/skillsctl
 ```
 
 The default install creates:
@@ -45,7 +45,7 @@ kubectl exec -it deploy/skillsctl -- wget -qO- localhost:8080/healthz
 
 ## Configuration values
 
-Pass values with `--set` or a `values.yaml` file (`helm install skillsctl nebari/skillsctl -f values.yaml`).
+Pass values with `--set` or a `values.yaml` file (`helm install SkillsCtl nebari/skillsctl -f values.yaml`).
 
 ### Image
 
@@ -120,7 +120,7 @@ persistence:
 
 oidc:
   issuerURL: https://keycloak.example.com/realms/myrealm
-  clientID: skillsctl
+  clientID: SkillsCtl
   adminGroup: platform-admins
 
 ingress:
@@ -134,7 +134,7 @@ ingress:
 ```
 
 ```bash
-helm install skillsctl nebari/skillsctl -f values-prod.yaml
+helm install SkillsCtl nebari/skillsctl -f values-prod.yaml
 ```
 
 ## High availability
@@ -159,13 +159,13 @@ Write throughput is bounded by SQLite's single-writer model. For a skill registr
 
 ```bash
 helm repo update
-helm upgrade skillsctl nebari/skillsctl -f values.yaml
+helm upgrade SkillsCtl nebari/skillsctl -f values.yaml
 ```
 
 ## Uninstalling
 
 ```bash
-helm uninstall skillsctl
+helm uninstall SkillsCtl
 ```
 
 The PVC is retained due to `helm.sh/resource-policy: keep`. Delete it manually if you want to remove all data.

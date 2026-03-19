@@ -10,10 +10,10 @@ Manage the CLI configuration file at `~/.config/skillsctl/config.yaml`.
 ## Synopsis
 
 ```
-skillsctl config init [--force]
-skillsctl config set KEY VALUE
-skillsctl config get KEY
-skillsctl config list
+SkillsCtl config init [--force]
+SkillsCtl config set KEY VALUE
+SkillsCtl config get KEY
+SkillsCtl config list
 ```
 
 ## Subcommands
@@ -44,11 +44,11 @@ skillsctl config list
 Run interactive setup:
 
 ```bash
-skillsctl config init
+SkillsCtl config init
 ```
 
 ```
-No configuration found. Let's set up skillsctl.
+No configuration found. Let's set up SkillsCtl.
 
 API URL [http://localhost:8080]: https://skills.example.com
 Skills directory [/home/you/.claude/skills]:
@@ -59,19 +59,19 @@ Config saved to /home/you/.config/skillsctl/config.yaml
 Overwrite an existing config:
 
 ```bash
-skillsctl config init --force
+SkillsCtl config init --force
 ```
 
 Set a single key:
 
 ```bash
-skillsctl config set api_url https://skills.example.com
+SkillsCtl config set api_url https://skills.example.com
 ```
 
 Get the effective value for a key (config file value, unless overridden by a global flag):
 
 ```bash
-skillsctl config get api_url
+SkillsCtl config get api_url
 ```
 
 ```
@@ -81,7 +81,7 @@ https://skills.example.com
 List all configured values:
 
 ```bash
-skillsctl config list
+SkillsCtl config list
 ```
 
 ```

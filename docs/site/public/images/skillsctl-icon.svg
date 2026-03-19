@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="100" height="120">
+  <defs>
+    <linearGradient id="nebula" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#3B1FA8"/>
+      <stop offset="30%"  stop-color="#8B2FA8"/>
+      <stop offset="58%"  stop-color="#D94F6E"/>
+      <stop offset="82%"  stop-color="#F07830"/>
+      <stop offset="100%" stop-color="#F5B830"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Shield outline -->
+  <path d="M50 4 L94 15 L94 65 Q94 100 50 116 Q6 100 6 65 L6 15 Z"
+        fill="none"
+        stroke="url(#nebula)"
+        stroke-width="6"
+        stroke-linejoin="round"
+        stroke-linecap="round"/>
+
+  <!-- Terminal prompt ">" -->
+  <text x="14" y="55"
+        font-family="'Courier New', monospace"
+        font-size="28"
+        font-weight="800"
+        fill="url(#nebula)">&#62;</text>
+
+  <!-- Connector line -->
+  <line x1="38" y1="54" x2="50" y2="54"
+        stroke="url(#nebula)"
+        stroke-width="3.8"
+        stroke-linecap="round"/>
+
+  <!-- Honeycomb cluster: top + bottom-left + bottom-right hex -->
+  <polygon points="62,28 71,33 71,43 62,48 53,43 53,33"
+           fill="none" stroke="url(#nebula)" stroke-width="3"/>
+  <polygon points="53,48 62,53 62,63 53,68 44,63 44,53"
+           fill="none" stroke="url(#nebula)" stroke-width="3"/>
+  <polygon points="71,48 80,53 80,63 71,68 62,63 62,53"
+           fill="none" stroke="url(#nebula)" stroke-width="3"/>
+
+  <!-- Gear -->
+  <g transform="translate(35, 72)">
+    <circle cx="15" cy="15" r="9"   fill="none" stroke="url(#nebula)" stroke-width="3.2"/>
+    <circle cx="15" cy="15" r="4.2" fill="none" stroke="url(#nebula)" stroke-width="2.4"/>
+    <g stroke="url(#nebula)" stroke-width="3.5" stroke-linecap="round">
+      <line x1="15" y1="3"  x2="15" y2="0.5"/>
+      <line x1="15" y1="27" x2="15" y2="29.5"/>
+      <line x1="3"  y1="15" x2="0.5"  y2="15"/>
+      <line x1="27" y1="15" x2="29.5" y2="15"/>
+      <line x1="6.5"  y1="6.5"   x2="4.8"  y2="4.8"/>
+      <line x1="23.5" y1="23.5"  x2="25.2" y2="25.2"/>
+      <line x1="23.5" y1="6.5"   x2="25.2" y2="4.8"/>
+      <line x1="6.5"  y1="23.5"  x2="4.8"  y2="25.2"/>
+    </g>
+  </g>
+</svg>

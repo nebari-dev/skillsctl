@@ -1,13 +1,13 @@
 ---
-title: "skillsctl"
+title: "SkillsCtl"
 type: docs
 ---
 
-# skillsctl
+# SkillsCtl
 
 A CLI tool and registry for discovering, installing, and publishing [Claude Code](https://claude.ai/code) skills.
 
-**skillsctl** lets your team share Claude Code skills through a central registry. Developers browse, install, and publish skills with a single command. Admins control access through standard OIDC authentication.
+**SkillsCtl** lets your team share Claude Code skills through a central registry. Developers browse, install, and publish skills with a single command. Admins control access through standard OIDC authentication.
 
 ## Get started
 

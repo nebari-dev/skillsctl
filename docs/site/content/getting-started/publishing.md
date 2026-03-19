@@ -57,7 +57,7 @@ Save this as `sql-writer.md`.
 Use `skillsctl publish` with the required flags:
 
 ```bash
-skillsctl publish \
+SkillsCtl publish \
   --name sql-writer \
   --version 1.0.0 \
   --description "Helps write and optimize PostgreSQL queries" \
@@ -91,7 +91,7 @@ The digest is printed inline. Save it if you want to share a verified install co
 Once published, a version cannot be overwritten. If you try:
 
 ```bash
-skillsctl publish \
+SkillsCtl publish \
   --name sql-writer \
   --version 1.0.0 \
   --description "..." \
@@ -105,7 +105,7 @@ Error: version already exists: sql-writer@1.0.0
 To release an update, increment the version:
 
 ```bash
-skillsctl publish \
+SkillsCtl publish \
   --name sql-writer \
   --version 1.1.0 \
   --description "Helps write and optimize PostgreSQL queries" \
@@ -122,8 +122,8 @@ Version immutability ensures that anyone who installed `sql-writer@1.0.0` with a
 On a server configured with OIDC, you must be logged in before publishing:
 
 ```bash
-skillsctl auth login
-skillsctl publish --name ... --version ... --description ... --file ...
+SkillsCtl auth login
+SkillsCtl publish --name ... --version ... --description ... --file ...
 ```
 
 Run `skillsctl auth login` and follow the device flow prompt in your browser. The CLI discovers the OIDC issuer URL automatically from the server.

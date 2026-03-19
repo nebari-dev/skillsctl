@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Getting started on SkillsCtl</title><link>https://skillsctl.dev/getting-started/</link><description>Recent content in Getting started on SkillsCtl</description><generator>Hugo</generator><language>en-us</language><atom:link href="https://skillsctl.dev/getting-started/index.xml" rel="self" type="application/rss+xml"/><item><title>Installation</title><link>https://skillsctl.dev/getting-started/installation/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://skillsctl.dev/getting-started/installation/</guid><description>&lt;h1 id="installation"&gt;Installation&lt;a class="anchor" href="#installation"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;SkillsCtl is distributed as a single static binary. Choose the method that fits your environment.&lt;/p&gt;
+&lt;h2 id="homebrew-recommended-for-macos-and-linux"&gt;Homebrew (recommended for macOS and Linux)&lt;a class="anchor" href="#homebrew-recommended-for-macos-and-linux"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Homebrew is the recommended install method for macOS and Linux users. It handles upgrades cleanly and integrates with your system PATH.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew tap nebari-dev/tap
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew install SkillsCtl&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;To upgrade later:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;brew upgrade SkillsCtl&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id="curl-installer"&gt;curl installer&lt;a class="anchor" href="#curl-installer"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;For Linux and macOS systems without Homebrew, use the install script to download the latest release:&lt;/p&gt;</description></item><item><title>Quick start</title><link>https://skillsctl.dev/getting-started/quickstart/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://skillsctl.dev/getting-started/quickstart/</guid><description>&lt;h1 id="quick-start"&gt;Quick start&lt;a class="anchor" href="#quick-start"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;This guide walks you through running a local SkillsCtl registry server and connecting the CLI to it. The whole process takes about five minutes.&lt;/p&gt;
+&lt;h2 id="prerequisites"&gt;Prerequisites&lt;a class="anchor" href="#prerequisites"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Go 1.21 or later (to run the server from source)&lt;/li&gt;
+&lt;li&gt;SkillsCtl CLI &lt;a href="https://skillsctl.dev/getting-started/installation/"&gt;installed&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="start-a-local-server"&gt;Start a local server&lt;a class="anchor" href="#start-a-local-server"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Clone the repository if you haven&amp;rsquo;t already:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;git clone https://github.com/nebari-dev/skillsctl.git
+&lt;/span&gt;&lt;/span&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;cd SkillsCtl&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Start the server:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;go run ./backend/cmd/server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You should see output like:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;2026/03/18 10:00:00 auth disabled (no OIDC_ISSUER_URL)
+2026/03/18 10:00:00 starting server on :8080 (db: SkillsCtl.db)&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The server listens on port 8080. Leave this terminal open.&lt;/p&gt;</description></item><item><title>Exploring skills</title><link>https://skillsctl.dev/getting-started/exploring/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://skillsctl.dev/getting-started/exploring/</guid><description>&lt;h1 id="exploring-skills"&gt;Exploring skills&lt;a class="anchor" href="#exploring-skills"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;The &lt;code&gt;skillsctl explore&lt;/code&gt; command lets you browse and search skills in the registry.&lt;/p&gt;
+&lt;h2 id="list-all-skills"&gt;List all skills&lt;a class="anchor" href="#list-all-skills"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;SkillsCtl explore&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Output is a table showing key metadata for each skill:&lt;/p&gt;
+&lt;pre tabindex="0"&gt;&lt;code&gt;SOURCE NAME OWNER TAGS INSTALLS VERSION
+internal code-review alice@corp.dev review,quality 142 1.3.0
+internal git-commit bob@corp.dev git,workflow 98 2.0.1
+internal sql-optimizer alice@corp.dev sql,database,performance 67 1.0.2
+internal openapi-writer carol@corp.dev api,docs,openapi 55 1.1.0
+internal test-generator bob@corp.dev testing,tdd 41 0.9.0
+internal pr-description carol@corp.dev git,github,workflow 38 1.2.0
+internal dockerfile-linter dave@corp.dev docker,devops 22 1.0.0&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Columns:&lt;/p&gt;</description></item><item><title>Installing skills</title><link>https://skillsctl.dev/getting-started/installing/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://skillsctl.dev/getting-started/installing/</guid><description>&lt;h1 id="installing-skills"&gt;Installing skills&lt;a class="anchor" href="#installing-skills"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;The &lt;code&gt;skillsctl install&lt;/code&gt; command downloads a skill from the registry and saves it where Claude Code can find it.&lt;/p&gt;
+&lt;h2 id="install-the-latest-version"&gt;Install the latest version&lt;a class="anchor" href="#install-the-latest-version"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;SkillsCtl install git-commit&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;pre tabindex="0"&gt;&lt;code&gt;Installed git-commit@2.0.1 to /home/you/.claude/skills/git-commit.md&lt;/code&gt;&lt;/pre&gt;&lt;h2 id="install-a-pinned-version"&gt;Install a pinned version&lt;a class="anchor" href="#install-a-pinned-version"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Append &lt;code&gt;@&amp;lt;version&amp;gt;&lt;/code&gt; to install a specific version:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;SkillsCtl install git-commit@1.1.0&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;pre tabindex="0"&gt;&lt;code&gt;Installed git-commit@1.1.0 to /home/you/.claude/skills/git-commit.md&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Pinning a version is useful in team environments where you want everyone using the same skill revision, or when a newer version changed behavior you rely on.&lt;/p&gt;</description></item><item><title>Publishing skills</title><link>https://skillsctl.dev/getting-started/publishing/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://skillsctl.dev/getting-started/publishing/</guid><description>&lt;h1 id="publishing-skills"&gt;Publishing skills&lt;a class="anchor" href="#publishing-skills"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;Skills are Markdown files that provide Claude Code with specialized instructions, context, or behavior. Publishing a skill makes it available to everyone with access to your registry.&lt;/p&gt;
+&lt;h2 id="write-a-skill-file"&gt;Write a skill file&lt;a class="anchor" href="#write-a-skill-file"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;A skill is a plain Markdown file. The content is used directly as a Claude Code instruction set - write it as you would any CLAUDE.md or skill prompt.&lt;/p&gt;
+&lt;p&gt;Here is an example skill that helps write SQL queries:&lt;/p&gt;</description></item><item><title>Configuration</title><link>https://skillsctl.dev/getting-started/configuration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://skillsctl.dev/getting-started/configuration/</guid><description>&lt;h1 id="configuration"&gt;Configuration&lt;a class="anchor" href="#configuration"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;SkillsCtl reads configuration from a YAML file at &lt;code&gt;~/.config/skillsctl/config.yaml&lt;/code&gt;. You can also override any setting with environment variables or command-line flags.&lt;/p&gt;
+&lt;h2 id="initialize-configuration"&gt;Initialize configuration&lt;a class="anchor" href="#initialize-configuration"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Run the interactive setup to create the config file:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span style="display:flex;"&gt;&lt;span&gt;SkillsCtl config init&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;pre tabindex="0"&gt;&lt;code&gt;No configuration found. Let&amp;#39;s set up SkillsCtl.
+
+API URL [http://localhost:8080]: https://skills.corp.example.com
+Skills directory [/home/you/.claude/skills]:
+
+Config saved to /home/you/.config/skillsctl/config.yaml&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;This writes a config file with the values you entered. Run it again any time to change them.&lt;/p&gt;</description></item><item><title>Using the SkillsCtl skill</title><link>https://skillsctl.dev/getting-started/skillsctl-skill/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://skillsctl.dev/getting-started/skillsctl-skill/</guid><description>&lt;h1 id="using-the-skillsctl-skill"&gt;Using the SkillsCtl Skill&lt;a class="anchor" href="#using-the-skillsctl-skill"&gt;#&lt;/a&gt;&lt;/h1&gt;
+&lt;p&gt;SkillsCtl ships a skill that teaches Claude Code how to use SkillsCtl itself. This is the bootstrap for the ecosystem: once the skill is installed, Claude Code can help you discover, install, and publish skills without leaving your editor.&lt;/p&gt;
+&lt;h2 id="what-is-the-skillsctl-skill"&gt;What is the SkillsCtl skill?&lt;a class="anchor" href="#what-is-the-skillsctl-skill"&gt;#&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;The SkillsCtl skill is a Claude Code skill file that contains:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The full SkillsCtl command reference&lt;/li&gt;
+&lt;li&gt;Examples of common workflows (explore, install, publish)&lt;/li&gt;
+&lt;li&gt;Guidance on how to find the right skill for a task&lt;/li&gt;
+&lt;li&gt;Tips for writing effective skills&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;When the skill is active, you can ask Claude Code questions like:&lt;/p&gt;</description></item></channel></rss>

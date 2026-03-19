@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 120" width="520" height="120">
+  <defs>
+    <!-- Main nebula gradient: deep purple → magenta → orange → gold -->
+    <linearGradient id="nebula" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#3B1FA8"/>
+      <stop offset="30%"  stop-color="#8B2FA8"/>
+      <stop offset="60%"  stop-color="#D94F6E"/>
+      <stop offset="85%"  stop-color="#F07830"/>
+      <stop offset="100%" stop-color="#F5B830"/>
+    </linearGradient>
+    <!-- Gradient for "ctl" text accent -->
+    <linearGradient id="ctlGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#D94F6E"/>
+      <stop offset="55%"  stop-color="#F07830"/>
+      <stop offset="100%" stop-color="#F5B830"/>
+    </linearGradient>
+    <!-- Icon-only gradient (used for standalone icon) -->
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#3B1FA8"/>
+      <stop offset="40%"  stop-color="#9B2FB5"/>
+      <stop offset="75%"  stop-color="#E86030"/>
+      <stop offset="100%" stop-color="#F5B830"/>
+    </linearGradient>
+    <clipPath id="shieldClip">
+      <path d="M10 8 L82 8 L82 62 Q82 92 46 106 Q10 92 10 62 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- ══════════════════════════════════════════════
+       SHIELD ICON  (left side, 92×110 viewbox area)
+       ══════════════════════════════════════════════ -->
+  <g transform="translate(4, 5)">
+    <!-- Shield outline stroke -->
+    <path d="M46 4 L88 14 L88 62 Q88 96 46 112 Q4 96 4 62 L4 14 Z"
+          fill="none"
+          stroke="url(#iconGrad)"
+          stroke-width="5.5"
+          stroke-linejoin="round"
+          stroke-linecap="round"/>
+
+    <!-- Terminal prompt ">" -->
+    <text x="16" y="52"
+          font-family="'Courier New', monospace"
+          font-size="28"
+          font-weight="700"
+          fill="url(#nebula)"
+          letter-spacing="-1">&#62;</text>
+
+    <!-- Connector dash -->
+    <line x1="38" y1="53" x2="50" y2="53"
+          stroke="url(#iconGrad)"
+          stroke-width="3.5"
+          stroke-linecap="round"/>
+
+    <!-- Honeycomb hex cluster (3 hexagons) -->
+    <!-- Top hex -->
+    <polygon points="60,27 68,32 68,42 60,47 52,42 52,32"
+             fill="none" stroke="url(#iconGrad)" stroke-width="2.8"/>
+    <!-- Bottom-left hex -->
+    <polygon points="52,47 60,52 60,62 52,67 44,62 44,52"
+             fill="none" stroke="url(#iconGrad)" stroke-width="2.8"/>
+    <!-- Bottom-right hex -->
+    <polygon points="68,47 76,52 76,62 68,67 60,62 60,52"
+             fill="none" stroke="url(#iconGrad)" stroke-width="2.8"/>
+
+    <!-- Gear (bottom of shield) -->
+    <g transform="translate(34, 68) scale(0.8)">
+      <!-- Gear ring -->
+      <circle cx="15" cy="15" r="8.5"  fill="none" stroke="url(#iconGrad)" stroke-width="3"/>
+      <circle cx="15" cy="15" r="4"    fill="none" stroke="url(#iconGrad)" stroke-width="2.2"/>
+      <!-- Gear teeth (8 teeth) -->
+      <g stroke="url(#iconGrad)" stroke-width="3.2" stroke-linecap="round">
+        <line x1="15" y1="3"  x2="15" y2="0"/>
+        <line x1="15" y1="27" x2="15" y2="30"/>
+        <line x1="3"  y1="15" x2="0"  y2="15"/>
+        <line x1="27" y1="15" x2="30" y2="15"/>
+        <line x1="6.5" y1="6.5"  x2="4.3" y2="4.3"/>
+        <line x1="23.5" y1="23.5" x2="25.7" y2="25.7"/>
+        <line x1="23.5" y1="6.5"  x2="25.7" y2="4.3"/>
+        <line x1="6.5" y1="23.5"  x2="4.3" y2="25.7"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ══════════════════════════════
+       WORDMARK  (right of icon)
+       ══════════════════════════════ -->
+  <g transform="translate(104, 0)">
+    <!-- "SkillsCtl" as one word: "Skills" dark, "Ctl" gradient -->
+    <text x="0" y="72"
+          font-family="'Arial', 'Helvetica Neue', sans-serif"
+          font-size="58"
+          font-weight="800"
+          letter-spacing="-2">
+      <tspan fill="#1E1B2E">Skills</tspan><tspan fill="url(#ctlGrad)">Ctl</tspan>
+    </text>
+
+    <!-- Tagline -->
+    <text x="1" y="92"
+          font-family="'Arial', 'Helvetica Neue', sans-serif"
+          font-size="13"
+          font-weight="400"
+          letter-spacing="0.3"
+          fill="#6B7280">command-line skill management&#160;&#160;|&#160;&#160;skillsctl.dev</text>
+  </g>
+</svg>

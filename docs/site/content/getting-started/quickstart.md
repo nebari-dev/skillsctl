@@ -5,12 +5,12 @@ weight: 20
 
 # Quick start
 
-This guide walks you through running a local skillsctl registry server and connecting the CLI to it. The whole process takes about five minutes.
+This guide walks you through running a local SkillsCtl registry server and connecting the CLI to it. The whole process takes about five minutes.
 
 ## Prerequisites
 
 - Go 1.21 or later (to run the server from source)
-- skillsctl CLI [installed]({{< relref "/getting-started/installation" >}})
+- SkillsCtl CLI [installed]({{< relref "/getting-started/installation" >}})
 
 ## Start a local server
 
@@ -18,7 +18,7 @@ Clone the repository if you haven't already:
 
 ```bash
 git clone https://github.com/nebari-dev/skillsctl.git
-cd skillsctl
+cd SkillsCtl
 ```
 
 Start the server:
@@ -31,7 +31,7 @@ You should see output like:
 
 ```
 2026/03/18 10:00:00 auth disabled (no OIDC_ISSUER_URL)
-2026/03/18 10:00:00 starting server on :8080 (db: skillsctl.db)
+2026/03/18 10:00:00 starting server on :8080 (db: SkillsCtl.db)
 ```
 
 The server listens on port 8080. Leave this terminal open.
@@ -55,13 +55,13 @@ ok
 Run the interactive setup:
 
 ```bash
-skillsctl config init
+SkillsCtl config init
 ```
 
 The prompts ask for a server URL and skills directory. Accept the defaults by pressing Enter:
 
 ```
-No configuration found. Let's set up skillsctl.
+No configuration found. Let's set up SkillsCtl.
 
 API URL [http://localhost:8080]:
 Skills directory [/home/you/.claude/skills]:
@@ -72,7 +72,7 @@ Config saved to /home/you/.config/skillsctl/config.yaml
 Verify the configuration was saved:
 
 ```bash
-skillsctl config list
+SkillsCtl config list
 ```
 
 ```
@@ -84,7 +84,7 @@ api_url: http://localhost:8080
 List available skills (the local server starts empty):
 
 ```bash
-skillsctl explore
+SkillsCtl explore
 ```
 
 ```

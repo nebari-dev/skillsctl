@@ -10,7 +10,7 @@ The `skillsctl install` command downloads a skill from the registry and saves it
 ## Install the latest version
 
 ```bash
-skillsctl install git-commit
+SkillsCtl install git-commit
 ```
 
 ```
@@ -22,7 +22,7 @@ Installed git-commit@2.0.1 to /home/you/.claude/skills/git-commit.md
 Append `@<version>` to install a specific version:
 
 ```bash
-skillsctl install git-commit@1.1.0
+SkillsCtl install git-commit@1.1.0
 ```
 
 ```
@@ -36,7 +36,7 @@ Pinning a version is useful in team environments where you want everyone using t
 Use `--digest` to verify the content hash before saving:
 
 ```bash
-skillsctl install git-commit@2.0.1 --digest sha256:a3f8c1d2e4b567890abcdef1234567890abcdef1234567890abcdef1234567890
+SkillsCtl install git-commit@2.0.1 --digest sha256:a3f8c1d2e4b567890abcdef1234567890abcdef1234567890abcdef1234567890
 ```
 
 If the downloaded content does not match the digest, the install is aborted and nothing is written to disk:
@@ -81,4 +81,4 @@ There is no `skillsctl uninstall` command - file deletion is sufficient and imme
 ## Next steps
 
 - [Publish a skill]({{< relref "/getting-started/publishing" >}}) - share a skill with your team
-- [Bootstrap with the skillsctl skill]({{< relref "/getting-started/skillsctl-skill" >}}) - let Claude Code help you discover skills
+- [Bootstrap with the SkillsCtl skill]({{< relref "/getting-started/skillsctl-skill" >}}) - let Claude Code help you discover skills
