@@ -1,10 +1,10 @@
 ---
-title: "Getting Started"
+title: "Getting started"
 weight: 10
 bookCollapseSection: false
 ---
 
-# Getting Started
+# Getting started
 
 Follow these guides to set up skillsctl and start working with skills.
 
