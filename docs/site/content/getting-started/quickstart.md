@@ -18,7 +18,7 @@ Clone the repository if you haven't already:
 
 ```bash
 git clone https://github.com/nebari-dev/skillsctl.git
-cd SkillsCtl
+cd skillsctl
 ```
 
 Start the server:
@@ -31,7 +31,7 @@ You should see output like:
 
 ```
 2026/03/18 10:00:00 auth disabled (no OIDC_ISSUER_URL)
-2026/03/18 10:00:00 starting server on :8080 (db: SkillsCtl.db)
+2026/03/18 10:00:00 starting server on :8080 (db: skillsctl.db)
 ```
 
 The server listens on port 8080. Leave this terminal open.
@@ -55,13 +55,13 @@ ok
 Run the interactive setup:
 
 ```bash
-SkillsCtl config init
+skillsctl config init
 ```
 
 The prompts ask for a server URL and skills directory. Accept the defaults by pressing Enter:
 
 ```
-No configuration found. Let's set up SkillsCtl.
+No configuration found. Let's set up skillsctl.
 
 API URL [http://localhost:8080]:
 Skills directory [/home/you/.claude/skills]:
@@ -72,7 +72,7 @@ Config saved to /home/you/.config/skillsctl/config.yaml
 Verify the configuration was saved:
 
 ```bash
-SkillsCtl config list
+skillsctl config list
 ```
 
 ```
@@ -84,7 +84,7 @@ api_url: http://localhost:8080
 List available skills (the local server starts empty):
 
 ```bash
-SkillsCtl explore
+skillsctl explore
 ```
 
 ```

@@ -45,10 +45,10 @@ This skill defines a scope (what to look for), constraints (what to skip), and a
 SkillsCtl ships a skill that teaches Claude Code how to use SkillsCtl itself. Install it with:
 
 ```bash
-SkillsCtl install SkillsCtl
+skillsctl install skillsctl
 ```
 
-This skill demonstrates a common pattern: teaching Claude the interface of a specific tool. It includes the command reference, common workflows, and examples. Once installed, you can ask Claude to run SkillsCtl commands on your behalf or guide you through publishing a new skill.
+This skill demonstrates a common pattern: teaching Claude the interface of a specific tool. It includes the command reference, common workflows, and examples. Once installed, you can ask Claude to run skillsctl commands on your behalf or guide you through publishing a new skill.
 
 The SkillsCtl skill is also a working example of the bootstrap pattern: the tool for managing skills is itself published as a skill in the registry.
 
@@ -57,7 +57,7 @@ The SkillsCtl skill is also a working example of the bootstrap pattern: the tool
 Once you have a skill file ready, publish it to the registry:
 
 ```bash
-SkillsCtl publish \
+skillsctl publish \
   --name my-skill \
   --version 1.0.0 \
   --description "Short description of what this skill does" \

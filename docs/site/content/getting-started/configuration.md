@@ -12,11 +12,11 @@ SkillsCtl reads configuration from a YAML file at `~/.config/skillsctl/config.ya
 Run the interactive setup to create the config file:
 
 ```bash
-SkillsCtl config init
+skillsctl config init
 ```
 
 ```
-No configuration found. Let's set up SkillsCtl.
+No configuration found. Let's set up skillsctl.
 
 API URL [http://localhost:8080]: https://skills.corp.example.com
 Skills directory [/home/you/.claude/skills]:
@@ -31,7 +31,7 @@ This writes a config file with the values you entered. Run it again any time to 
 List all current configuration values:
 
 ```bash
-SkillsCtl config list
+skillsctl config list
 ```
 
 ```
@@ -41,7 +41,7 @@ api_url: https://skills.corp.example.com
 ## Get a single value
 
 ```bash
-SkillsCtl config get api_url
+skillsctl config get api_url
 ```
 
 ```
@@ -51,7 +51,7 @@ https://skills.corp.example.com
 ## Set a value
 
 ```bash
-SkillsCtl config set api_url https://skills-staging.corp.example.com
+skillsctl config set api_url https://skills-staging.corp.example.com
 ```
 
 ```
@@ -76,7 +76,7 @@ Every configuration key has a corresponding environment variable with the `SKILL
 Environment variables are useful in CI/CD pipelines and containerized environments where you don't want a config file on disk:
 
 ```bash
-SKILLCTL_API_URL=https://skills.corp.example.com SkillsCtl explore
+SKILLCTL_API_URL=https://skills.corp.example.com skillsctl explore
 ```
 
 ## Precedence

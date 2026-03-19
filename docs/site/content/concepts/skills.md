@@ -28,7 +28,7 @@ Installing a skill with `skillsctl install` downloads the content from the regis
 ~/.claude/skills/
   code-review.md
   terraform-modules.md
-  SkillsCtl.md
+  skillsctl.md
 ```
 
 Deleting the file removes the skill. There is no install database - the directory contents are the ground truth.

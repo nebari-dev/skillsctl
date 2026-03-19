@@ -10,7 +10,7 @@ Download a skill from the registry and write it to the local skills directory.
 ## Synopsis
 
 ```
-SkillsCtl install NAME[@VERSION] [--digest sha256:...] [--skills-dir DIR]
+skillsctl install NAME[@VERSION] [--digest sha256:...] [--skills-dir DIR]
 ```
 
 If `@VERSION` is omitted, the latest published version is installed.
@@ -27,7 +27,7 @@ If `@VERSION` is omitted, the latest published version is installed.
 Install the latest version of a skill:
 
 ```bash
-SkillsCtl install git-conventional
+skillsctl install git-conventional
 ```
 
 ```
@@ -37,7 +37,7 @@ Installed git-conventional@1.2.0 to /home/you/.claude/skills/git-conventional.md
 Install a specific version:
 
 ```bash
-SkillsCtl install git-conventional@1.1.0
+skillsctl install git-conventional@1.1.0
 ```
 
 ```
@@ -47,7 +47,7 @@ Installed git-conventional@1.1.0 to /home/you/.claude/skills/git-conventional.md
 Install with digest verification:
 
 ```bash
-SkillsCtl install git-conventional --digest sha256:abc123...
+skillsctl install git-conventional --digest sha256:abc123...
 ```
 
 If the digest does not match, the install is aborted and no file is written.
@@ -55,7 +55,7 @@ If the digest does not match, the install is aborted and no file is written.
 Install to a custom directory:
 
 ```bash
-SkillsCtl install git-conventional --skills-dir /tmp/test-skills
+skillsctl install git-conventional --skills-dir /tmp/test-skills
 ```
 
 ```

@@ -6,7 +6,7 @@ bookCollapseSection: false
 
 # Getting started
 
-Follow these guides to set up SkillsCtl and start working with skills.
+Follow these guides to set up skillsctl and start working with skills.
 
 1. [Installation]({{< relref "/getting-started/installation" >}}) - install the CLI
 2. [Quick Start]({{< relref "/getting-started/quickstart" >}}) - set up a local server

@@ -27,7 +27,7 @@ Claude Code will call `skillsctl` on your behalf or guide you through the steps 
 ## Install the SkillsCtl skill
 
 ```bash
-SkillsCtl install SkillsCtl
+skillsctl install skillsctl
 ```
 
 ```
@@ -55,7 +55,7 @@ You: I'm about to do a bunch of code reviews. Is there a skill for that?
 
 Claude: I'll check the registry for code review skills.
 
-  $ SkillsCtl explore --tag review
+  $ skillsctl explore --tag review
 
   SOURCE    NAME         OWNER           TAGS              INSTALLS  VERSION
   internal  code-review  alice@corp.dev  review,quality    142       1.3.0
@@ -64,7 +64,7 @@ Claude: I'll check the registry for code review skills.
 
 You: Yes, install it.
 
-Claude: $ SkillsCtl install code-review
+Claude: $ skillsctl install code-review
 
   Installed code-review@1.3.0 to /home/you/.claude/skills/code-review.md
 
@@ -86,7 +86,7 @@ Claude: Let's write a Terraform skill. I'll start with a template and we can ref
 
 You: Name it "terraform-modules", version 1.0.0.
 
-Claude: $ SkillsCtl publish \
+Claude: $ skillsctl publish \
     --name terraform-modules \
     --version 1.0.0 \
     --description "Helps write well-structured Terraform modules" \

@@ -10,7 +10,7 @@ The `skillsctl install` command downloads a skill from the registry and saves it
 ## Install the latest version
 
 ```bash
-SkillsCtl install git-commit
+skillsctl install git-commit
 ```
 
 ```
@@ -22,7 +22,7 @@ Installed git-commit@2.0.1 to /home/you/.claude/skills/git-commit.md
 Append `@<version>` to install a specific version:
 
 ```bash
-SkillsCtl install git-commit@1.1.0
+skillsctl install git-commit@1.1.0
 ```
 
 ```
@@ -36,7 +36,7 @@ Pinning a version is useful in team environments where you want everyone using t
 Use `--digest` to verify the content hash before saving:
 
 ```bash
-SkillsCtl install git-commit@2.0.1 --digest sha256:a3f8c1d2e4b567890abcdef1234567890abcdef1234567890abcdef1234567890
+skillsctl install git-commit@2.0.1 --digest sha256:a3f8c1d2e4b567890abcdef1234567890abcdef1234567890abcdef1234567890
 ```
 
 If the downloaded content does not match the digest, the install is aborted and nothing is written to disk:

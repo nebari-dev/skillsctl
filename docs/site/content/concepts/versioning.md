@@ -22,7 +22,7 @@ Once a version is published, its content cannot be changed. The primary key cons
 Immutability means installs are reproducible. If you pin a version and record its SHA-256 digest, you can verify the content has not changed:
 
 ```bash
-SkillsCtl install my-skill@1.0.0 --digest sha256:abc123...
+skillsctl install my-skill@1.0.0 --digest sha256:abc123...
 ```
 
 ### latest_version tracking
@@ -36,7 +36,7 @@ The registry tracks a `latest_version` field for each skill. When a new version 
 Each version can include a changelog message. Pass it with `--changelog` when publishing:
 
 ```bash
-SkillsCtl publish \
+skillsctl publish \
   --name my-skill \
   --version 1.1.0 \
   --description "..." \
@@ -57,7 +57,7 @@ Published my-skill@1.0.0 (sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934
 Pin a version with its digest to detect if the content has been tampered with:
 
 ```bash
-SkillsCtl install my-skill@1.0.0 --digest sha256:e3b0c44...
+skillsctl install my-skill@1.0.0 --digest sha256:e3b0c44...
 ```
 
 If the digest does not match, installation fails.

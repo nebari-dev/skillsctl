@@ -38,7 +38,7 @@ The CLI uses the RFC 8628 device authorization flow:
 Example flow:
 
 ```
-$ SkillsCtl auth login
+$ skillsctl auth login
 
 To authorize, open: https://keycloak.example.com/device
 Enter code: ABCD-EFGH
@@ -58,13 +58,13 @@ SkillsCtl does not currently handle refresh tokens. When the token expires, re-r
 Check token status:
 
 ```bash
-SkillsCtl auth status
+skillsctl auth status
 ```
 
 Log out (deletes the credentials file):
 
 ```bash
-SkillsCtl auth logout
+skillsctl auth logout
 ```
 
 ## Ownership and identity

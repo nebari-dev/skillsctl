@@ -40,7 +40,7 @@ Immutability only protects pinned versions. If you install `latest`, you will ge
 Every version has a SHA-256 digest. You can pin both a version and its digest:
 
 ```bash
-SkillsCtl install code-review@1.3.0 --digest sha256:abc123...
+skillsctl install code-review@1.3.0 --digest sha256:abc123...
 ```
 
 If the digest does not match what the server returns, installation fails. This protects against a compromised server returning altered content for a known version.
