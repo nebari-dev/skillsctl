@@ -5,12 +5,25 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+var skillNameRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*[a-z0-9]$`)
+
+func validateSkillName(name string) error {
+	if len(name) < 2 || len(name) > 64 {
+		return fmt.Errorf("skill name must be between 2 and 64 characters")
+	}
+	if !skillNameRegexp.MatchString(name) {
+		return fmt.Errorf("skill name must be lowercase alphanumeric with hyphens, cannot start or end with a hyphen")
+	}
+	return nil
+}
 
 func addInstallCmd(root *cobra.Command) {
 	var (
@@ -25,6 +38,10 @@ func addInstallCmd(root *cobra.Command) {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name, version := parseNameVersion(args[0])
 
+			if err := validateSkillName(name); err != nil {
+				return err
+			}
+
 			dir := skillsDir
 			if dir == "" {
 				dir = viper.GetString("skills_dir")
@@ -37,6 +54,14 @@ func addInstallCmd(root *cobra.Command) {
 			}
 
 			destPath := filepath.Join(dir, name+".md")
+
+			// Belt-and-suspenders: verify the resolved path stays under the skills directory.
+			absDir, _ := filepath.Abs(dir)
+			absDest, _ := filepath.Abs(destPath)
+			if !strings.HasPrefix(absDest, absDir+string(filepath.Separator)) {
+				return fmt.Errorf("invalid skill name: resolved path escapes skills directory")
+			}
+
 			if err := atomicWrite(destPath, content); err != nil {
 				return fmt.Errorf("write skill file: %w", err)
 			}
