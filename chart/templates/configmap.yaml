@@ -7,6 +7,9 @@ metadata:
 data:
   PORT: {{ .Values.server.port | quote }}
   DB_PATH: {{ .Values.server.dbPath | quote }}
+  {{- if .Values.server.devMode }}
+  DEV_MODE: "true"
+  {{- end }}
   {{- if .Values.oidc.issuerURL }}
   OIDC_ISSUER_URL: {{ .Values.oidc.issuerURL | quote }}
   {{- end }}
