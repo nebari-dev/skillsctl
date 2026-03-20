@@ -68,7 +68,9 @@ changelog:
       - "^chore:"
 
 brews:
-  - repository:
+  - ids:
+      - skillsctl
+    repository:
       owner: nebari-dev
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"

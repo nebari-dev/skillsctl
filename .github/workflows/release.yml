@@ -71,6 +71,7 @@ jobs:
 
   release-chart:
     needs: test
+    if: secrets.HELM_REPO_TOKEN != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -80,7 +81,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: nebari-dev/helm-repository
-          token: ${{ secrets.HELM_REPO_TOKEN }}
+          token: ${{ secrets.NEBARI_HELM_REPO_TOKEN }}
           path: helm-repo
       - name: Update chart version
         run: |
