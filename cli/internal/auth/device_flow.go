@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,6 +17,12 @@ import (
 // maxResponseBytes limits the size of HTTP responses to prevent OOM from
 // malicious or misconfigured servers.
 const maxResponseBytes = 1024 * 1024 // 1MB
+
+// httpClient is used for all auth-related HTTP requests. It sets a timeout
+// to prevent indefinite hangs when servers are unreachable.
+var httpClient = &http.Client{
+	Timeout: 30 * time.Second,
+}
 
 // ErrAuthDisabled is returned when the server has no OIDC configured.
 var ErrAuthDisabled = errors.New("server does not require authentication")
@@ -76,9 +83,8 @@ func StartDeviceFlow(ctx context.Context, serverURL string) (*DeviceFlowPending,
 		return nil, ErrAuthDisabled
 	}
 
-	// Validate issuer URL scheme to prevent SSRF via file:// or other protocols.
-	if !strings.HasPrefix(authCfg.IssuerURL, "http://") && !strings.HasPrefix(authCfg.IssuerURL, "https://") {
-		return nil, fmt.Errorf("invalid issuer URL scheme: %s (must be http or https)", authCfg.IssuerURL)
+	if err := validateIssuerURL(authCfg.IssuerURL); err != nil {
+		return nil, err
 	}
 
 	discovery, err := fetchOIDCDiscovery(ctx, authCfg.IssuerURL)
@@ -87,6 +93,12 @@ func StartDeviceFlow(ctx context.Context, serverURL string) (*DeviceFlowPending,
 	}
 	if discovery.DeviceAuthEndpoint == "" {
 		return nil, fmt.Errorf("OIDC provider does not support device flow")
+	}
+	if err := validateEndpointOrigin(discovery.DeviceAuthEndpoint, authCfg.IssuerURL); err != nil {
+		return nil, fmt.Errorf("device auth endpoint: %w", err)
+	}
+	if err := validateEndpointOrigin(discovery.TokenEndpoint, authCfg.IssuerURL); err != nil {
+		return nil, fmt.Errorf("token endpoint: %w", err)
 	}
 
 	deviceAuth, err := requestDeviceCode(ctx, discovery.DeviceAuthEndpoint, authCfg.ClientID)
@@ -180,7 +192,7 @@ func fetchAuthConfig(ctx context.Context, serverURL string) (*authConfigResponse
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +212,7 @@ func fetchOIDCDiscovery(ctx context.Context, issuerURL string) (*oidcDiscovery, 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +237,7 @@ func requestDeviceCode(ctx context.Context, endpoint, clientID string) (*deviceA
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +263,7 @@ func pollToken(ctx context.Context, endpoint, clientID, deviceCode string) (*tok
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -266,6 +278,57 @@ func pollToken(ctx context.Context, endpoint, clientID, deviceCode string) (*tok
 		return nil, err
 	}
 	return &tok, nil
+}
+
+// validateIssuerURL checks the issuer URL for SSRF risks. HTTP scheme is only
+// allowed for localhost. HTTPS is required for all other hosts, and known
+// internal IP ranges are blocked.
+func validateIssuerURL(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid issuer URL %q: %w", rawURL, err)
+	}
+
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("invalid issuer URL scheme %q: must be http or https", u.Scheme)
+	}
+
+	hostname := u.Hostname()
+
+	// HTTP is only allowed for localhost addresses.
+	if u.Scheme == "http" {
+		if hostname != "localhost" && hostname != "127.0.0.1" && hostname != "::1" {
+			return fmt.Errorf("http scheme is only allowed for localhost, got %q", hostname)
+		}
+		return nil
+	}
+
+	// For HTTPS, block internal/reserved IP ranges.
+	ip := net.ParseIP(hostname)
+	if ip == nil {
+		return nil // hostname, not IP - allow
+	}
+	if ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsUnspecified() {
+		return fmt.Errorf("issuer URL must not point to an internal address: %s", hostname)
+	}
+	return nil
+}
+
+// validateEndpointOrigin checks that an OIDC endpoint URL shares the same
+// scheme and host as the issuer URL to prevent token theft via endpoint hijack.
+func validateEndpointOrigin(endpoint, issuerURL string) error {
+	eURL, err := url.Parse(endpoint)
+	if err != nil {
+		return fmt.Errorf("invalid endpoint URL %q: %w", endpoint, err)
+	}
+	iURL, err := url.Parse(issuerURL)
+	if err != nil {
+		return fmt.Errorf("invalid issuer URL %q: %w", issuerURL, err)
+	}
+	if eURL.Scheme != iURL.Scheme || eURL.Host != iURL.Host {
+		return fmt.Errorf("endpoint %q does not match issuer origin %s://%s", endpoint, iURL.Scheme, iURL.Host)
+	}
+	return nil
 }
 
 // DecodeJWTClaims decodes the JWT payload without verification.
