@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	_ "modernc.org/sqlite"
 
@@ -47,15 +49,26 @@ func main() {
 		}
 		validator = v
 		log.Printf("auth enabled (issuer: %s)", authCfg.IssuerURL)
+	} else if isDevMode() {
+		log.Println("WARNING: running in dev mode with authentication disabled")
 	} else {
-		log.Println("auth disabled (no OIDC_ISSUER_URL)")
+		log.Fatalf("OIDC_ISSUER_URL is required. Set DEV_MODE=true to run without authentication.")
 	}
 
 	repo := sqlitestore.New(db)
-	srv := server.New(repo, validator, authCfg)
+	handler := server.New(repo, validator, authCfg)
+
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           handler.Handler(),
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
 
 	log.Printf("starting server on :%s (db: %s)", port, dbPath)
-	if err := http.ListenAndServe(":"+port, srv.Handler()); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
 }
@@ -65,4 +78,9 @@ func envOr(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func isDevMode() bool {
+	v := strings.ToLower(os.Getenv("DEV_MODE"))
+	return v == "1" || v == "true" || v == "yes"
 }
