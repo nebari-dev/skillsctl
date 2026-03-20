@@ -101,8 +101,12 @@ func (r *Repository) ListSkills(ctx context.Context, tags []string, sourceFilter
 	query += " ORDER BY updated_at DESC"
 
 	const defaultPageSize = 100
+	const maxPageSize = 500
 	if pageSize <= 0 {
 		pageSize = defaultPageSize
+	}
+	if pageSize > maxPageSize {
+		pageSize = maxPageSize
 	}
 	query += " LIMIT ?"
 	args = append(args, pageSize)

@@ -44,6 +44,7 @@ oidc:
 server:
   port: 8080
   dbPath: /data/skillsctl.db  # must be under persistence.mountPath
+  devMode: false  # set to true to run without OIDC (disables authentication)
 
 resources: {}
   # requests:
