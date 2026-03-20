@@ -71,7 +71,6 @@ jobs:
 
   release-chart:
     needs: test
-    if: secrets.HELM_REPO_TOKEN != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
