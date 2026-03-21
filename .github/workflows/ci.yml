@@ -43,6 +43,19 @@ jobs:
       - run: CGO_ENABLED=0 go build -o skillsctl ./cli
       - run: CGO_ENABLED=0 go build -o skillsctl-server ./backend/cmd/server
 
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [test, lint, build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Run e2e tests
+        run: make e2e
+
   proto-check:
     runs-on: ubuntu-latest
     steps:
