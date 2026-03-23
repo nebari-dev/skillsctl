@@ -49,15 +49,21 @@ type DeviceFlowClientConfig struct {
 
 The operator's `GetIssuerURL()` returns a cluster-internal URL (e.g. `http://keycloak-keycloakx-http.keycloak.svc.cluster.local:8080/realms/nebari`). This is not usable by CLI clients outside the cluster - it's HTTP (rejected by the CLI's URL validation), and the hostname isn't routable from a developer's laptop.
 
-The operator needs a new cluster-level env var:
+The operator needs a new cluster-level env var, added to `KeycloakConfig` in `internal/config/auth.go` and loaded by `LoadAuthConfig()`:
 
 ```
-KEYCLOAK_EXTERNAL_URL=https://keycloak.hetzner-chuck.openteams.app/auth
+KEYCLOAK_EXTERNAL_URL=https://keycloak.chuck-hetzner.openteams.app/auth
 ```
 
 Add a new method `GetExternalIssuerURL()` to the `OIDCProvider` interface. For Keycloak, this constructs `{KEYCLOAK_EXTERNAL_URL}/realms/{realm}`. For generic OIDC, this returns the same value as `GetIssuerURL()` (already external by definition).
 
-The Secret stores the **external** URL. The server uses it for both token validation and the `/auth/config` response. This works because the external URL must be resolvable in-cluster too (the gateway routes it), which is standard for any cluster with ingress.
+**Two issuer URLs serve different purposes:**
+- `GetIssuerURL()` (existing, unchanged) - returns the internal cluster DNS URL. Used by `reconcileSecurityPolicy` for Envoy's OIDC discovery. Envoy runs in-cluster, so the internal URL is correct.
+- `GetExternalIssuerURL()` (new) - returns the publicly routable URL. Written to the Secret only. Used by CLI clients and the skillsctl server's `/auth/config` endpoint.
+
+The `storeClientSecret` method receives the external issuer URL as a new parameter (alongside `clientSecret`, `spaClientID`, and the new `deviceClientID`), and writes it to the `issuer-url` key.
+
+The server uses the external URL for both token validation and the `/auth/config` response. This works because the external URL must be resolvable in-cluster too (the gateway routes it), which is standard for any cluster with ingress.
 
 ### Keycloak Provider: Device Flow Client
 
@@ -69,7 +75,7 @@ New method `ProvisionDeviceFlowClient`, mirroring the existing `ProvisionSPAClie
 - `directAccessGrantsEnabled: false`
 - OAuth2 Device Authorization Grant: enabled
 - Scopes: derived from `nebariApp.Spec.Auth.Scopes` (openid, profile, email, plus any custom scopes)
-- **Audience mapper:** A client-level protocol mapper of type `oidc-audience-mapper` that adds the confidential client's ID (`{namespace}-{name}`) to the `aud` claim. This ensures tokens issued via device flow pass the server's audience validation, which checks against the confidential client ID.
+- **Audience mapper:** A client-level protocol mapper of type `oidc-audience-mapper` configured with `included.client.audience` set to the confidential client's ID (`{namespace}-{name}`). This unconditionally adds the confidential client's ID to the `aud` claim in tokens issued by the device flow client, ensuring they pass the server's audience validation.
 
 Cleanup: `DeleteClient` must also delete `{namespace}-{name}-device` when a NebariApp is removed, preventing orphan Keycloak clients.
 
@@ -79,11 +85,13 @@ The operator-created Secret `{name}-oidc-client` gains new keys:
 
 | Key | Source | When |
 |-----|--------|------|
-| `client-id` | Confidential client ID | Always (existing) |
+| `client-id` | Confidential client ID | Always (**new** - currently not written) |
 | `client-secret` | Confidential client secret | Always (existing) |
 | `issuer-url` | `provider.GetExternalIssuerURL()` | Always (new) |
 | `device-client-id` | Device flow client ID | When `deviceFlowClient.enabled` (new) |
 | `spa-client-id` | SPA client ID | When `spaClient.enabled` (existing) |
+
+Note: The current `storeClientSecret` method only writes `client-secret` and conditionally `spa-client-id`. The signature needs to be extended to accept `externalIssuerURL` and `deviceClientID` parameters alongside the existing ones. The `client-id` key must also be added - it is not written today. After adding the field, `zz_generated.deepcopy.go` must be regenerated via `controller-gen`.
 
 ### Secret RBAC
 
