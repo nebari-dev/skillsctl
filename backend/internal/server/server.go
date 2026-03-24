@@ -36,9 +36,10 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg
 }
 
 type authConfigResponse struct {
-	Enabled   bool   `json:"enabled"`
-	IssuerURL string `json:"issuer_url,omitempty"`
-	ClientID  string `json:"client_id,omitempty"`
+	Enabled        bool   `json:"enabled"`
+	IssuerURL      string `json:"issuer_url,omitempty"`
+	ClientID       string `json:"client_id,omitempty"`
+	DeviceClientID string `json:"device_client_id,omitempty"`
 }
 
 func handleAuthConfig(cfg auth.Config) http.HandlerFunc {
@@ -49,6 +50,7 @@ func handleAuthConfig(cfg auth.Config) http.HandlerFunc {
 		if resp.Enabled {
 			resp.IssuerURL = cfg.IssuerURL
 			resp.ClientID = cfg.ClientID
+			resp.DeviceClientID = cfg.DeviceClientID
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(resp)

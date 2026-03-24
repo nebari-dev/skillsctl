@@ -31,10 +31,11 @@ func main() {
 	}
 
 	authCfg := auth.Config{
-		IssuerURL:   envOr("OIDC_ISSUER_URL", ""),
-		ClientID:    envOr("OIDC_CLIENT_ID", ""),
-		AdminGroup:  envOr("OIDC_ADMIN_GROUP", "skillsctl-admins"),
-		GroupsClaim: envOr("OIDC_GROUPS_CLAIM", "groups"),
+		IssuerURL:      envOr("OIDC_ISSUER_URL", ""),
+		ClientID:       envOr("OIDC_CLIENT_ID", ""),
+		DeviceClientID: envOr("OIDC_DEVICE_CLIENT_ID", ""),
+		AdminGroup:     envOr("OIDC_ADMIN_GROUP", "skillsctl-admins"),
+		GroupsClaim:    envOr("OIDC_GROUPS_CLAIM", "groups"),
 	}
 
 	if (authCfg.IssuerURL == "") != (authCfg.ClientID == "") {
