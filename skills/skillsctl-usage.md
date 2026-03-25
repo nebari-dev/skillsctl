@@ -108,7 +108,7 @@ Install with digest verification:
 skillsctl install <name>@<version> --digest sha256:<hash>
 ```
 
-Skills are installed to the configured skills directory (default `~/.claude/skills/<name>.md`). After installing, the skill is immediately available in Claude Code sessions.
+Skills are installed to the configured skills directory (default `~/.claude/skills/<name>/SKILL.md`). After installing, the skill is immediately available in Claude Code sessions.
 
 ## Publishing skills
 
