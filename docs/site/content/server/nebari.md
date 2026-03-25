@@ -9,8 +9,7 @@ If you are running skillsctl on a cluster managed by [Nebari](https://nebari.dev
 
 ## Prerequisites
 
-- nebari-operator v0.1.0-alpha.14 or later
-- `KEYCLOAK_EXTERNAL_URL` environment variable set on the operator deployment (configured automatically by `nic` v0.3.0+, or set manually in the operator's deployment patch)
+- nebari-operator v0.1.0-alpha.14 or later (deployed by `nic` with `KEYCLOAK_EXTERNAL_URL` configured automatically)
 - The target namespace must have the `nebari.dev/managed=true` label (ArgoCD's `managedNamespaceMetadata` handles this automatically)
 
 ## What NebariApp does
