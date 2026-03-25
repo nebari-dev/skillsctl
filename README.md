@@ -26,8 +26,8 @@ A CLI tool and backend registry for discovering, installing, and publishing [Cla
 
 Start the backend locally (no external dependencies):
 
-    go run ./backend/cmd/server
-    # Server starts on :8080, auth disabled (dev mode)
+    DEV_MODE=true go run ./backend/cmd/server
+    # Server starts on :8080, auth disabled (dev mode requires DEV_MODE=true)
     # Health check: curl localhost:8080/healthz
 
 Use the CLI:
@@ -65,6 +65,7 @@ Use the CLI:
     │   ├── cmd/            # CLI commands
     │   └── internal/       # CLI internals (api client, auth, config)
     ├── skills/             # Dogfood skills shipped with the project
+    ├── examples/           # Deployment examples (ArgoCD, etc.)
     └── docs/               # Documentation
 
 ## Development

@@ -31,7 +31,7 @@ skillsctl install git-conventional
 ```
 
 ```
-Installed git-conventional@1.2.0 to /home/you/.claude/skills/git-conventional.md
+Installed git-conventional@1.2.0 to /home/you/.claude/skills/git-conventional/SKILL.md
 ```
 
 Install a specific version:
@@ -41,7 +41,7 @@ skillsctl install git-conventional@1.1.0
 ```
 
 ```
-Installed git-conventional@1.1.0 to /home/you/.claude/skills/git-conventional.md
+Installed git-conventional@1.1.0 to /home/you/.claude/skills/git-conventional/SKILL.md
 ```
 
 Install with digest verification:
@@ -59,7 +59,7 @@ skillsctl install git-conventional --skills-dir /tmp/test-skills
 ```
 
 ```
-Installed git-conventional@1.2.0 to /tmp/test-skills/git-conventional.md
+Installed git-conventional@1.2.0 to /tmp/test-skills/git-conventional/SKILL.md
 ```
 
 ## How it works

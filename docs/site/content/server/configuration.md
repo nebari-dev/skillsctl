@@ -15,6 +15,8 @@ The SkillsCtl server is configured entirely through environment variables. There
 |----------|---------|-------------|
 | `PORT` | `8080` | TCP port the server listens on |
 | `DB_PATH` | `./skillsctl.db` | Path to the SQLite database file |
+| `DEV_MODE` | `false` | Set to "true" to run without authentication. Required when OIDC is not configured. |
+| `APP_VERSION` | `0.0.0` | Application version, used for seeding default skills. |
 
 The database is created automatically if it does not exist. Migrations run on startup.
 
@@ -26,10 +28,11 @@ The database is created automatically if it does not exist. Migrations run on st
 | `OIDC_CLIENT_ID` | No | OIDC client ID. Returned to the CLI via `/auth/config` so the CLI can self-configure. |
 | `OIDC_ADMIN_GROUP` | No | Group name in the JWT `groups` claim (or `OIDC_GROUPS_CLAIM`) that grants admin access. |
 | `OIDC_GROUPS_CLAIM` | No | JWT claim name containing group membership. Default: `groups`. |
+| `OIDC_DEVICE_CLIENT_ID` | No | Public client ID for CLI device flow. Returned to CLI via /auth/config. |
 
 ## Dev mode
 
-When `OIDC_ISSUER_URL` is not set, the server starts in dev mode:
+When `DEV_MODE` is set to `true`, the server starts without authentication. If `OIDC_ISSUER_URL` is not set and `DEV_MODE` is not `true`, the server exits with an error.
 
 - All requests are accepted without credentials
 - A default identity is injected for ownership tracking

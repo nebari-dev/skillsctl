@@ -14,7 +14,7 @@ skillsctl install git-commit
 ```
 
 ```
-Installed git-commit@2.0.1 to /home/you/.claude/skills/git-commit.md
+Installed git-commit@2.0.1 to /home/you/.claude/skills/git-commit/SKILL.md
 ```
 
 ## Install a pinned version
@@ -26,7 +26,7 @@ skillsctl install git-commit@1.1.0
 ```
 
 ```
-Installed git-commit@1.1.0 to /home/you/.claude/skills/git-commit.md
+Installed git-commit@1.1.0 to /home/you/.claude/skills/git-commit/SKILL.md
 ```
 
 Pinning a version is useful in team environments where you want everyone using the same skill revision, or when a newer version changed behavior you rely on.
@@ -51,29 +51,29 @@ You can get the expected digest from `skillsctl explore show <name>` or from the
 
 ## Where skills are stored
 
-Skills are saved as Markdown files under `~/.claude/skills/`:
+Skills are saved under `~/.claude/skills/`:
 
 ```
 ~/.claude/skills/
-  git-commit.md
-  code-review.md
-  sql-optimizer.md
+  git-commit/SKILL.md
+  code-review/SKILL.md
+  sql-optimizer/SKILL.md
 ```
 
-The filename matches the skill name. Installing a skill twice (or installing a newer version) overwrites the existing file atomically - the old file is never left in a partial state.
+Each skill gets its own directory with a SKILL.md file. Installing a skill twice (or installing a newer version) overwrites the existing file atomically - the old file is never left in a partial state.
 
 ## Claude Code picks up skills automatically
 
-Claude Code reads all `.md` files from `~/.claude/skills/` on startup. Once a skill is installed, it is available to Claude Code in all your projects without any additional configuration.
+Claude Code reads `SKILL.md` files from subdirectories of `~/.claude/skills/` on startup. Once a skill is installed, it is available to Claude Code in all your projects without any additional configuration.
 
 To confirm a skill is active, start Claude Code and ask it to describe the skill you just installed.
 
 ## Uninstalling a skill
 
-To remove a skill, delete the file from `~/.claude/skills/`:
+To remove a skill, delete its directory from `~/.claude/skills/`:
 
 ```bash
-rm ~/.claude/skills/git-commit.md
+rm -r ~/.claude/skills/git-commit/
 ```
 
 There is no `skillsctl uninstall` command - file deletion is sufficient and immediate.

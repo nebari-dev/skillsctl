@@ -52,24 +52,40 @@ The nebari-operator will create the HTTPRoute and TLS certificate. The SkillsCtl
 
 ## OIDC configuration with NebariApp
 
-When NebariApp is enabled, the nebari-operator configures OIDC using the cluster's Keycloak. Set the OIDC values to match the Keycloak realm:
+When NebariApp is enabled with `auth.provisionClient: true`, the nebari-operator handles OIDC automatically:
+
+- Provisions a confidential Keycloak client for the server
+- Provisions a public device flow client for CLI authentication (when `deviceFlowClient.enabled: true`)
+- Writes client credentials and issuer URL to a Kubernetes Secret
+- The Helm chart injects these from the Secret as environment variables
+
+You do not need to set `oidc.issuerURL` or `oidc.clientID` manually. The operator manages them.
+
+Example values for a Nebari deployment:
 
 ```yaml
 nebariapp:
   enabled: true
-  hostname: skills.your-nebari-domain.com
-
-oidc:
-  issuerURL: https://keycloak.your-nebari-domain.com/realms/nebari
-  clientID: SkillsCtl
-  adminGroup: platform-admins
+  hostname: skillsctl.your-domain.com
+  routing:
+    routes:
+      - pathPrefix: /
+  auth:
+    enabled: true
+    provider: keycloak
+    provisionClient: true
+    enforceAtGateway: false
+    deviceFlowClient:
+      enabled: true
+    scopes:
+      - openid
+      - profile
+      - email
 ```
 
-The `clientID` must exist in Keycloak before deploying. Create a client for SkillsCtl in the Keycloak admin console with:
+Setting `enforceAtGateway: false` means the server validates bearer tokens directly, which is required for CLI device flow authentication.
 
-- Client authentication: on
-- Authentication flow: Standard flow + Device authorization grant (for CLI device flow)
-- Valid redirect URIs: the SkillsCtl hostname
+See `examples/argocd-nebari.yaml` in the repository for a complete ArgoCD Application example.
 
 ## Verifying the deployment
 

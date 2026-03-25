@@ -27,11 +27,11 @@ Claude Code will call `skillsctl` on your behalf or guide you through the steps 
 ## Install the SkillsCtl skill
 
 ```bash
-skillsctl install skillsctl
+skillsctl install skillsctl-usage
 ```
 
 ```
-Installed skillsctl@1.0.0 to /home/you/.claude/skills/skillsctl.md
+Installed skillsctl-usage@1.0.0 to /home/you/.claude/skills/skillsctl-usage/SKILL.md
 ```
 
 That's the entire bootstrap process. Claude Code picks up the new skill file on the next session start.
@@ -104,7 +104,7 @@ Claude: $ skillsctl publish \
 Skills are just Markdown files in `~/.claude/skills/`. The SkillsCtl skill is itself a skill in the registry - there is nothing special about it. This creates a clean bootstrap:
 
 1. Install SkillsCtl (the CLI)
-2. Run `skillsctl install skillsctl` (the skill)
+2. Run `skillsctl install skillsctl-usage` (the skill)
 3. From now on, Claude Code can manage skills for you
 
 The whole system is self-describing: the tool for managing skills is itself a skill.
