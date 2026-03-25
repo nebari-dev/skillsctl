@@ -293,6 +293,49 @@ func TestAuthConfig_Enabled(t *testing.T) {
 	}
 }
 
+func TestAuthConfig_WithDeviceClientID(t *testing.T) {
+	cfg := auth.Config{
+		IssuerURL:      "https://keycloak.example.com/realms/test",
+		ClientID:       "skillsctl-skillsctl",
+		DeviceClientID: "skillsctl-skillsctl-device",
+	}
+	srv := server.New(store.NewMemory(nil), nil, cfg)
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL + "/auth/config")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, _ := io.ReadAll(resp.Body)
+	if !strings.Contains(string(body), `"device_client_id":"skillsctl-skillsctl-device"`) {
+		t.Errorf("expected device_client_id in response, got: %s", body)
+	}
+}
+
+func TestAuthConfig_WithoutDeviceClientID(t *testing.T) {
+	cfg := auth.Config{
+		IssuerURL: "https://keycloak.example.com/realms/test",
+		ClientID:  "skillsctl-skillsctl",
+	}
+	srv := server.New(store.NewMemory(nil), nil, cfg)
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL + "/auth/config")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, _ := io.ReadAll(resp.Body)
+	if strings.Contains(string(body), "device_client_id") {
+		t.Errorf("expected no device_client_id when empty, got: %s", body)
+	}
+}
+
 func TestAuthConfig_Disabled(t *testing.T) {
 	srv := server.New(store.NewMemory(nil), nil, auth.Config{})
 	ts := httptest.NewServer(srv.Handler())
