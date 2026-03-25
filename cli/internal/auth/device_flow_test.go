@@ -182,6 +182,59 @@ func TestPollForToken_ExpiredToken(t *testing.T) {
 	}
 }
 
+func TestStartDeviceFlow_UsesDeviceClientID(t *testing.T) {
+	// Create OIDC provider mock that verifies client_id
+	var receivedClientID string
+	oidcMux := http.NewServeMux()
+	oidcServer := httptest.NewUnstartedServer(oidcMux)
+	oidcServer.Start()
+	defer oidcServer.Close()
+
+	oidcMux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, _ *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"device_authorization_endpoint": oidcServer.URL + "/device",
+			"token_endpoint":                oidcServer.URL + "/token",
+		})
+	})
+	oidcMux.HandleFunc("/device", func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		receivedClientID = r.FormValue("client_id")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"device_code":               "test-device-code",
+			"user_code":                 "ABCD-EFGH",
+			"verification_uri":          oidcServer.URL + "/verify",
+			"verification_uri_complete": oidcServer.URL + "/verify?code=ABCD-EFGH",
+			"expires_in":                300,
+			"interval":                  1,
+		})
+	})
+
+	// Skillsctl server returns device_client_id
+	skillsctlMux := http.NewServeMux()
+	skillsctlMux.HandleFunc("/auth/config", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"enabled":          true,
+			"issuer_url":       oidcServer.URL,
+			"client_id":        "confidential-client",
+			"device_client_id": "device-flow-client",
+		})
+	})
+	skillsctlServer := httptest.NewServer(skillsctlMux)
+	defer skillsctlServer.Close()
+
+	pending, err := auth.StartDeviceFlow(context.Background(), skillsctlServer.URL)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if receivedClientID != "device-flow-client" {
+		t.Errorf("expected device authorization to use device_client_id %q, got %q", "device-flow-client", receivedClientID)
+	}
+	if pending.ClientID != "device-flow-client" {
+		t.Errorf("expected pending.ClientID to be device_client_id %q, got %q", "device-flow-client", pending.ClientID)
+	}
+}
+
 func TestStartDeviceFlow_AuthDisabled(t *testing.T) {
 	serverURL := setupDisabledServer(t)
 

@@ -47,9 +47,10 @@ type DeviceFlowResult struct {
 }
 
 type authConfigResponse struct {
-	Enabled   bool   `json:"enabled"`
-	IssuerURL string `json:"issuer_url"`
-	ClientID  string `json:"client_id"`
+	Enabled        bool   `json:"enabled"`
+	IssuerURL      string `json:"issuer_url"`
+	ClientID       string `json:"client_id"`
+	DeviceClientID string `json:"device_client_id"`
 }
 
 type oidcDiscovery struct {
@@ -101,7 +102,14 @@ func StartDeviceFlow(ctx context.Context, serverURL string) (*DeviceFlowPending,
 		return nil, fmt.Errorf("token endpoint: %w", err)
 	}
 
-	deviceAuth, err := requestDeviceCode(ctx, discovery.DeviceAuthEndpoint, authCfg.ClientID)
+	// Use the device flow client ID if available, otherwise fall back to the
+	// regular client ID (for servers that don't provision a separate device client).
+	deviceClientID := authCfg.DeviceClientID
+	if deviceClientID == "" {
+		deviceClientID = authCfg.ClientID
+	}
+
+	deviceAuth, err := requestDeviceCode(ctx, discovery.DeviceAuthEndpoint, deviceClientID)
 	if err != nil {
 		return nil, fmt.Errorf("device authorization: %w", err)
 	}
@@ -122,7 +130,7 @@ func StartDeviceFlow(ctx context.Context, serverURL string) (*DeviceFlowPending,
 		UserCode:                deviceAuth.UserCode,
 		DeviceCode:              deviceAuth.DeviceCode,
 		TokenEndpoint:           discovery.TokenEndpoint,
-		ClientID:                authCfg.ClientID,
+		ClientID:                deviceClientID,
 		Interval:                interval,
 		ExpiresAt:               time.Now().Add(expiresIn),
 	}, nil
