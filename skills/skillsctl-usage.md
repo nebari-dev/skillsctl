@@ -112,7 +112,23 @@ Skills are installed to the configured skills directory (default `~/.claude/skil
 
 ## Publishing skills
 
-Publish a skill from a local file:
+Authentication is required before publishing. Run `skillsctl auth login` first if you haven't already.
+
+### Finding the skill file
+
+A skill is a single markdown file. Common locations to look:
+- **Project skills directory:** `skills/<name>.md` in the current repo
+- **Installed skills:** `~/.claude/skills/<name>/SKILL.md`
+- **Plugin cache:** `~/.claude/plugins/cache/` (for skills from plugin packages)
+
+To publish an already-installed skill, use the installed path:
+```bash
+skillsctl publish --name review-iac --version 1.0.0 \
+  --description "Review IaC pull requests" \
+  --file ~/.claude/skills/review-iac/SKILL.md
+```
+
+### Publish command
 
 ```bash
 skillsctl publish \
