@@ -64,6 +64,17 @@ skillsctl auth status
 
 If a command fails with "Not authenticated", prompt the user to run `skillsctl auth login`.
 
+## Resolving skill names
+
+Users often refer to skills informally ("the terraform thing", "my go testing skill"). When the user mentions a skill by description rather than exact name:
+
+1. Search installed skills (`ls ~/.claude/skills/`) and the registry (`skillsctl explore`)
+2. Match their description to actual skill names
+3. **Always confirm before acting:** "Did you mean `review-iac`?"
+4. If ambiguous, list candidates and ask
+
+This applies to install, publish, explore show, and any command that takes a skill name.
+
 ## Discovering skills
 
 Browse available skills:
