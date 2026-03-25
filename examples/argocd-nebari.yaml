@@ -1,0 +1,87 @@
+# Example ArgoCD Application for deploying skillsctl to a Nebari-managed cluster.
+#
+# Prerequisites:
+#   - nebari-operator v0.1.0-alpha.14+ with KEYCLOAK_EXTERNAL_URL configured
+#   - ArgoCD with access to the skillsctl GitHub repo
+#   - The target namespace must have the nebari.dev/managed=true label
+#     (handled automatically by managedNamespaceMetadata below)
+#
+# Customize:
+#   - Replace YOUR_DOMAIN with your cluster's domain (e.g. nebari.example.com)
+#   - Replace ARGOCD_PROJECT with your ArgoCD project name
+#   - Adjust resources, persistence, and sync-wave as needed
+#   - Set targetRevision to a specific tag (e.g. v0.1.4) for production
+#
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: skillsctl
+  namespace: argocd
+  annotations:
+    # sync-wave should be after nebari-operator and keycloak
+    argocd.argoproj.io/sync-wave: "6"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ARGOCD_PROJECT
+
+  source:
+    repoURL: https://github.com/nebari-dev/skillsctl.git
+    targetRevision: main
+    path: chart
+    helm:
+      releaseName: skillsctl
+      values: |
+        nebariapp:
+          enabled: true
+          hostname: skillsctl.YOUR_DOMAIN
+          routing:
+            routes:
+              - pathPrefix: /
+          auth:
+            enabled: true
+            provider: keycloak
+            provisionClient: true
+            # enforceAtGateway: false lets the server validate bearer tokens
+            # directly, which is needed for CLI device flow authentication.
+            # The server's /healthz and /auth/config endpoints are unauthenticated.
+            enforceAtGateway: false
+            deviceFlowClient:
+              enabled: true
+            scopes:
+              - openid
+              - profile
+              - email
+        server:
+          devMode: false
+        persistence:
+          enabled: true
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: skillsctl
+
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        nebari.dev/managed: "true"
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
