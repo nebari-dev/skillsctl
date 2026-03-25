@@ -53,7 +53,7 @@ func addInstallCmd(root *cobra.Command) {
 				return mapInstallError(err, name, version)
 			}
 
-			destPath := filepath.Join(dir, name+".md")
+			destPath := filepath.Join(dir, name, "SKILL.md")
 
 			// Belt-and-suspenders: verify the resolved path stays under the skills directory.
 			absDir, _ := filepath.Abs(dir)

@@ -38,7 +38,7 @@ func TestInstall(t *testing.T) {
 		t.Errorf("expected success message, got:\n%s", output)
 	}
 
-	installed, err := os.ReadFile(filepath.Join(skillsDir, "my-skill.md")) //nolint:gosec // test file, path is from t.TempDir()
+	installed, err := os.ReadFile(filepath.Join(skillsDir, "my-skill", "SKILL.md")) //nolint:gosec // test file, path is from t.TempDir()
 	if err != nil {
 		t.Fatalf("skill file not created: %v", err)
 	}
@@ -69,7 +69,7 @@ func TestInstall_WithVersion(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(skillsDir, "my-skill.md")); err != nil {
+	if _, err := os.Stat(filepath.Join(skillsDir, "my-skill", "SKILL.md")); err != nil {
 		t.Fatalf("skill file not created: %v", err)
 	}
 }
@@ -169,7 +169,7 @@ func TestPublishThenInstall(t *testing.T) {
 	}
 
 	// Verify file content
-	installed, err := os.ReadFile(filepath.Join(skillsDir, "my-skill.md")) //nolint:gosec // test file, path is from t.TempDir()
+	installed, err := os.ReadFile(filepath.Join(skillsDir, "my-skill", "SKILL.md")) //nolint:gosec // test file, path is from t.TempDir()
 	if err != nil {
 		t.Fatalf("read installed file: %v", err)
 	}
