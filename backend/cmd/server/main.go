@@ -11,9 +11,11 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/nebari-dev/skillsctl/backend/internal/auth"
+	"github.com/nebari-dev/skillsctl/backend/internal/seed"
 	"github.com/nebari-dev/skillsctl/backend/internal/server"
 	sqlitestore "github.com/nebari-dev/skillsctl/backend/internal/store/sqlite"
 	"github.com/nebari-dev/skillsctl/backend/internal/store/sqlite/migrations"
+	"github.com/nebari-dev/skillsctl/skills"
 )
 
 func main() {
@@ -57,6 +59,17 @@ func main() {
 	}
 
 	repo := sqlitestore.New(db)
+
+	// Seed default skills (idempotent - skips if version already exists)
+	appVersion := envOr("APP_VERSION", "0.0.0")
+	skillsctlUsage, err := skills.FS.ReadFile("skillsctl-usage.md")
+	if err != nil {
+		log.Fatalf("read embedded skill: %v", err)
+	}
+	if err := seed.Run(context.Background(), repo, appVersion, seed.DefaultSkills(skillsctlUsage)); err != nil {
+		log.Fatalf("seed skills: %v", err)
+	}
+
 	handler := server.New(repo, validator, authCfg)
 
 	srv := &http.Server{
