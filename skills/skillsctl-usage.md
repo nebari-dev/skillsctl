@@ -2,15 +2,15 @@
 
 You have access to `skillsctl`, a CLI tool for discovering, installing, and publishing Claude Code skills from a shared registry.
 
-## Checking if skillsctl is installed
+## Finding skillsctl
 
-Before using any commands, check if skillsctl is available:
+Before using any commands, locate the skillsctl binary:
 
-```bash
-which skillsctl
-```
+1. Check if it's on the system PATH: `which skillsctl`
+2. If not found, check for a local build in the current directory (e.g. `./skillsctl`, `./bin/skillsctl`) or in the skillsctl repo
+3. If neither exists, ask the user if they have a local build before suggesting installation
 
-If not installed, tell the user to install it. Recommend the method that fits their setup:
+If skillsctl is not installed anywhere, recommend the method that fits their setup:
 
 **Homebrew (macOS/Linux):**
 ```bash
@@ -30,7 +30,19 @@ go install github.com/nebari-dev/skillsctl/cli@latest
 
 ## First-time setup
 
-If the user hasn't configured skillsctl yet, run the interactive setup:
+Before running commands, verify the API URL is configured:
+
+```bash
+skillsctl config get api_url
+```
+
+If no API URL is set (empty or errors), ask the user for their registry URL and set it:
+
+```bash
+skillsctl config set api_url https://skillsctl.example.com
+```
+
+Alternatively, run the interactive setup which prompts for all settings:
 
 ```bash
 skillsctl config init
@@ -40,29 +52,22 @@ This prompts for:
 - **API URL** - the registry server (the user's org provides this)
 - **Skills directory** - where skills are installed (defaults to `~/.claude/skills`)
 
-For non-interactive setup:
-
-```bash
-skillsctl config set api_url https://skillsctl.example.com
-```
-
 ## Authentication
 
 For registries that require authentication:
 
-```bash
-skillsctl auth login
-```
+1. Check auth status first: `skillsctl auth status`
+2. If expired or not logged in, ask the user: "Want me to run the login for you? I'll open the browser so you can authenticate."
+3. If they agree, run `skillsctl auth login`, extract the URL from the output, and open it in the browser:
+   ```bash
+   xdg-open <url>   # Linux
+   open <url>        # macOS
+   ```
+4. Tell the user the browser should be open and to complete authentication there.
 
-This opens a browser-based OIDC device flow. The user visits a URL, enters a code, and the CLI caches the token locally. No manual token management needed.
+The login uses an OIDC device flow - the CLI outputs a URL with a code, the user authorizes in the browser, and the CLI caches the token locally. No manual token management needed.
 
-Check auth status:
-
-```bash
-skillsctl auth status
-```
-
-If a command fails with "Not authenticated", prompt the user to run `skillsctl auth login`.
+If a command fails with "Not authenticated", follow the same flow above.
 
 ## Resolving skill names
 
@@ -178,6 +183,19 @@ skillsctl auth login
 # Publish it
 skillsctl publish --name my-skill --version 1.0.0 --description "Does X" --file ./skill.md --tag relevant-tag
 ```
+
+### "I want to publish all my installed skills"
+
+1. List installed skills: `ls ~/.claude/skills/`
+2. Check what's already published: `skillsctl explore`
+3. For each installed skill not yet in the registry:
+   - Read the skill's SKILL.md frontmatter to extract name and description
+   - Generate reasonable tags from the skill's description and content
+   - Publish with version `1.0.0` (or the next version if already published)
+   - Use the installed path: `~/.claude/skills/<name>/SKILL.md`
+4. Show a summary table of what was published
+
+For skills that are already in the registry, compare versions and ask if the user wants to publish an update.
 
 ### "I want to update an installed skill"
 
