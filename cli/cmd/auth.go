@@ -85,8 +85,12 @@ func runAuthLogin(cmd *cobra.Command, _ []string) error {
 	// Save credentials
 	path := resolveCredentialsPath()
 	tok := &auth.CachedToken{
-		IDToken: result.IDToken,
-		Expiry:  result.Expiry,
+		IDToken:       result.IDToken,
+		Expiry:        result.Expiry,
+		RefreshToken:  result.RefreshToken,
+		RefreshExpiry: result.RefreshExpiry,
+		TokenEndpoint: result.TokenEndpoint,
+		ClientID:      result.ClientID,
 	}
 	if err := auth.SaveToken(path, tok); err != nil {
 		return fmt.Errorf("save credentials: %w", err)

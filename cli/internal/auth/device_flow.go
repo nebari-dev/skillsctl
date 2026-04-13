@@ -41,9 +41,13 @@ type DeviceFlowPending struct {
 
 // DeviceFlowResult holds the result of a completed device flow.
 type DeviceFlowResult struct {
-	IDToken string
-	Email   string
-	Expiry  time.Time
+	IDToken       string
+	Email         string
+	Expiry        time.Time
+	RefreshToken  string
+	RefreshExpiry time.Time
+	TokenEndpoint string
+	ClientID      string
 }
 
 type authConfigResponse struct {
@@ -68,8 +72,10 @@ type deviceAuthResponse struct {
 }
 
 type tokenResponse struct {
-	IDToken string `json:"id_token"`
-	Error   string `json:"error"`
+	IDToken          string `json:"id_token"`
+	RefreshToken     string `json:"refresh_token"`
+	RefreshExpiresIn int    `json:"refresh_expires_in"`
+	Error            string `json:"error"`
 }
 
 // StartDeviceFlow fetches auth config from the skillsctl server, discovers
@@ -179,10 +185,18 @@ func PollForToken(ctx context.Context, pending *DeviceFlowPending, pollInterval 
 		}
 
 		email, exp := DecodeJWTClaims(tok.IDToken)
+		var refreshExpiry time.Time
+		if tok.RefreshExpiresIn > 0 {
+			refreshExpiry = time.Now().Add(time.Duration(tok.RefreshExpiresIn) * time.Second)
+		}
 		return &DeviceFlowResult{
-			IDToken: tok.IDToken,
-			Email:   email,
-			Expiry:  exp,
+			IDToken:       tok.IDToken,
+			Email:         email,
+			Expiry:        exp,
+			RefreshToken:  tok.RefreshToken,
+			RefreshExpiry: refreshExpiry,
+			TokenEndpoint: pending.TokenEndpoint,
+			ClientID:      pending.ClientID,
 		}, nil
 	}
 }
