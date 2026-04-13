@@ -36,7 +36,7 @@ func TestVersionLifecycle(t *testing.T) {
 	if res.ExitCode != 0 {
 		t.Fatalf("install v1 failed (exit %d): %s", res.ExitCode, res.Stderr)
 	}
-	got, err := os.ReadFile(filepath.Join(r1.SkillsDir, name+".md"))
+	got, err := os.ReadFile(filepath.Join(r1.SkillsDir, name, "SKILL.md"))
 	if err != nil {
 		t.Fatalf("read installed v1: %v", err)
 	}
@@ -50,7 +50,7 @@ func TestVersionLifecycle(t *testing.T) {
 	if res.ExitCode != 0 {
 		t.Fatalf("install latest failed (exit %d): %s", res.ExitCode, res.Stderr)
 	}
-	got, err = os.ReadFile(filepath.Join(r2.SkillsDir, name+".md"))
+	got, err = os.ReadFile(filepath.Join(r2.SkillsDir, name, "SKILL.md"))
 	if err != nil {
 		t.Fatalf("read installed latest: %v", err)
 	}

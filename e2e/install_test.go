@@ -27,7 +27,7 @@ func TestPublishThenInstall(t *testing.T) {
 		t.Errorf("install output should confirm installation, got:\n%s", res.Stdout)
 	}
 
-	installed := filepath.Join(r.SkillsDir, name+".md")
+	installed := filepath.Join(r.SkillsDir, name, "SKILL.md")
 	got, err := os.ReadFile(installed)
 	if err != nil {
 		t.Fatalf("read installed file: %v", err)
@@ -54,7 +54,7 @@ func TestInstallWithCorrectDigest(t *testing.T) {
 		t.Fatalf("install with correct digest failed (exit %d): %s", res.ExitCode, res.Stderr)
 	}
 
-	installed := filepath.Join(r2.SkillsDir, name+".md")
+	installed := filepath.Join(r2.SkillsDir, name, "SKILL.md")
 	got, err := os.ReadFile(installed)
 	if err != nil {
 		t.Fatalf("read installed file: %v", err)
@@ -78,7 +78,7 @@ func TestInstallWithWrongDigest(t *testing.T) {
 	}
 
 	// Verify no file was written.
-	installed := filepath.Join(r.SkillsDir, name+".md")
+	installed := filepath.Join(r.SkillsDir, name, "SKILL.md")
 	if _, err := os.Stat(installed); err == nil {
 		t.Error("file should not exist after failed digest verification")
 	}
