@@ -61,6 +61,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
