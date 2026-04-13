@@ -18,15 +18,15 @@ SkillsCtl ships a Helm chart for deploying the registry server to Kubernetes.
 Add the Helm repository and install:
 
 ```bash
-helm repo add nebari https://nebari-dev.github.io/helm-repository
+helm repo add nebari https://nebari-dev.github.io/helm-repository/
 helm repo update
-helm install SkillsCtl nebari/skillsctl
+helm install skillsctl nebari/skillsctl
 ```
 
-Alternatively, install from the OCI registry:
+Alternatively, install directly from the OCI registry:
 
 ```bash
-helm install SkillsCtl oci://quay.io/nebari/skillsctl
+helm install skillsctl oci://quay.io/nebari/charts/skillsctl
 ```
 
 The default install creates:

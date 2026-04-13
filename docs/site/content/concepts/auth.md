@@ -5,7 +5,7 @@ weight: 30
 
 # Auth model
 
-SkillsCtl uses OIDC for authentication. The server validates tokens; the CLI gets tokens via the RFC 8628 device flow. Neither component requires manual OIDC configuration from the user.
+SkillsCtl uses OIDC for authentication. The server validates tokens; the CLI gets tokens via the RFC 8628 device flow. The CLI discovers OIDC settings from the server automatically - users never configure OIDC on the client side. (The server itself still needs OIDC environment variables; see [Server configuration]({{< relref "/server/configuration" >}}).)
 
 ## Server-side validation
 
@@ -33,7 +33,7 @@ The CLI uses the RFC 8628 device authorization flow:
 3. The CLI prints the URL and code to the terminal
 4. The user opens the URL in a browser and enters the code
 5. The CLI polls the token endpoint until the user completes authorization
-6. The CLI stores the access token and ID token at `~/.config/skillsctl/credentials.json` with `0600` permissions
+6. The CLI stores the ID token (plus refresh token and refresh metadata, when returned) at `~/.config/skillsctl/credentials.json` with `0600` permissions
 
 Example flow:
 
@@ -51,9 +51,13 @@ The device flow works without a redirect URI, making it suitable for CLI tools w
 
 ## Token storage
 
-Tokens are stored at `~/.config/skillsctl/credentials.json`. The file is written with `0600` permissions (readable only by the owner). The file contains the access token and ID token as returned by the OIDC provider.
+Tokens are stored at `~/.config/skillsctl/credentials.json`. The file is written with `0600` permissions (readable only by the owner) inside a `0700` parent directory. The file contains the ID token, its expiry, and - when the OIDC provider returns one - the refresh token plus the token endpoint and client ID needed to use it.
 
-SkillsCtl does not currently handle refresh tokens. When the token expires, re-run `skillsctl auth login` to get a new one. Most OIDC providers issue tokens valid for at least an hour; some issue longer-lived tokens.
+## Silent token refresh
+
+When an authenticated command runs and the cached ID token is expired (or within 60 seconds of expiring), the CLI silently exchanges the refresh token for a fresh ID token using the OAuth 2.0 `refresh_token` grant (RFC 6749 §6). The renewed credentials are written back to `credentials.json` before the command proceeds. If the provider rotates the refresh token (Keycloak does by default), the new one is stored; otherwise the existing refresh token is kept.
+
+Only when the refresh itself fails - for example, because the OIDC session timed out or an admin revoked the token - does the CLI fall back to reporting "not authenticated" and asking for a new `skillsctl auth login`. In typical use you should log in once per session lifespan (hours, not minutes), not once per command.
 
 Check token status:
 

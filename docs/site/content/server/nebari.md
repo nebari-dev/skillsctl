@@ -9,7 +9,7 @@ If you are running skillsctl on a cluster managed by [Nebari](https://nebari.dev
 
 ## Prerequisites
 
-- nebari-operator v0.1.0-alpha.14 or later (deployed by `nic` with `KEYCLOAK_EXTERNAL_URL` configured automatically)
+- nebari-operator v0.1.0-alpha.16 or later, with `KEYCLOAK_EXTERNAL_URL` set on the controller deployment (the `nic` deploy configures this automatically). Device flow client provisioning requires alpha.16+.
 - The target namespace must have the `nebari.dev/managed=true` label (ArgoCD's `managedNamespaceMetadata` handles this automatically)
 
 ## What NebariApp does
@@ -83,15 +83,25 @@ syncPolicy:
 
 ## Deploying with Helm directly
 
-If you prefer Helm over ArgoCD:
+If you prefer Helm over ArgoCD, install from the published Helm repository:
 
 ```bash
-helm install skillsctl oci://ghcr.io/nebari-dev/charts/skillsctl \
+helm repo add nebari https://nebari-dev.github.io/helm-repository/
+helm repo update
+helm install skillsctl nebari/skillsctl \
   --namespace skillsctl --create-namespace \
   -f values.yaml
 ```
 
-Or install from the Git repository:
+Or directly from the OCI registry:
+
+```bash
+helm install skillsctl oci://quay.io/nebari/charts/skillsctl \
+  --namespace skillsctl --create-namespace \
+  -f values.yaml
+```
+
+Or from a local checkout:
 
 ```bash
 git clone https://github.com/nebari-dev/skillsctl.git
