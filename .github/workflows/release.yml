@@ -85,7 +85,8 @@ jobs:
       - name: Update chart version
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          cp -r chart/ helm-repo/charts/skillsctl/
+          rm -rf helm-repo/charts/skillsctl
+          cp -r chart helm-repo/charts/skillsctl
           sed -i "s/^version:.*/version: ${VERSION}/" helm-repo/charts/skillsctl/Chart.yaml
           sed -i "s/^appVersion:.*/appVersion: ${VERSION}/" helm-repo/charts/skillsctl/Chart.yaml
       - name: Commit and push
