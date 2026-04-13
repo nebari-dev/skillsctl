@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 
@@ -53,9 +54,11 @@ func getAPIURL() string {
 	return viper.GetString("api_url")
 }
 
-func getClient() *api.Client {
+// getClientCtx builds an API client using cached credentials, attempting a
+// silent refresh_token grant if the cached ID token is near expiry.
+func getClientCtx(ctx context.Context) *api.Client {
 	token := ""
-	if tok, _ := auth.LoadToken(resolveCredentialsPath()); tok != nil {
+	if tok, _ := auth.LoadAndRefresh(ctx, resolveCredentialsPath()); tok != nil {
 		token = tok.IDToken
 	}
 	return api.NewClient(getAPIURL(), api.WithToken(token))

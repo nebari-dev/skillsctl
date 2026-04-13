@@ -47,7 +47,7 @@ func addInstallCmd(root *cobra.Command) {
 				dir = viper.GetString("skills_dir")
 			}
 
-			client := getClient()
+			client := getClientCtx(cmd.Context())
 			content, ver, err := client.GetSkillContent(cmd.Context(), name, version, digest)
 			if err != nil {
 				return mapInstallError(err, name, version)

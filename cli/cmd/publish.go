@@ -33,7 +33,7 @@ func addPublishCmd(root *cobra.Command) {
 				return fmt.Errorf("file exceeds maximum size of %d bytes", maxContentBytes)
 			}
 
-			client := getClient()
+			client := getClientCtx(cmd.Context())
 			_, ver, err := client.PublishSkill(cmd.Context(), name, version, description, changelog, tags, content)
 			if err != nil {
 				return mapPublishError(err, name, version)

@@ -7,10 +7,30 @@ import (
 	"time"
 )
 
-// CachedToken holds a cached OIDC token and its expiry.
+// CachedToken holds a cached OIDC token and its expiry. The RefreshToken,
+// RefreshExpiry, TokenEndpoint, and ClientID fields are optional and support
+// silent refresh of the ID token. They are omitted on save when empty so
+// older credentials files remain forward-compatible.
 type CachedToken struct {
-	IDToken string    `json:"id_token"`
-	Expiry  time.Time `json:"expiry"`
+	IDToken       string    `json:"id_token"`
+	Expiry        time.Time `json:"expiry"`
+	RefreshToken  string    `json:"refresh_token,omitempty"`
+	RefreshExpiry time.Time `json:"refresh_expiry,omitempty"`
+	TokenEndpoint string    `json:"token_endpoint,omitempty"`
+	ClientID      string    `json:"client_id,omitempty"`
+}
+
+// CanRefresh reports whether this token has the fields needed to attempt a
+// refresh_token grant: a refresh token, a token endpoint, a client id, and
+// the refresh token has not itself expired (if an expiry is recorded).
+func (t *CachedToken) CanRefresh() bool {
+	if t == nil || t.RefreshToken == "" || t.TokenEndpoint == "" || t.ClientID == "" {
+		return false
+	}
+	if !t.RefreshExpiry.IsZero() && time.Now().After(t.RefreshExpiry) {
+		return false
+	}
+	return true
 }
 
 // DefaultCredentialsPath returns ~/.config/skillsctl/credentials.json.
@@ -30,7 +50,11 @@ func SaveToken(path string, tok *CachedToken) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
-	data, err := json.MarshalIndent(tok, "", "  ")
+	// Persisting the refresh token to disk is the whole purpose of this
+	// file - the alternative is forcing an interactive device-flow re-login
+	// every time the ID token expires. The file is written with 0600 in a
+	// 0700 parent directory.
+	data, err := json.MarshalIndent(tok, "", "  ") //nolint:gosec // G117: refresh token persistence is intentional, see comment above
 	if err != nil {
 		return err
 	}
