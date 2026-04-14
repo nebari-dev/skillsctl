@@ -11,6 +11,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
 )
 
 var skillNameRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*[a-z0-9]$`)
@@ -30,6 +32,7 @@ func addInstallCmd(root *cobra.Command) {
 		digest     string
 		skillsDir  string
 		projectDir string
+		force      bool
 	)
 
 	installCmd := &cobra.Command{
@@ -38,7 +41,6 @@ func addInstallCmd(root *cobra.Command) {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name, version := parseNameVersion(args[0])
-
 			if err := validateSkillName(name); err != nil {
 				return err
 			}
@@ -59,20 +61,26 @@ func addInstallCmd(root *cobra.Command) {
 				return mapInstallError(err, name, version)
 			}
 
-			destPath := filepath.Join(dir, name, "SKILL.md")
-
-			// Belt-and-suspenders: verify the resolved path stays under the skills directory.
-			absDir, _ := filepath.Abs(dir)
-			absDest, _ := filepath.Abs(destPath)
-			if !strings.HasPrefix(absDest, absDir+string(filepath.Separator)) {
+			destDir := filepath.Join(dir, name)
+			absSkillsDir, _ := filepath.Abs(dir)
+			absDest, _ := filepath.Abs(destDir)
+			if !strings.HasPrefix(absDest, absSkillsDir+string(filepath.Separator)) {
 				return fmt.Errorf("invalid skill name: resolved path escapes skills directory")
 			}
 
-			if err := atomicWrite(destPath, content); err != nil {
-				return fmt.Errorf("write skill file: %w", err)
+			installedPath := destDir
+			if skillpkg.IsTarball(content) {
+				if err := installTarball(content, destDir, force); err != nil {
+					return err
+				}
+			} else {
+				if err := installSingleFile(content, destDir); err != nil {
+					return err
+				}
+				installedPath = filepath.Join(destDir, "SKILL.md")
 			}
 
-			fmt.Fprintf(cmd.OutOrStdout(), "Installed %s@%s to %s\n", name, ver.Version, destPath)
+			fmt.Fprintf(cmd.OutOrStdout(), "Installed %s@%s to %s\n", name, ver.Version, installedPath)
 			return nil
 		},
 	}
@@ -83,8 +91,28 @@ func addInstallCmd(root *cobra.Command) {
 	// Passing --project without a value resolves to the current directory.
 	installCmd.Flags().Lookup("project").NoOptDefVal = "."
 	installCmd.MarkFlagsMutuallyExclusive("project", "skills-dir")
+	installCmd.Flags().BoolVar(&force, "force", false, "Overwrite an existing skill directory")
 
 	root.AddCommand(installCmd)
+}
+
+func installTarball(content []byte, destDir string, force bool) error {
+	if force {
+		if err := os.RemoveAll(destDir); err != nil {
+			return fmt.Errorf("remove existing %s: %w", destDir, err)
+		}
+	}
+	if err := skillpkg.Extract(content, destDir, skillpkg.DefaultLimits()); err != nil {
+		return fmt.Errorf("extract: %w", err)
+	}
+	return nil
+}
+
+func installSingleFile(content []byte, destDir string) error {
+	if err := os.MkdirAll(destDir, 0o750); err != nil {
+		return fmt.Errorf("create directory %s: %w", destDir, err)
+	}
+	return atomicWrite(filepath.Join(destDir, "SKILL.md"), content)
 }
 
 func parseNameVersion(arg string) (string, string) {
@@ -96,7 +124,7 @@ func parseNameVersion(arg string) (string, string) {
 
 func atomicWrite(destPath string, data []byte) error {
 	dir := filepath.Dir(destPath)
-	if err := os.MkdirAll(dir, 0750); err != nil {
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		return fmt.Errorf("create directory %s: %w", dir, err)
 	}
 

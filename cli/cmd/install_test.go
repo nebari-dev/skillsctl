@@ -9,6 +9,7 @@ import (
 
 	"github.com/nebari-dev/skillsctl/cli/cmd"
 	"github.com/nebari-dev/skillsctl/cli/internal/testutil"
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
 )
 
 func TestInstall(t *testing.T) {
@@ -201,6 +202,64 @@ func TestInstall_ProjectAndSkillsDirConflict(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "none of the others can be") {
 		t.Errorf("expected Cobra mutual-exclusion error, got: %v", err)
+	}
+}
+
+func TestInstall_TarballExtractsDirectory(t *testing.T) {
+	src := t.TempDir()
+	if err := os.WriteFile(filepath.Join(src, "SKILL.md"), []byte("# x\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(src, "scripts"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "scripts/run.sh"), []byte("echo\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	tgz, err := skillpkg.Pack(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts := testutil.NewStubServerWithContent(t, testutil.SeedSkills(), map[string][]byte{"my-skill": tgz})
+	skillsDir := t.TempDir()
+
+	root := cmd.NewRootCmd()
+	root.SetArgs([]string{"install", "my-skill", "--api-url", ts.URL, "--skills-dir", skillsDir})
+	if err := root.Execute(); err != nil {
+		t.Fatalf("install: %v", err)
+	}
+	for _, rel := range []string{"SKILL.md", "scripts/run.sh"} {
+		if _, err := os.Stat(filepath.Join(skillsDir, "my-skill", rel)); err != nil {
+			t.Errorf("missing %s: %v", rel, err)
+		}
+	}
+}
+
+func TestInstall_RefusesExistingDirWithoutForce(t *testing.T) {
+	src := t.TempDir()
+	_ = os.WriteFile(filepath.Join(src, "SKILL.md"), []byte("x"), 0o644)
+	tgz, _ := skillpkg.Pack(src)
+	ts := testutil.NewStubServerWithContent(t, testutil.SeedSkills(), map[string][]byte{"my-skill": tgz})
+
+	skillsDir := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(skillsDir, "my-skill"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	root := cmd.NewRootCmd()
+	root.SetArgs([]string{"install", "my-skill", "--api-url", ts.URL, "--skills-dir", skillsDir})
+	if err := root.Execute(); err == nil {
+		t.Fatal("want error when destination exists")
+	}
+
+	root2 := cmd.NewRootCmd()
+	root2.SetArgs([]string{"install", "my-skill", "--api-url", ts.URL, "--skills-dir", skillsDir, "--force"})
+	if err := root2.Execute(); err != nil {
+		t.Fatalf("--force install failed: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(skillsDir, "my-skill", "SKILL.md")); err != nil {
+		t.Errorf("SKILL.md missing after --force install: %v", err)
 	}
 }
 
