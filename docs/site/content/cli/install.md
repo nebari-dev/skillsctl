@@ -21,7 +21,7 @@ If `@VERSION` is omitted, the latest published version is installed.
 |------|---------|-------------|
 | `--digest sha256:HASH` | | Verify the downloaded content matches this digest before writing. |
 | `--skills-dir DIR` | `~/.claude/skills` | Directory to install the skill file into. Overrides `skills_dir` from config. |
-| `--project[=PATH]` | current directory | Install to `PATH/.claude/skills` instead of the user-level skills directory. When used without a value, installs into the current working directory's project. Mutually exclusive with `--skills-dir`. |
+| `--project[=PATH]` | *(unset)* | Install to `PATH/.claude/skills` instead of the user-level skills directory. When passed without a value, installs into the current working directory. Mutually exclusive with `--skills-dir`. |
 
 ## Examples
 

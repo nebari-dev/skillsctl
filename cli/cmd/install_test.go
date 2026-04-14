@@ -199,6 +199,9 @@ func TestInstall_ProjectAndSkillsDirConflict(t *testing.T) {
 	if !strings.Contains(err.Error(), "project") || !strings.Contains(err.Error(), "skills-dir") {
 		t.Errorf("expected error mentioning both flags, got: %v", err)
 	}
+	if !strings.Contains(err.Error(), "none of the others can be") {
+		t.Errorf("expected Cobra mutual-exclusion error, got: %v", err)
+	}
 }
 
 func TestPublishThenInstall(t *testing.T) {

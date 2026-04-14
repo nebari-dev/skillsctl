@@ -15,7 +15,7 @@ func TestDefaults(t *testing.T) {
 		got  string
 		want string
 	}{
-		{"api_url default", cfg.APIURL, "https://skillsctl.nebari.internal.openteams.app"},
+		{"api_url default", cfg.APIURL, "http://localhost:8080"},
 		{"skills_dir ends with .claude/skills", "", ""},
 	}
 
