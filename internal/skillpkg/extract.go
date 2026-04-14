@@ -27,7 +27,7 @@ func Extract(tarball []byte, destDir string, limits Limits) error {
 	}
 
 	parent := filepath.Dir(destDir)
-	if err := os.MkdirAll(parent, 0o755); err != nil {
+	if err := os.MkdirAll(parent, 0o750); err != nil {
 		return fmt.Errorf("mkdir %s: %w", parent, err)
 	}
 	tmp, err := os.MkdirTemp(parent, ".skillsctl-tmp-")
@@ -56,7 +56,7 @@ func extractInto(tarball []byte, destDir string, limits Limits) error {
 	if err != nil {
 		return fmt.Errorf("gzip: %w", err)
 	}
-	defer gr.Close()
+	defer func() { _ = gr.Close() }()
 	tr := tar.NewReader(gr)
 	for {
 		hdr, err := tr.Next()
@@ -76,21 +76,22 @@ func extractInto(tarball []byte, destDir string, limits Limits) error {
 		}
 		switch hdr.Typeflag {
 		case tar.TypeDir:
-			if err := os.MkdirAll(full, 0o755); err != nil {
+			if err := os.MkdirAll(full, 0o750); err != nil {
 				return fmt.Errorf("mkdir %s: %w", full, err)
 			}
 		case tar.TypeReg:
-			if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+			if err := os.MkdirAll(filepath.Dir(full), 0o750); err != nil {
 				return fmt.Errorf("mkdir %s: %w", filepath.Dir(full), err)
 			}
 			if limits.MaxFileBytes > 0 && hdr.Size > limits.MaxFileBytes {
 				return fmt.Errorf("file %q exceeds per-file limit", hdr.Name)
 			}
-			f, err := os.OpenFile(full, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+			f, err := os.OpenFile(full, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600) //nolint:gosec // path validated above via checkHeader and rel escape check
 			if err != nil {
 				return fmt.Errorf("create %s: %w", full, err)
 			}
-			n, copyErr := io.Copy(f, tr)
+			lr := io.LimitReader(tr, hdr.Size+1)
+			n, copyErr := io.Copy(f, lr)
 			closeErr := f.Close()
 			if copyErr != nil {
 				return fmt.Errorf("write %s: %w", full, copyErr)

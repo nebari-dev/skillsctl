@@ -19,7 +19,7 @@ func (c *Client) GetLimits(ctx context.Context) (skillpkg.Limits, error) {
 	if err != nil {
 		return skillpkg.Limits{}, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		return skillpkg.Limits{}, fmt.Errorf("limits endpoint returned %d", resp.StatusCode)
 	}

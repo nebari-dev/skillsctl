@@ -65,7 +65,7 @@ func TestValidate(t *testing.T) {
 		{"happy path", good, ""},
 		{"missing SKILL.md", []tarEntry{{name: "other.md", mode: 0o644, body: []byte("x")}}, "SKILL.md"},
 		{"absolute path", []tarEntry{{name: "/SKILL.md", mode: 0o644, body: []byte("x")}}, "absolute"},
-		{"dotdot", []tarEntry{{name: "../SKILL.md", mode: 0o644, body: []byte("x")}}, ".."},
+		{"dotdot", []tarEntry{{name: "../SKILL.md", mode: 0o644, body: []byte("x")}}, "parent traversal"},
 		{"symlink rejected", []tarEntry{
 			{name: "SKILL.md", mode: 0o644, body: []byte("x")},
 			{name: "link", typeflag: tar.TypeSymlink, linkname: "SKILL.md"},

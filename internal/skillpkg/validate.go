@@ -28,7 +28,7 @@ func Validate(tarball []byte, limits Limits) error {
 	if err != nil {
 		return fmt.Errorf("gzip: %w", err)
 	}
-	defer gr.Close()
+	defer func() { _ = gr.Close() }()
 
 	tr := tar.NewReader(gr)
 	var (
@@ -61,7 +61,8 @@ func Validate(tarball []byte, limits Limits) error {
 		if limits.MaxTotalBytes > 0 && totalBytes > limits.MaxTotalBytes {
 			return fmt.Errorf("total uncompressed size exceeds limit %d", limits.MaxTotalBytes)
 		}
-		if _, err := io.Copy(io.Discard, tr); err != nil {
+		lr := io.LimitReader(tr, hdr.Size+1)
+		if _, err := io.Copy(io.Discard, lr); err != nil {
 			return fmt.Errorf("read %q: %w", hdr.Name, err)
 		}
 		if hdr.Name == "SKILL.md" {
@@ -90,7 +91,7 @@ func checkHeader(hdr *tar.Header) error {
 	}
 	clean := path.Clean(name)
 	if clean == ".." || strings.HasPrefix(clean, "../") || strings.Contains("/"+clean+"/", "/../") {
-		return fmt.Errorf("path %q contains ..", name)
+		return fmt.Errorf("path %q contains parent traversal", name)
 	}
 	return nil
 }
