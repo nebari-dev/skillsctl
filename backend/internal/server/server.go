@@ -45,7 +45,7 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg
 
 	interceptor := auth.NewInterceptor(authValidator)
 	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
-		registry.NewService(skillStore),
+		registry.NewService(skillStore, registry.WithLimits(cfg.limits)),
 		connect.WithInterceptors(interceptor),
 	)
 	mux.Handle(path, handler)

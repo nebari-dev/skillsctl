@@ -12,18 +12,32 @@ import (
 
 	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
 )
 
 // Service implements the RegistryService ConnectRPC handler.
 type Service struct {
-	store store.Repository
+	store  store.Repository
+	limits skillpkg.Limits
+}
+
+// Option is a functional option for configuring a Service.
+type Option func(*Service)
+
+// WithLimits sets the resource limits used when validating tarball publishes.
+func WithLimits(l skillpkg.Limits) Option {
+	return func(s *Service) { s.limits = l }
 }
 
 var _ skillsctlv1connect.RegistryServiceHandler = (*Service)(nil)
 
 // NewService creates a RegistryService backed by the given store.
-func NewService(s store.Repository) *Service {
-	return &Service{store: s}
+func NewService(repo store.Repository, opts ...Option) *Service {
+	s := &Service{store: repo, limits: skillpkg.DefaultLimits()}
+	for _, o := range opts {
+		o(s)
+	}
+	return s
 }
 
 func (s *Service) ListSkills(ctx context.Context, req *connect.Request[skillsctlv1.ListSkillsRequest]) (*connect.Response[skillsctlv1.ListSkillsResponse], error) {
@@ -60,6 +74,12 @@ func (s *Service) PublishSkill(ctx context.Context, req *connect.Request[skillsc
 	msg := req.Msg
 	if err := validatePublishRequest(msg.Name, msg.Version, msg.Description, msg.Tags, msg.Content); err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
+
+	if skillpkg.IsTarball(msg.Content) {
+		if err := skillpkg.Validate(msg.Content, s.limits); err != nil {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
 	}
 
 	digest := computeDigest(msg.Content)

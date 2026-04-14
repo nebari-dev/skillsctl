@@ -105,10 +105,6 @@ func TestValidatePublishRequest(t *testing.T) {
 			description: "A useful skill", content: nil, wantErr: true,
 		},
 		{
-			name: "content too large", skillName: "my-skill", version: "1.0.0",
-			description: "A useful skill", content: make([]byte, 1024*1024+1), wantErr: true,
-		},
-		{
 			name: "empty description", skillName: "my-skill", version: "1.0.0",
 			description: "", content: validContent, wantErr: true,
 		},

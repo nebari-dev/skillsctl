@@ -18,7 +18,6 @@ const (
 	maxDescriptionLen = 2000
 	maxTagLen         = 64
 	maxTags           = 20
-	maxContentBytes   = 1024 * 1024 // 1MB
 )
 
 var nameRegexp = regexp.MustCompile(`^[a-z0-9][a-z0-9-]*[a-z0-9]$`)
@@ -87,9 +86,6 @@ func validatePublishRequest(name, version, description string, tags []string, co
 	}
 	if len(content) == 0 {
 		return fmt.Errorf("content is required")
-	}
-	if len(content) > maxContentBytes {
-		return fmt.Errorf("content exceeds max size of %d bytes", maxContentBytes)
 	}
 	return nil
 }
