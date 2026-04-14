@@ -117,6 +117,93 @@ func TestInstall_DigestMismatch(t *testing.T) {
 	}
 }
 
+func TestInstall_ProjectFlag(t *testing.T) {
+	content := map[string][]byte{
+		"my-skill": []byte("# My Skill"),
+	}
+	ts := testutil.NewStubServerWithContent(t, testutil.SeedSkills(), content)
+
+	projectDir := t.TempDir()
+
+	var buf bytes.Buffer
+	root := cmd.NewRootCmd()
+	root.SetOut(&buf)
+	root.SetArgs([]string{
+		"install", "my-skill",
+		"--api-url", ts.URL,
+		"--project=" + projectDir,
+	})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	want := filepath.Join(projectDir, ".claude", "skills", "my-skill", "SKILL.md")
+	if _, err := os.Stat(want); err != nil {
+		t.Fatalf("skill file not created at %s: %v", want, err)
+	}
+	if !strings.Contains(buf.String(), want) {
+		t.Errorf("expected install path %q in output, got:\n%s", want, buf.String())
+	}
+}
+
+func TestInstall_ProjectFlagBareUsesCWD(t *testing.T) {
+	content := map[string][]byte{
+		"my-skill": []byte("# My Skill"),
+	}
+	ts := testutil.NewStubServerWithContent(t, testutil.SeedSkills(), content)
+
+	projectDir := t.TempDir()
+	origWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(projectDir); err != nil {
+		t.Fatalf("chdir: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(origWD) })
+
+	root := cmd.NewRootCmd()
+	root.SetArgs([]string{
+		"install", "my-skill",
+		"--api-url", ts.URL,
+		"--project",
+	})
+
+	if err := root.Execute(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(projectDir, ".claude", "skills", "my-skill", "SKILL.md")); err != nil {
+		t.Fatalf("skill file not created in CWD project: %v", err)
+	}
+}
+
+func TestInstall_ProjectAndSkillsDirConflict(t *testing.T) {
+	ts := testutil.NewStubServer(t, testutil.SeedSkills())
+
+	tmpDir := t.TempDir()
+
+	root := cmd.NewRootCmd()
+	root.SetArgs([]string{
+		"install", "my-skill",
+		"--api-url", ts.URL,
+		"--project=" + tmpDir,
+		"--skills-dir", tmpDir,
+	})
+
+	err := root.Execute()
+	if err == nil {
+		t.Fatal("expected error when both --project and --skills-dir are set")
+	}
+	if !strings.Contains(err.Error(), "project") || !strings.Contains(err.Error(), "skills-dir") {
+		t.Errorf("expected error mentioning both flags, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), "none of the others can be") {
+		t.Errorf("expected Cobra mutual-exclusion error, got: %v", err)
+	}
+}
+
 func TestPublishThenInstall(t *testing.T) {
 	content := map[string][]byte{}
 	ts := testutil.NewStubServerFull(t, nil, content, nil)

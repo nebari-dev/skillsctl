@@ -27,8 +27,9 @@ func validateSkillName(name string) error {
 
 func addInstallCmd(root *cobra.Command) {
 	var (
-		digest    string
-		skillsDir string
+		digest     string
+		skillsDir  string
+		projectDir string
 	)
 
 	installCmd := &cobra.Command{
@@ -42,8 +43,13 @@ func addInstallCmd(root *cobra.Command) {
 				return err
 			}
 
-			dir := skillsDir
-			if dir == "" {
+			var dir string
+			switch {
+			case projectDir != "":
+				dir = filepath.Join(projectDir, ".claude", "skills")
+			case skillsDir != "":
+				dir = skillsDir
+			default:
 				dir = viper.GetString("skills_dir")
 			}
 
@@ -73,6 +79,10 @@ func addInstallCmd(root *cobra.Command) {
 
 	installCmd.Flags().StringVar(&digest, "digest", "", "Expected content digest for verification")
 	installCmd.Flags().StringVar(&skillsDir, "skills-dir", "", "Override skills directory")
+	installCmd.Flags().StringVar(&projectDir, "project", "", "Install to <path>/.claude/skills; when used without a value, installs into the current directory")
+	// Passing --project without a value resolves to the current directory.
+	installCmd.Flags().Lookup("project").NoOptDefVal = "."
+	installCmd.MarkFlagsMutuallyExclusive("project", "skills-dir")
 
 	root.AddCommand(installCmd)
 }
