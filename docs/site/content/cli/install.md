@@ -10,7 +10,7 @@ Download a skill from the registry and write it to the local skills directory.
 ## Synopsis
 
 ```
-skillsctl install NAME[@VERSION] [--digest sha256:...] [--skills-dir DIR]
+skillsctl install NAME[@VERSION] [--digest sha256:...] [--skills-dir DIR | --project[=PATH]]
 ```
 
 If `@VERSION` is omitted, the latest published version is installed.
@@ -21,6 +21,7 @@ If `@VERSION` is omitted, the latest published version is installed.
 |------|---------|-------------|
 | `--digest sha256:HASH` | | Verify the downloaded content matches this digest before writing. |
 | `--skills-dir DIR` | `~/.claude/skills` | Directory to install the skill file into. Overrides `skills_dir` from config. |
+| `--project[=PATH]` | current directory | Install to `PATH/.claude/skills` instead of the user-level skills directory. When used without a value, installs into the current working directory's project. Mutually exclusive with `--skills-dir`. |
 
 ## Examples
 
@@ -60,6 +61,26 @@ skillsctl install git-conventional --skills-dir /tmp/test-skills
 
 ```
 Installed git-conventional@1.2.0 to /tmp/test-skills/git-conventional/SKILL.md
+```
+
+Install into the current project (writes to `./.claude/skills/`):
+
+```bash
+skillsctl install git-conventional --project
+```
+
+```
+Installed git-conventional@1.2.0 to ./.claude/skills/git-conventional/SKILL.md
+```
+
+Install into a specific project directory:
+
+```bash
+skillsctl install git-conventional --project=/path/to/repo
+```
+
+```
+Installed git-conventional@1.2.0 to /path/to/repo/.claude/skills/git-conventional/SKILL.md
 ```
 
 ## How it works
