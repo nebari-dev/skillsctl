@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"github.com/nebari-dev/skillsctl/backend/internal/store/sqlite/migrations"
 	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
 	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
 )
 
 type stubValidator struct {
@@ -256,6 +258,34 @@ func TestIntegration_PublishAndRetrieve(t *testing.T) {
 	}
 	if errors.As(err, &connectErr) && connectErr.Code() != connect.CodeNotFound {
 		t.Errorf("expected NotFound, got %v", connectErr.Code())
+	}
+}
+
+func TestLimitsEndpoint(t *testing.T) {
+	limits := skillpkg.Limits{
+		MaxPackedBytes: 1234,
+		MaxTotalBytes:  5678,
+		MaxFiles:       9,
+		MaxFileBytes:   1000,
+	}
+	srv := server.New(store.NewMemory(nil), nil, auth.Config{}, server.WithLimits(limits))
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL + "/limits")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status=%d", resp.StatusCode)
+	}
+	var got skillpkg.Limits
+	if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
+		t.Fatal(err)
+	}
+	if got != limits {
+		t.Fatalf("got %+v want %+v", got, limits)
 	}
 }
 
