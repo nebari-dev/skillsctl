@@ -25,7 +25,7 @@ skillsctl auth logout
 
 ## login
 
-Fetches OIDC configuration from the server (`GET /auth/config`), then starts a device authorization flow. You are given a URL and a user code to enter in a browser. Once you authorize in the browser, the CLI receives a token and caches it at `~/.config/skillsctl/credentials.json`.
+Fetches OIDC configuration from the server (`GET /auth/config`), then starts a device authorization flow. You are given a URL and a user code to enter in a browser. Once you authorize in the browser, the CLI caches the ID token, refresh token, and token endpoint at `~/.config/skillsctl/credentials.json`. After the initial login, the CLI silently refreshes the ID token as needed (see [Auth model]({{< relref "/concepts/auth#silent-token-refresh" >}})), so you typically log in once per session lifespan (hours) rather than once per command.
 
 ```bash
 skillsctl auth login
@@ -43,7 +43,9 @@ Logged in as alice@example.com
 
 ## status
 
-Prints the current authentication state and exits with code 0 if the token is valid, or code 1 if no credentials exist or the token has expired.
+Prints the current authentication state. Exits with code 0 if a cached ID token is present and unexpired, or code 1 if no credentials exist or the ID token has expired.
+
+Note: `status` reports only what's in the credentials file - it does not attempt a silent refresh. A "session expired" result here does not necessarily mean `publish`/`install`/`explore` will fail, because those commands silently refresh before making an API call. Running one of them (or re-running `auth login`) will reconcile the state.
 
 ```bash
 skillsctl auth status

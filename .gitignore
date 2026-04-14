@@ -1,7 +1,13 @@
 # Binaries
 /skillctl
 /skillctl-server
+/skillsctl
+/skillsctl-server
+/server
 *.exe
+
+# Superpowers planning/spec docs (local, not checked in)
+docs/superpowers/
 
 # IDE
 .idea/

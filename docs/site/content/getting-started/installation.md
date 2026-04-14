@@ -70,10 +70,10 @@ After installing, confirm the binary is reachable and check the version:
 skillsctl --version
 ```
 
-Expected output:
+Expected output (the version number will match whatever release you installed):
 
 ```
-skillsctl version 0.1.0
+skillsctl version 0.1.7
 ```
 
 ## Shell completion
