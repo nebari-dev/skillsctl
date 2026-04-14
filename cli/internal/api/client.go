@@ -23,11 +23,12 @@ func WithToken(token string) ClientOption {
 type Client struct {
 	registry skillsctlv1connect.RegistryServiceClient
 	token    string
+	baseURL  string
 }
 
 // NewClient creates an API client. Pass WithToken to attach auth.
 func NewClient(baseURL string, opts ...ClientOption) *Client {
-	c := &Client{}
+	c := &Client{baseURL: baseURL}
 	for _, opt := range opts {
 		opt(c)
 	}
