@@ -236,9 +236,12 @@ func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
 
 	tmpDir := t.TempDir()
 	credsPath := filepath.Join(tmpDir, "credentials.json")
-	skillFile := filepath.Join(tmpDir, "skill.md")
-	if err := os.WriteFile(skillFile, []byte("# Test"), 0644); err != nil { //nolint:gosec // test file, 0644 is fine
-		t.Fatalf("write skill file: %v", err)
+	skillDir := filepath.Join(tmpDir, "skill-src")
+	if err := os.MkdirAll(skillDir, 0o755); err != nil {
+		t.Fatalf("mkdir skill dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte("# Test"), 0o644); err != nil { //nolint:gosec // test file
+		t.Fatalf("write SKILL.md: %v", err)
 	}
 
 	// Step 1: Login (talks to OIDC mock)
@@ -294,7 +297,7 @@ func TestAuthLogin_ThenPublishUsesToken(t *testing.T) {
 		"--name", "test",
 		"--version", "1.0.0",
 		"--description", "test",
-		"--file", skillFile,
+		"--dir", skillDir,
 		"--api-url", captureServer.URL,
 		"--credentials-path", credsPath,
 	})

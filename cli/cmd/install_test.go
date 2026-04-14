@@ -208,11 +208,14 @@ func TestPublishThenInstall(t *testing.T) {
 	content := map[string][]byte{}
 	ts := testutil.NewStubServerFull(t, nil, content, nil)
 
-	// Create a skill file to publish
+	// Create a skill directory to publish
 	tmpDir := t.TempDir()
-	skillFile := filepath.Join(tmpDir, "my-skill.md")
-	if err := os.WriteFile(skillFile, []byte("# My Skill\nPublished content"), 0644); err != nil { //nolint:gosec // test file
-		t.Fatalf("write skill file: %v", err)
+	skillDir := filepath.Join(tmpDir, "skill-src")
+	if err := os.MkdirAll(skillDir, 0o755); err != nil {
+		t.Fatalf("mkdir skill dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte("# My Skill\nPublished content"), 0o644); err != nil { //nolint:gosec // test file
+		t.Fatalf("write SKILL.md: %v", err)
 	}
 
 	// Publish
@@ -224,7 +227,7 @@ func TestPublishThenInstall(t *testing.T) {
 		"--name", "my-skill",
 		"--version", "1.0.0",
 		"--description", "Integration test",
-		"--file", skillFile,
+		"--dir", skillDir,
 		"--api-url", ts.URL,
 	})
 	if err := pubRoot.Execute(); err != nil {
