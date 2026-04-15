@@ -104,7 +104,7 @@ func envInt64(key string, fallback int64) int64 {
 	}
 	n, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
-		log.Fatalf("invalid %s=%q: %v", key, v, err)
+		log.Fatalf("invalid integer in env var %s: %v", key, err)
 	}
 	return n
 }
