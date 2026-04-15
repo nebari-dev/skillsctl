@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	skillsctlv1 "github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1"
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
 )
 
 func addExploreCmd(root *cobra.Command) {
@@ -61,8 +62,14 @@ func addExploreCmd(root *cobra.Command) {
 				if err != nil {
 					fmt.Fprintf(cmd.ErrOrStderr(), "Warning: could not fetch content: %v\n", err)
 				} else {
+					display := content
+					if skillpkg.IsTarball(content) {
+						if md, err := skillpkg.ReadSkillMd(content); err == nil {
+							display = md
+						}
+					}
 					fmt.Fprintln(cmd.OutOrStdout(), "\n--- Content ---")
-					fmt.Fprintln(cmd.OutOrStdout(), string(content))
+					fmt.Fprintln(cmd.OutOrStdout(), string(display))
 				}
 			}
 			return nil
