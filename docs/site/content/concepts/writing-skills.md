@@ -5,7 +5,7 @@ weight: 20
 
 # Writing skills
 
-A skill is a Markdown file. Writing one well means being specific about what Claude should do, when it should do it, and what it should avoid.
+A skill is a directory containing a `SKILL.md` file and any supporting resources. Writing one well means being specific about what Claude should do, when it should do it, and what it should avoid.
 
 ## Basic structure
 

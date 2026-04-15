@@ -23,6 +23,7 @@ The server is a single Go binary. It uses SQLite for persistence (WAL mode, pure
 
 - `GET /healthz` - health check, no auth required
 - `GET /auth/config` - returns OIDC settings so the CLI can self-configure, no auth required
+- `GET /limits` - returns configured upload limits (max tarball size, file count, per-file size), no auth required
 - `POST /skillsctl.v1.RegistryService/*` - ConnectRPC handlers for skill operations
 
 When started without OIDC environment variables, the server runs in dev mode: auth is disabled and a default identity is injected for ownership tracking. This is safe for local development but should not be used in production.
