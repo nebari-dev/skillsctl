@@ -60,7 +60,21 @@ Skills are saved under `~/.claude/skills/`:
   sql-optimizer/SKILL.md
 ```
 
-Each skill gets its own directory with a SKILL.md file. Installing a skill twice (or installing a newer version) overwrites the existing file atomically - the old file is never left in a partial state.
+Each skill gets its own directory with `SKILL.md` at the root plus any supporting files (scripts, references, assets) the publisher included. Installing a newer version overwrites the existing directory. If a directory already exists when installing a multi-file skill, the command refuses unless you pass `--force`.
+
+## Install into a project
+
+Use `--project` to install into a project's local skills directory instead of the user-level one. Skills installed this way are only active for Claude Code sessions started in that project.
+
+```bash
+# Installs to ./.claude/skills/git-commit/
+skillsctl install git-commit --project
+
+# Installs to /path/to/repo/.claude/skills/git-commit/
+skillsctl install git-commit --project=/path/to/repo
+```
+
+`--project` is mutually exclusive with `--skills-dir`.
 
 ## Claude Code picks up skills automatically
 

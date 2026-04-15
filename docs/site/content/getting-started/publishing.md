@@ -5,13 +5,20 @@ weight: 50
 
 # Publishing skills
 
-Skills are Markdown files that provide Claude Code with specialized instructions, context, or behavior. Publishing a skill makes it available to everyone with access to your registry.
+Skills are directories containing a `SKILL.md` file (and any supporting files) that provide Claude Code with specialized instructions, context, or behavior. Publishing a skill makes it available to everyone with access to your registry.
 
-## Write a skill file
+## Write a skill
 
-A skill is a plain Markdown file. The content is used directly as a Claude Code instruction set - write it as you would any CLAUDE.md or skill prompt.
+A skill is a directory with `SKILL.md` at its root. Subdirectories like `scripts/`, `references/`, and `assets/` are packaged and preserved during publish and install.
 
-Here is an example skill that helps write SQL queries:
+Here is an example skill that helps write SQL queries. Create the directory structure:
+
+```
+sql-writer/
+  SKILL.md
+```
+
+And put this in `sql-writer/SKILL.md`:
 
 ```markdown
 # SQL Query Writer
@@ -50,8 +57,6 @@ ORDER BY u.id;
 ```
 ```
 
-Save this as `sql-writer.md`.
-
 ## Publish the skill
 
 Use `skillsctl publish` with the required flags:
@@ -61,7 +66,7 @@ skillsctl publish \
   --name sql-writer \
   --version 1.0.0 \
   --description "Helps write and optimize PostgreSQL queries" \
-  --file sql-writer.md \
+  --dir ./sql-writer \
   --tag sql \
   --tag database \
   --changelog "initial release"
@@ -74,9 +79,11 @@ Flags:
 | `--name` | yes | Skill identifier (lowercase, hyphens allowed) |
 | `--version` | yes | Semantic version (e.g. `1.0.0`) |
 | `--description` | yes | Short description shown in `explore` |
-| `--file` | yes | Path to the skill Markdown file |
+| `--dir` | yes | Path to the skill directory (must contain `SKILL.md` at its root) |
 | `--tag` | no | Tag for filtering (repeatable) |
 | `--changelog` | no | Release notes for this version |
+
+The directory is packaged into a deterministic tar.gz before upload. The server enforces configurable upload limits (total size, file count, per-file size); `GET /limits` returns the current values.
 
 On success:
 
@@ -109,7 +116,7 @@ skillsctl publish \
   --name sql-writer \
   --version 1.1.0 \
   --description "Helps write and optimize PostgreSQL queries" \
-  --file sql-writer.md \
+  --dir ./sql-writer \
   --tag sql \
   --tag database \
   --changelog "add CTE guidance and index recommendations"
@@ -123,7 +130,7 @@ On a server configured with OIDC, you must be logged in before publishing:
 
 ```bash
 skillsctl auth login
-skillsctl publish --name ... --version ... --description ... --file ...
+skillsctl publish --name ... --version ... --description ... --dir ...
 ```
 
 Run `skillsctl auth login` and follow the device flow prompt in your browser. The CLI discovers the OIDC issuer URL automatically from the server.

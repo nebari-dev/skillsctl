@@ -5,11 +5,11 @@ weight: 10
 
 # Skills
 
-A skill is a Markdown file that gives Claude Code instructions for a specific task or domain. When Claude reads a skill, it follows those instructions during the session.
+A skill is a directory containing a `SKILL.md` file (and optionally supporting files like scripts, references, and assets) that gives Claude Code instructions for a specific task or domain. When Claude reads a skill, it follows those instructions during the session.
 
 ## What a skill contains
 
-A skill is plain Markdown. It can include:
+A skill is a directory with `SKILL.md` at its root. The Markdown content can include:
 
 - Step-by-step workflows for common tasks
 - Project-specific conventions and rules
@@ -20,24 +20,31 @@ Skills are natural language instructions, not code. Claude interprets them rathe
 
 ## Where skills are stored
 
-Skills are files in `~/.claude/skills/` (or the directory you configured with `skillsctl config set skills_dir`). Claude Code reads this directory at session start and treats every `.md` file as an active skill.
+Skills are directories under `~/.claude/skills/` (or the directory you configured with `skillsctl config set skills_dir`). Each skill gets its own subdirectory containing `SKILL.md` and any supporting files.
 
 Installing a skill with `skillsctl install` downloads the content from the registry and writes it to this directory:
 
 ```
 ~/.claude/skills/
-  code-review.md
-  terraform-modules.md
-  skillsctl.md
+  code-review/
+    SKILL.md
+  terraform-modules/
+    SKILL.md
+    references/
+      examples.md
+  skillsctl/
+    SKILL.md
 ```
 
-Deleting the file removes the skill. There is no install database - the directory contents are the ground truth.
+Deleting the subdirectory removes the skill. There is no install database - the directory contents are the ground truth.
+
+You can also install skills into a specific project with `--project`, which writes to `<project>/.claude/skills/<name>/` instead of the user-level directory. Project skills are only active for Claude Code sessions started in that project.
 
 ## How Claude discovers skills
 
-Claude Code reads `~/.claude/skills/` when a session starts. All `.md` files present at that point are active for the session. Skills installed after a session starts are not picked up until the next session.
+Claude Code reads `~/.claude/skills/` when a session starts. All skill directories present at that point are active for the session. Skills installed after a session starts are not picked up until the next session.
 
-Claude does not load skills selectively. Every file in the skills directory is loaded on every session start. If you have many skills with overlapping instructions, they may conflict. Keep your installed skills set focused on what you currently need.
+Claude does not load skills selectively. Every skill in the skills directory is loaded on every session start. If you have many skills with overlapping instructions, they may conflict. Keep your installed skills set focused on what you currently need.
 
 ## The registry
 
@@ -47,7 +54,7 @@ The registry tracks:
 
 - Skill metadata: name, description, tags, owner, install count
 - Version history: all published versions, changelogs, SHA-256 digests
-- Skill content: the Markdown file for each version, stored as a BLOB
+- Skill content: the skill directory for each version, packaged as a deterministic tar.gz and stored as a BLOB (legacy single-file skills are stored as raw Markdown)
 
 The CLI is the primary way to interact with the registry. You can also query it directly through the ConnectRPC API if you need to automate skill management.
 

@@ -124,24 +124,42 @@ Install with digest verification:
 skillsctl install <name>@<version> --digest sha256:<hash>
 ```
 
-Skills are installed to the configured skills directory (default `~/.claude/skills/<name>/SKILL.md`). After installing, the skill is immediately available in Claude Code sessions.
+Install into a project instead of the user-level skills directory:
+
+```bash
+# Current working directory
+skillsctl install <name> --project
+
+# A specific project path
+skillsctl install <name> --project /path/to/repo
+```
+
+`--project` writes to `<path>/.claude/skills/<name>/` and is mutually exclusive with `--skills-dir`.
+
+Overwrite an existing installation:
+
+```bash
+skillsctl install <name> --force
+```
+
+Skills are installed as a directory under the skills directory (default `~/.claude/skills/<name>/`), with `SKILL.md` at the root alongside any supporting files (scripts, references, assets). Legacy single-file skills still install as just `SKILL.md`. After installing, the skill is immediately available in Claude Code sessions.
 
 ## Publishing skills
 
 Authentication is required before publishing. Run `skillsctl auth login` first if you haven't already.
 
-### Finding the skill file
+### Finding the skill directory
 
-A skill is a single markdown file. Common locations to look:
-- **Project skills directory:** `skills/<name>.md` in the current repo
-- **Installed skills:** `~/.claude/skills/<name>/SKILL.md`
+A skill is a directory containing `SKILL.md` plus any supporting files (scripts, references, assets). Common locations to look:
+- **Project skills directory:** `skills/<name>/` in the current repo
+- **Installed skills:** `~/.claude/skills/<name>/`
 - **Plugin cache:** `~/.claude/plugins/cache/` (for skills from plugin packages)
 
-To publish an already-installed skill, use the installed path:
+To publish an already-installed skill, use the installed directory:
 ```bash
 skillsctl publish --name review-iac --version 1.0.0 \
   --description "Review IaC pull requests" \
-  --file ~/.claude/skills/review-iac/SKILL.md
+  --dir ~/.claude/skills/review-iac
 ```
 
 ### Publish command
@@ -151,16 +169,16 @@ skillsctl publish \
   --name my-skill \
   --version 1.0.0 \
   --description "What this skill does" \
-  --file ./my-skill.md \
+  --dir ./my-skill \
   --tag go \
   --tag testing \
   --changelog "Initial release"
 ```
 
-Required flags: `--name`, `--version`, `--description`, `--file`
+Required flags: `--name`, `--version`, `--description`, `--dir`
 Optional flags: `--tag` (repeatable), `--changelog`
 
-The file must be under 1MB. Skill names are lowercase alphanumeric with hyphens (2-64 chars). Versions must be valid semver.
+The directory must contain `SKILL.md` at its root. Subdirectories are packaged and preserved during install. The server enforces configurable upload limits (tarball size, file count, per-file size) - check `GET /limits` on the server to see the current values. Skill names are lowercase alphanumeric with hyphens (2-64 chars). Versions must be valid semver.
 
 Publishing a version is permanent - you cannot overwrite an existing version. Publish a new version instead.
 
@@ -181,7 +199,7 @@ skillsctl install <interesting-skill>
 skillsctl auth login
 
 # Publish it
-skillsctl publish --name my-skill --version 1.0.0 --description "Does X" --file ./skill.md --tag relevant-tag
+skillsctl publish --name my-skill --version 1.0.0 --description "Does X" --dir ./my-skill --tag relevant-tag
 ```
 
 ### "I want to publish all my installed skills"
@@ -192,7 +210,7 @@ skillsctl publish --name my-skill --version 1.0.0 --description "Does X" --file 
    - Read the skill's SKILL.md frontmatter to extract name and description
    - Generate reasonable tags from the skill's description and content
    - Publish with version `1.0.0` (or the next version if already published)
-   - Use the installed path: `~/.claude/skills/<name>/SKILL.md`
+   - Use the installed directory: `--dir ~/.claude/skills/<name>`
 4. Show a summary table of what was published
 
 For skills that are already in the registry, compare versions and ask if the user wants to publish an update.
