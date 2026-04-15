@@ -13,14 +13,18 @@ import (
 	"github.com/nebari-dev/skillsctl/cli/internal/testutil"
 )
 
+func writeSkillDir(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("# My Skill\nDoes stuff\n"), 0o644); err != nil {
+		t.Fatalf("write SKILL.md: %v", err)
+	}
+	return dir
+}
+
 func TestPublish(t *testing.T) {
 	ts := testutil.NewStubServer(t, nil)
-
-	tmpDir := t.TempDir()
-	skillFile := filepath.Join(tmpDir, "my-skill.md")
-	if err := os.WriteFile(skillFile, []byte("# My Skill\nDoes stuff"), 0644); err != nil { //nolint:gosec // test file
-		t.Fatalf("write skill file: %v", err)
-	}
+	dir := writeSkillDir(t)
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()
@@ -30,7 +34,7 @@ func TestPublish(t *testing.T) {
 		"--name", "my-skill",
 		"--version", "1.0.0",
 		"--description", "A test skill",
-		"--file", skillFile,
+		"--dir", dir,
 		"--tag", "go",
 		"--tag", "testing",
 		"--api-url", ts.URL,
@@ -49,7 +53,7 @@ func TestPublish(t *testing.T) {
 	}
 }
 
-func TestPublish_FileNotFound(t *testing.T) {
+func TestPublish_DirNotFound(t *testing.T) {
 	ts := testutil.NewStubServer(t, nil)
 
 	root := cmd.NewRootCmd()
@@ -58,23 +62,21 @@ func TestPublish_FileNotFound(t *testing.T) {
 		"--name", "my-skill",
 		"--version", "1.0.0",
 		"--description", "desc",
-		"--file", "/nonexistent/file.md",
+		"--dir", "/nonexistent/dir",
 		"--api-url", ts.URL,
 	})
 
 	err := root.Execute()
 	if err == nil {
-		t.Fatal("expected error for missing file")
+		t.Fatal("expected error for missing directory")
 	}
 }
 
-func TestPublish_FileTooLarge(t *testing.T) {
+func TestPublish_MissingSkillMd(t *testing.T) {
 	ts := testutil.NewStubServer(t, nil)
-
-	tmpDir := t.TempDir()
-	bigFile := filepath.Join(tmpDir, "big.md")
-	if err := os.WriteFile(bigFile, make([]byte, 1024*1024+1), 0644); err != nil { //nolint:gosec // test file
-		t.Fatalf("write big file: %v", err)
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "other.md"), []byte("nope"), 0o644); err != nil {
+		t.Fatalf("write: %v", err)
 	}
 
 	root := cmd.NewRootCmd()
@@ -83,28 +85,23 @@ func TestPublish_FileTooLarge(t *testing.T) {
 		"--name", "my-skill",
 		"--version", "1.0.0",
 		"--description", "desc",
-		"--file", bigFile,
+		"--dir", dir,
 		"--api-url", ts.URL,
 	})
 
 	err := root.Execute()
 	if err == nil {
-		t.Fatal("expected error for large file")
+		t.Fatal("expected error for missing SKILL.md")
 	}
-	if !strings.Contains(err.Error(), "exceeds") {
-		t.Errorf("expected size error, got: %v", err)
+	if !strings.Contains(err.Error(), "SKILL.md") {
+		t.Errorf("expected error mentioning SKILL.md, got: %v", err)
 	}
 }
 
 func TestPublish_AlreadyExists(t *testing.T) {
 	ts := testutil.NewStubServerFull(t, nil, nil,
 		connect.NewError(connect.CodeAlreadyExists, nil))
-
-	tmpDir := t.TempDir()
-	skillFile := filepath.Join(tmpDir, "skill.md")
-	if err := os.WriteFile(skillFile, []byte("content"), 0644); err != nil { //nolint:gosec // test file
-		t.Fatalf("write skill file: %v", err)
-	}
+	dir := writeSkillDir(t)
 
 	var buf bytes.Buffer
 	root := cmd.NewRootCmd()
@@ -115,7 +112,7 @@ func TestPublish_AlreadyExists(t *testing.T) {
 		"--name", "my-skill",
 		"--version", "1.0.0",
 		"--description", "desc",
-		"--file", skillFile,
+		"--dir", dir,
 		"--api-url", ts.URL,
 	})
 

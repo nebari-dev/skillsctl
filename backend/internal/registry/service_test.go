@@ -1,6 +1,9 @@
 package registry_test
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"context"
 	"errors"
 	"net/http"
@@ -14,6 +17,7 @@ import (
 	"github.com/nebari-dev/skillsctl/backend/internal/auth"
 	"github.com/nebari-dev/skillsctl/backend/internal/registry"
 	"github.com/nebari-dev/skillsctl/backend/internal/store"
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
 )
 
 func testSkills() []*skillsctlv1.Skill {
@@ -335,4 +339,44 @@ func TestRegistryService_GetSkillContent_Unauthenticated(t *testing.T) {
 	if len(resp.Msg.Content) == 0 {
 		t.Error("expected non-empty content")
 	}
+}
+
+func TestPublishSkill_TarballValidated(t *testing.T) {
+	bad := buildTarGzNoSkillMd(t)
+	svc := registry.NewService(store.NewMemory(nil), registry.WithLimits(skillpkg.DefaultLimits()))
+	ctx := auth.WithClaims(context.Background(), &auth.Claims{Subject: "user-123", Email: "user@example.com"})
+	_, err := svc.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
+		Name: "demo", Version: "0.1.0", Description: "d", Content: bad,
+	}))
+	if err == nil {
+		t.Fatal("want error")
+	}
+	var connErr *connect.Error
+	if !errors.As(err, &connErr) || connErr.Code() != connect.CodeInvalidArgument {
+		t.Fatalf("want InvalidArgument, got %v", err)
+	}
+}
+
+func TestPublishSkill_LegacySingleFileStillAccepted(t *testing.T) {
+	svc := registry.NewService(store.NewMemory(nil), registry.WithLimits(skillpkg.DefaultLimits()))
+	ctx := auth.WithClaims(context.Background(), &auth.Claims{Subject: "user-123", Email: "user@example.com"})
+	_, err := svc.PublishSkill(ctx, connect.NewRequest(&skillsctlv1.PublishSkillRequest{
+		Name: "demo", Version: "0.1.0", Description: "d", Content: []byte("# SKILL.md\n"),
+	}))
+	if err != nil {
+		t.Fatalf("legacy single-file publish failed: %v", err)
+	}
+}
+
+func buildTarGzNoSkillMd(t *testing.T) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	gw := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gw)
+	hdr := &tar.Header{Name: "other.md", Mode: 0o644, Size: 1, Typeflag: tar.TypeReg}
+	_ = tw.WriteHeader(hdr)
+	_, _ = tw.Write([]byte("x"))
+	_ = tw.Close()
+	_ = gw.Close()
+	return buf.Bytes()
 }

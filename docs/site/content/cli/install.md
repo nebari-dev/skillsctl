@@ -20,8 +20,9 @@ If `@VERSION` is omitted, the latest published version is installed.
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--digest sha256:HASH` | | Verify the downloaded content matches this digest before writing. |
-| `--skills-dir DIR` | `~/.claude/skills` | Directory to install the skill file into. Overrides `skills_dir` from config. |
+| `--skills-dir DIR` | `~/.claude/skills` | Directory to install the skill into. Overrides `skills_dir` from config. |
 | `--project[=PATH]` | *(unset)* | Install to `PATH/.claude/skills` instead of the user-level skills directory. When passed without a value, installs into the current working directory. Mutually exclusive with `--skills-dir`. |
+| `--force` | `false` | Overwrite an existing multi-file skill directory. Without this flag, install refuses if the target directory already exists. |
 
 ## Examples
 
@@ -83,11 +84,19 @@ skillsctl install git-conventional --project=/path/to/repo
 Installed git-conventional@1.2.0 to /path/to/repo/.claude/skills/git-conventional/SKILL.md
 ```
 
+## Multi-file skills
+
+Skills published as a directory (containing `SKILL.md` plus subdirectories) are downloaded as a tar.gz and extracted into `<skills-dir>/<name>/`. The directory structure is preserved exactly as it was published.
+
+If the target directory already exists, install refuses with an error. Pass `--force` to overwrite it.
+
+Single-file skills (legacy format) are still installed as a single `SKILL.md` file inside `<skills-dir>/<name>/`.
+
 ## How it works
 
 1. The CLI fetches the skill content from `GetSkillContent` (unauthenticated).
 2. If `--digest` is provided, the downloaded content is hashed and compared before writing.
-3. The file is written atomically: content is written to a temporary file, then renamed into place.
+3. The CLI detects whether the content is a tarball (via gzip magic bytes). Multi-file skills are extracted into `<skills-dir>/<name>/`. Single-file skills are written atomically: content is written to a temporary file, then renamed into place.
 
 ## Common errors
 
@@ -102,3 +111,6 @@ The downloaded content does not match the expected digest. The file was not writ
 
 **Error: skills directory does not exist: ...**
 The target directory is missing. Create it manually or set a valid path with `skillsctl config set skills_dir PATH`.
+
+**Error: skill directory already exists: ...**
+A directory for this skill already exists at the install path. Pass `--force` to overwrite it.

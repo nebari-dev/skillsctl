@@ -10,6 +10,7 @@ import (
 	"github.com/nebari-dev/skillsctl/backend/internal/registry"
 	"github.com/nebari-dev/skillsctl/backend/internal/store"
 	"github.com/nebari-dev/skillsctl/gen/go/skillsctl/v1/skillsctlv1connect"
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
 )
 
 // Server is the main HTTP server that mounts the health check and ConnectRPC handlers.
@@ -17,21 +18,39 @@ type Server struct {
 	handler http.Handler
 }
 
+// Option is a functional option for configuring a Server.
+type Option func(*serverConfig)
+
+type serverConfig struct {
+	limits skillpkg.Limits
+}
+
+// WithLimits sets the resource limits exposed by the GET /limits endpoint.
+func WithLimits(l skillpkg.Limits) Option {
+	return func(c *serverConfig) { c.limits = l }
+}
+
 // New creates a Server wired to the given skill store with optional auth.
 // If authValidator is nil, authentication is disabled (local dev mode).
-func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg auth.Config) *Server {
+func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg auth.Config, opts ...Option) *Server {
+	cfg := serverConfig{limits: skillpkg.DefaultLimits()}
+	for _, o := range opts {
+		o(&cfg)
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", handleHealthz)
 	mux.HandleFunc("/auth/config", handleAuthConfig(authCfg))
+	mux.HandleFunc("/limits", handleLimits(cfg.limits))
 
 	interceptor := auth.NewInterceptor(authValidator)
 	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
-		registry.NewService(skillStore),
+		registry.NewService(skillStore, registry.WithLimits(cfg.limits)),
 		connect.WithInterceptors(interceptor),
 	)
 	mux.Handle(path, handler)
 
-	wrapped := auth.NewAllowlistMiddleware([]string{"/healthz", "/auth/config"}, mux)
+	wrapped := auth.NewAllowlistMiddleware([]string{"/healthz", "/auth/config", "/limits"}, mux)
 	return &Server{handler: wrapped}
 }
 

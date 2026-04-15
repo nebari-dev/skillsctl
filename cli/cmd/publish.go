@@ -3,20 +3,19 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"connectrpc.com/connect"
 	"github.com/spf13/cobra"
-)
 
-const maxContentBytes = 1024 * 1024 // 1MB
+	"github.com/nebari-dev/skillsctl/internal/skillpkg"
+)
 
 func addPublishCmd(root *cobra.Command) {
 	var (
 		name        string
 		version     string
 		description string
-		filePath    string
+		dirPath     string
 		tags        []string
 		changelog   string
 	)
@@ -25,15 +24,21 @@ func addPublishCmd(root *cobra.Command) {
 		Use:   "publish",
 		Short: "Publish a skill to the registry",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			content, err := os.ReadFile(filePath) //nolint:gosec // filePath is from user-provided --file flag
+			content, err := skillpkg.Pack(dirPath)
 			if err != nil {
-				return fmt.Errorf("read file %s: %w", filePath, err)
-			}
-			if len(content) > maxContentBytes {
-				return fmt.Errorf("file exceeds maximum size of %d bytes", maxContentBytes)
+				return fmt.Errorf("pack %s: %w", dirPath, err)
 			}
 
 			client := getClientCtx(cmd.Context())
+
+			limits, err := client.GetLimits(cmd.Context())
+			if err != nil {
+				limits = skillpkg.DefaultLimits()
+			}
+			if limits.MaxPackedBytes > 0 && int64(len(content)) > limits.MaxPackedBytes {
+				return fmt.Errorf("packed skill is %d bytes, server limit is %d", len(content), limits.MaxPackedBytes)
+			}
+
 			_, ver, err := client.PublishSkill(cmd.Context(), name, version, description, changelog, tags, content)
 			if err != nil {
 				return mapPublishError(err, name, version)
@@ -51,14 +56,14 @@ func addPublishCmd(root *cobra.Command) {
 	publishCmd.Flags().StringVar(&name, "name", "", "Skill name")
 	publishCmd.Flags().StringVar(&version, "version", "", "Skill version (semver)")
 	publishCmd.Flags().StringVar(&description, "description", "", "Skill description")
-	publishCmd.Flags().StringVar(&filePath, "file", "", "Path to skill content file")
+	publishCmd.Flags().StringVar(&dirPath, "dir", "", "Path to skill directory containing SKILL.md")
 	publishCmd.Flags().StringSliceVar(&tags, "tag", nil, "Tags (repeatable)")
 	publishCmd.Flags().StringVar(&changelog, "changelog", "", "Version changelog")
 
 	_ = publishCmd.MarkFlagRequired("name")
 	_ = publishCmd.MarkFlagRequired("version")
 	_ = publishCmd.MarkFlagRequired("description")
-	_ = publishCmd.MarkFlagRequired("file")
+	_ = publishCmd.MarkFlagRequired("dir")
 
 	root.AddCommand(publishCmd)
 }

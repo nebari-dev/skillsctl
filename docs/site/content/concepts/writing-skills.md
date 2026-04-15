@@ -28,6 +28,34 @@ Format each comment as: `[file:line] issue - suggestion`.
 
 This skill defines a scope (what to look for), constraints (what to skip), and an output format. Each of those three elements reduces ambiguity and produces more consistent results.
 
+## Skill layout
+
+A skill is a directory. At minimum it must contain `SKILL.md` at its root:
+
+```
+my-skill/
+  SKILL.md
+```
+
+Subdirectories are packaged and preserved during publish and install. Common conventions:
+
+```
+my-skill/
+  SKILL.md
+  scripts/
+    run.sh
+  references/
+    notes.md
+  assets/
+    diagram.png
+```
+
+- `scripts/` - runnable helpers that the skill's instructions reference
+- `references/` - supporting documents, examples, or supplementary notes
+- `assets/` - static files (images, data files, etc.)
+
+No specific layout beyond the root `SKILL.md` is enforced. Use whatever structure makes sense for your skill.
+
 ## What makes a skill effective
 
 **Be specific about scope.** "Help with Terraform" is vague. "When writing Terraform modules, always declare variables with descriptions and validation rules, use `for_each` instead of `count` for resources that users might partially remove, and follow the naming convention `{project}-{env}-{resource}`" is actionable.
@@ -54,14 +82,14 @@ The SkillsCtl skill is also a working example of the bootstrap pattern: the tool
 
 ## Publishing a skill
 
-Once you have a skill file ready, publish it to the registry:
+Once your skill directory is ready, publish it to the registry:
 
 ```bash
 skillsctl publish \
   --name my-skill \
   --version 1.0.0 \
   --description "Short description of what this skill does" \
-  --file my-skill.md \
+  --dir ./my-skill \
   --tag review \
   --changelog "initial release"
 ```
