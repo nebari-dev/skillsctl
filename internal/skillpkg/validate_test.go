@@ -83,7 +83,7 @@ func TestValidate(t *testing.T) {
 		}(), "too many files"},
 		{"file too big", []tarEntry{
 			{name: "SKILL.md", mode: 0o644, body: bytes.Repeat([]byte("x"), (1<<16)+1)},
-		}, "file size"},
+		}, "per-file limit"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

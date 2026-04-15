@@ -64,7 +64,10 @@ func addExploreCmd(root *cobra.Command) {
 				} else {
 					display := content
 					if skillpkg.IsTarball(content) {
-						if md, err := skillpkg.ReadSkillMd(content); err == nil {
+						if err := skillpkg.Validate(content, skillpkg.DefaultLimits()); err != nil {
+							fmt.Fprintf(cmd.ErrOrStderr(), "Warning: skipping skill content: %v\n", err)
+							display = nil
+						} else if md, err := skillpkg.ReadSkillMd(content); err == nil {
 							display = md
 						}
 					}

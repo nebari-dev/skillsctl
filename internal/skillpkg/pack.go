@@ -91,14 +91,14 @@ func Pack(dir string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("gzip writer: %w", err)
 	}
-	gw.ModTime = zeroTime()
+	gw.ModTime = epochUTC
 	gw.Name = ""
 	tw := tar.NewWriter(gw)
 
 	for _, e := range entries {
 		hdr := &tar.Header{
 			Name:    e.rel,
-			ModTime: zeroTime(),
+			ModTime: epochUTC,
 			Uid:     0,
 			Gid:     0,
 			Uname:   "",
@@ -115,8 +115,8 @@ func Pack(dir string) ([]byte, error) {
 			hdr.Size = e.info.Size()
 		}
 		hdr.PAXRecords = nil
-		hdr.AccessTime = zeroTime()
-		hdr.ChangeTime = zeroTime()
+		hdr.AccessTime = epochUTC
+		hdr.ChangeTime = epochUTC
 		if err := tw.WriteHeader(hdr); err != nil {
 			return nil, fmt.Errorf("write header %q: %w", e.rel, err)
 		}
@@ -141,4 +141,4 @@ func Pack(dir string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func zeroTime() time.Time { return time.Unix(0, 0).UTC() }
+var epochUTC = time.Unix(0, 0).UTC()

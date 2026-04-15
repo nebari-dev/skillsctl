@@ -68,11 +68,16 @@ func addInstallCmd(root *cobra.Command) {
 				return fmt.Errorf("invalid skill name: resolved path escapes skills directory")
 			}
 
-			installedPath := destDir
+			var installedPath string
 			if skillpkg.IsTarball(content) {
-				if err := installTarball(content, destDir, force); err != nil {
+				limits, err := client.GetLimits(cmd.Context())
+				if err != nil {
+					limits = skillpkg.DefaultLimits()
+				}
+				if err := installTarball(content, destDir, force, limits); err != nil {
 					return err
 				}
+				installedPath = destDir
 			} else {
 				if err := installSingleFile(content, destDir); err != nil {
 					return err
@@ -96,13 +101,13 @@ func addInstallCmd(root *cobra.Command) {
 	root.AddCommand(installCmd)
 }
 
-func installTarball(content []byte, destDir string, force bool) error {
+func installTarball(content []byte, destDir string, force bool, limits skillpkg.Limits) error {
 	if force {
 		if err := os.RemoveAll(destDir); err != nil {
 			return fmt.Errorf("remove existing %s: %w", destDir, err)
 		}
 	}
-	if err := skillpkg.Extract(content, destDir, skillpkg.DefaultLimits()); err != nil {
+	if err := skillpkg.Extract(content, destDir, limits); err != nil {
 		return fmt.Errorf("extract: %w", err)
 	}
 	return nil

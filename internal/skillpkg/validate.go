@@ -55,14 +55,15 @@ func Validate(tarball []byte, limits Limits) error {
 			return fmt.Errorf("too many files (limit %d)", limits.MaxFiles)
 		}
 		if limits.MaxFileBytes > 0 && hdr.Size > limits.MaxFileBytes {
-			return fmt.Errorf("file %q size %d exceeds per-file limit %d (file size)", hdr.Name, hdr.Size, limits.MaxFileBytes)
+			return fmt.Errorf("file %q exceeds per-file limit of %d bytes", hdr.Name, limits.MaxFileBytes)
 		}
 		totalBytes += hdr.Size
 		if limits.MaxTotalBytes > 0 && totalBytes > limits.MaxTotalBytes {
 			return fmt.Errorf("total uncompressed size exceeds limit %d", limits.MaxTotalBytes)
 		}
-		lr := io.LimitReader(tr, hdr.Size+1)
-		if _, err := io.Copy(io.Discard, lr); err != nil {
+		// Drain the entry so tr.Next advances. archive/tar already caps reads at
+		// hdr.Size; LimitReader is belt-and-suspenders against a broken reader.
+		if _, err := io.Copy(io.Discard, io.LimitReader(tr, hdr.Size+1)); err != nil {
 			return fmt.Errorf("read %q: %w", hdr.Name, err)
 		}
 		if hdr.Name == "SKILL.md" {
