@@ -9,22 +9,22 @@ import (
 	"testing"
 )
 
-// PublishSkill publishes a skill via the CLI binary and fails the test if
-// the command exits non-zero. Returns the Result so callers can parse the
-// publish output (e.g., to extract the digest from "Published name@version (sha256:...)").
+// PublishSkill publishes a skill via the CLI binary. It creates a temp
+// directory containing SKILL.md with the given content and runs `publish --dir`.
+// Fails the test on non-zero exit. Returns the Result for digest extraction.
 func PublishSkill(t *testing.T, r *CLIRunner, name, version, content string) *Result {
 	t.Helper()
 
-	tmpFile := filepath.Join(t.TempDir(), name+".md")
-	if err := os.WriteFile(tmpFile, []byte(content), 0o644); err != nil {
-		t.Fatalf("write temp skill file: %v", err)
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte(content), 0o644); err != nil {
+		t.Fatalf("write SKILL.md: %v", err)
 	}
 
 	res := r.Run("publish",
 		"--name", name,
 		"--version", version,
 		"--description", "e2e test skill",
-		"--file", tmpFile,
+		"--dir", dir,
 	)
 	if res.ExitCode != 0 {
 		t.Fatalf("publish %s@%s failed (exit %d):\nstdout: %s\nstderr: %s",
