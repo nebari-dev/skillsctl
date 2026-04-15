@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/nebari-dev/skillsctl/backend/internal/server"
 	sqlitestore "github.com/nebari-dev/skillsctl/backend/internal/store/sqlite"
 	"github.com/nebari-dev/skillsctl/backend/internal/store/sqlite/migrations"
+	skillpkg "github.com/nebari-dev/skillsctl/internal/skillpkg"
 	"github.com/nebari-dev/skillsctl/skills"
 )
 
@@ -70,7 +72,15 @@ func main() {
 		log.Fatalf("seed skills: %v", err)
 	}
 
-	handler := server.New(repo, validator, authCfg)
+	defaults := skillpkg.DefaultLimits()
+	limits := skillpkg.Limits{
+		MaxPackedBytes: envInt64("LIMITS_MAX_PACKED_BYTES", defaults.MaxPackedBytes),
+		MaxTotalBytes:  envInt64("LIMITS_MAX_TOTAL_BYTES", defaults.MaxTotalBytes),
+		MaxFiles:       envInt("LIMITS_MAX_FILES", defaults.MaxFiles),
+		MaxFileBytes:   envInt64("LIMITS_MAX_FILE_BYTES", defaults.MaxFileBytes),
+	}
+
+	handler := server.New(repo, validator, authCfg, server.WithLimits(limits))
 
 	srv := &http.Server{
 		Addr:              ":" + port,
@@ -85,6 +95,22 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("server failed: %v", err)
 	}
+}
+
+func envInt64(key string, fallback int64) int64 {
+	v := os.Getenv(key)
+	if v == "" {
+		return fallback
+	}
+	n, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		log.Fatalf("invalid %s=%q: %v", key, v, err)
+	}
+	return n
+}
+
+func envInt(key string, fallback int) int {
+	return int(envInt64(key, int64(fallback)))
 }
 
 func envOr(key, fallback string) string {
