@@ -5,12 +5,12 @@ weight: 30
 
 # publish
 
-Upload a skill file to the registry. Requires authentication unless the server is running in dev mode.
+Upload a skill directory to the registry. Requires authentication unless the server is running in dev mode.
 
 ## Synopsis
 
 ```
-skillsctl publish --name NAME --version VERSION --description DESC --file PATH \
+skillsctl publish --name NAME --version VERSION --description DESC --dir PATH \
   [--tag TAG ...] [--changelog TEXT]
 ```
 
@@ -23,7 +23,7 @@ skillsctl publish --name NAME --version VERSION --description DESC --file PATH \
 | `--name NAME` | Skill name. Must be unique in the registry. Use lowercase letters, numbers, and hyphens. |
 | `--version VERSION` | Semantic version string, e.g. `1.0.0`. |
 | `--description DESC` | Short description of what the skill does. |
-| `--file PATH` | Path to the skill file to upload. Maximum size: 1 MB. |
+| `--dir PATH` | Path to the skill directory to upload. Must contain `SKILL.md` at its root. The directory is packaged into a deterministic tar.gz before upload. |
 
 ### Optional
 
@@ -41,7 +41,7 @@ skillsctl publish \
   --name git-conventional \
   --version 1.0.0 \
   --description "Enforce conventional commit messages" \
-  --file ./git-conventional.md
+  --dir ./git-conventional
 ```
 
 ```
@@ -55,7 +55,7 @@ skillsctl publish \
   --name git-conventional \
   --version 1.1.0 \
   --description "Enforce conventional commit messages" \
-  --file ./git-conventional.md \
+  --dir ./git-conventional \
   --tag git \
   --tag commits \
   --changelog "Add breaking change detection"
@@ -78,8 +78,14 @@ On servers with OIDC configured, you must be logged in before publishing. Run `s
 **Error: version "X" already exists for skill "NAME"**
 That version has already been published. Choose a new version number.
 
-**Error: file too large (max 1 MB)**
-The skill file exceeds the 1 MB limit. Split the skill or reduce its size.
+**Error: missing SKILL.md at root of directory**
+The directory passed to `--dir` must contain a `SKILL.md` file at its top level.
+
+**Error: packed size exceeds limit**
+The tar.gz exceeds the server's `MaxPackedBytes` limit (default 5 MB). Remove large files or split the skill into multiple skills.
+
+**Error: file too large**
+An individual file in the directory exceeds the server's `MaxFileBytes` limit (default 1 MB).
 
 **Error: unauthenticated**
 The server requires a valid token. Run `skillsctl auth login` and try again.

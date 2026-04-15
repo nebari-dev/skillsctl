@@ -20,6 +20,30 @@ The SkillsCtl server is configured entirely through environment variables. There
 
 The database is created automatically if it does not exist. Migrations run on startup.
 
+### Upload limits
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LIMITS_MAX_PACKED_BYTES` | `5242880` (5 MB) | Maximum size of the tar.gz uploaded by `skillsctl publish`. |
+| `LIMITS_MAX_TOTAL_BYTES` | `20971520` (20 MB) | Maximum total uncompressed size of all files in a skill package. |
+| `LIMITS_MAX_FILES` | `100` | Maximum number of files in a skill package. |
+| `LIMITS_MAX_FILE_BYTES` | `1048576` (1 MB) | Maximum size of any single file in a skill package. |
+
+The server re-validates every uploaded tarball against these limits and rejects packages that exceed them. It also rejects tarballs that are missing `SKILL.md` at the root, contain symlinks or hardlinks, use absolute paths, or include path components that traverse parent directories.
+
+The current limits are published at `GET /limits` as JSON:
+
+```json
+{
+  "MaxPackedBytes": 5242880,
+  "MaxTotalBytes": 20971520,
+  "MaxFiles": 100,
+  "MaxFileBytes": 1048576
+}
+```
+
+This endpoint is unauthenticated and is used by the CLI to surface human-readable errors before uploading.
+
 ### OIDC
 
 | Variable | Required | Description |

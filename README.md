@@ -42,7 +42,7 @@ Use the CLI:
     skillsctl publish --name my-skill \
       --version 1.0.0 \
       --description "My skill" \
-      --file ./skill.md                   # publish a skill
+      --dir ./my-skill                    # publish a skill directory
     skillsctl auth login                   # authenticate (production servers)
 
 ## Architecture
