@@ -10,20 +10,36 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 
 	clicmd "github.com/nebari-dev/skillsctl/cli/cmd"
 )
 
 func main() {
-	out := flag.String("o", "docs/site/content/cli/reference", "output directory")
+	out := flag.String("o", "", "output directory (required)")
 	flag.Parse()
 
-	if err := os.MkdirAll(*out, 0o755); err != nil {
-		log.Fatalf("mkdir %s: %v", *out, err)
+	if *out == "" {
+		fmt.Fprintln(os.Stderr, "docs-gen: -o is required")
+		flag.Usage()
+		os.Exit(2)
+	}
+	if flag.NArg() > 0 {
+		fmt.Fprintf(os.Stderr, "docs-gen: unexpected positional arguments: %v\n", flag.Args())
+		os.Exit(2)
 	}
 
-	root := clicmd.NewRootCmd()
+	if err := run(clicmd.NewRootCmd(), *out); err != nil {
+		log.Fatalf("docs-gen: %v", err)
+	}
+	fmt.Printf("wrote CLI reference to %s\n", *out)
+}
+
+func run(root *cobra.Command, out string) error {
+	if err := os.MkdirAll(out, 0o755); err != nil {
+		return fmt.Errorf("mkdir %s: %w", out, err)
+	}
 	root.DisableAutoGenTag = true
 
 	filePrepender := func(filename string) string {
@@ -37,9 +53,5 @@ func main() {
 		return fmt.Sprintf("{{< relref \"/cli/reference/%s\" >}}", base)
 	}
 
-	if err := doc.GenMarkdownTreeCustom(root, *out, filePrepender, linkHandler); err != nil {
-		log.Fatalf("generate: %v", err)
-	}
-
-	fmt.Printf("wrote CLI reference to %s\n", *out)
+	return doc.GenMarkdownTreeCustom(root, out, filePrepender, linkHandler)
 }
