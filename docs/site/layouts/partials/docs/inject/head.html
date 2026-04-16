@@ -1,2 +1,71 @@
 <link rel="stylesheet" href="{{ "css/custom.css" | relURL }}">
 <link rel="icon" type="image/svg+xml" href="{{ "images/skillsctl-icon.svg" | relURL }}">
+
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
+    analytics_storage: 'denied',
+    functionality_storage: 'denied',
+    personalization_storage: 'denied',
+    security_storage: 'granted',
+    wait_for_update: 500
+  });
+  gtag('set', 'ads_data_redaction', true);
+  gtag('js', new Date());
+  gtag('config', 'G-NXNMX83GGS', { anonymize_ip: true });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NXNMX83GGS"></script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3.1.0/dist/cookieconsent.css">
+<script src="https://cdn.jsdelivr.net/npm/vanilla-cookieconsent@3.1.0/dist/cookieconsent.umd.js"></script>
+<script>
+  const updateGtag = (granted) => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push(['consent', 'update', {
+      analytics_storage: granted ? 'granted' : 'denied',
+    }]);
+  };
+
+  window.addEventListener('DOMContentLoaded', () => CookieConsent.run({
+    guiOptions: {
+      consentModal: { layout: 'box', position: 'bottom right' },
+      preferencesModal: { layout: 'box' },
+    },
+    categories: {
+      necessary: { enabled: true, readOnly: true },
+      analytics: {},
+    },
+    language: {
+      default: 'en',
+      translations: {
+        en: {
+          consentModal: {
+            title: 'Cookie Consent',
+            description: 'We use cookies to analyze site traffic and improve your experience.',
+            acceptAllBtn: 'Accept all',
+            acceptNecessaryBtn: 'Reject all',
+            showPreferencesBtn: 'Manage preferences',
+          },
+          preferencesModal: {
+            title: 'Cookie preferences',
+            acceptAllBtn: 'Accept all',
+            acceptNecessaryBtn: 'Reject all',
+            savePreferencesBtn: 'Save preferences',
+            closeIconLabel: 'Close',
+            sections: [
+              { title: 'Strictly necessary', description: 'Essential for the site to function.', linkedCategory: 'necessary' },
+              { title: 'Analytics', description: 'Help us understand how visitors use the site.', linkedCategory: 'analytics' },
+            ],
+          },
+        },
+      },
+    },
+    onFirstConsent: () => updateGtag(CookieConsent.acceptedCategory('analytics')),
+    onChange: () => updateGtag(CookieConsent.acceptedCategory('analytics')),
+    onConsent: () => updateGtag(CookieConsent.acceptedCategory('analytics')),
+  }));
+</script>
