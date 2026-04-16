@@ -38,7 +38,24 @@ func addInstallCmd(root *cobra.Command) {
 	installCmd := &cobra.Command{
 		Use:   "install <name[@version]>",
 		Short: "Install a skill from the registry",
-		Args:  cobra.ExactArgs(1),
+		Long: `Download a skill from the registry and write it to the local skills directory.
+
+By default skills install to the directory configured as skills_dir
+(typically ~/.claude/skills). Use --project to install into a specific
+project's .claude/skills/ instead, or --skills-dir to override the
+target for a single invocation.`,
+		Example: `  # Install the latest version
+  skillsctl install git-commit
+
+  # Pin a version and verify the digest
+  skillsctl install git-commit@1.2.0 --digest sha256:abc123...
+
+  # Install into the current project (writes to ./.claude/skills/)
+  skillsctl install git-commit --project
+
+  # Install into a specific project directory
+  skillsctl install git-commit --project /path/to/repo`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name, version := parseNameVersion(args[0])
 			if err := validateSkillName(name); err != nil {
@@ -90,8 +107,8 @@ func addInstallCmd(root *cobra.Command) {
 		},
 	}
 
-	installCmd.Flags().StringVar(&digest, "digest", "", "Expected content digest for verification")
-	installCmd.Flags().StringVar(&skillsDir, "skills-dir", "", "Override skills directory")
+	installCmd.Flags().StringVar(&digest, "digest", "", "Expected content digest in sha256:... form; install aborts if the downloaded content does not match")
+	installCmd.Flags().StringVar(&skillsDir, "skills-dir", "", "Override the configured skills directory for this install")
 	installCmd.Flags().StringVar(&projectDir, "project", "", "Install to <path>/.claude/skills; when used without a value, installs into the current directory")
 	// Passing --project without a value resolves to the current directory.
 	installCmd.Flags().Lookup("project").NoOptDefVal = "."

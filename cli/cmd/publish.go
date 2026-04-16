@@ -23,6 +23,27 @@ func addPublishCmd(root *cobra.Command) {
 	publishCmd := &cobra.Command{
 		Use:   "publish",
 		Short: "Publish a skill to the registry",
+		Long: `Package a skill directory and upload it to the registry.
+
+The directory passed via --dir must contain SKILL.md at its root;
+subdirectories (scripts/, references/, assets/) are packaged and
+preserved on install. Versions are immutable once published, so each
+publish must use a new --version.`,
+		Example: `  # Publish the first version of a skill
+  skillsctl publish \
+    --name git-conventional \
+    --version 1.0.0 \
+    --description "Enforce conventional commit messages" \
+    --dir ./git-conventional
+
+  # Publish with tags and a changelog
+  skillsctl publish \
+    --name git-conventional \
+    --version 1.1.0 \
+    --description "Enforce conventional commit messages" \
+    --dir ./git-conventional \
+    --tag git --tag commits \
+    --changelog "Add breaking-change detection"`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			content, err := skillpkg.Pack(dirPath)
 			if err != nil {
@@ -53,12 +74,12 @@ func addPublishCmd(root *cobra.Command) {
 		},
 	}
 
-	publishCmd.Flags().StringVar(&name, "name", "", "Skill name")
-	publishCmd.Flags().StringVar(&version, "version", "", "Skill version (semver)")
-	publishCmd.Flags().StringVar(&description, "description", "", "Skill description")
-	publishCmd.Flags().StringVar(&dirPath, "dir", "", "Path to skill directory containing SKILL.md")
-	publishCmd.Flags().StringSliceVar(&tags, "tag", nil, "Tags (repeatable)")
-	publishCmd.Flags().StringVar(&changelog, "changelog", "", "Version changelog")
+	publishCmd.Flags().StringVar(&name, "name", "", "Skill name (lowercase, 2-64 chars, alphanumeric and hyphens)")
+	publishCmd.Flags().StringVar(&version, "version", "", "Semantic version, e.g. 1.0.0; must be unique for this skill")
+	publishCmd.Flags().StringVar(&description, "description", "", "Short description shown in 'skillsctl explore'")
+	publishCmd.Flags().StringVar(&dirPath, "dir", "", "Path to the skill directory; must contain SKILL.md at its root")
+	publishCmd.Flags().StringSliceVar(&tags, "tag", nil, "Tag for filtering in 'explore' (repeatable)")
+	publishCmd.Flags().StringVar(&changelog, "changelog", "", "Release notes for this version")
 
 	_ = publishCmd.MarkFlagRequired("name")
 	_ = publishCmd.MarkFlagRequired("version")

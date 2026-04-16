@@ -16,25 +16,36 @@ var credentialsPath string
 func addAuthCmd(root *cobra.Command) {
 	authCmd := &cobra.Command{
 		Use:   "auth",
-		Short: "Manage authentication",
+		Short: "Manage authentication with the registry",
 	}
 
 	loginCmd := &cobra.Command{
 		Use:   "login",
-		Short: "Authenticate with the registry",
-		RunE:  runAuthLogin,
+		Short: "Authenticate with the registry via OIDC device flow",
+		Long: `Start an OIDC device authorization flow against the registry's configured
+identity provider. The CLI prints a URL and a user code; open the URL in any
+browser, enter the code, and approve. The resulting tokens are cached at
+~/.config/skillsctl/credentials.json (or the path passed to --credentials-path)
+and refreshed automatically on subsequent commands.
+
+If the server is running without OIDC configured, this command prints a notice
+and exits successfully without writing credentials.`,
+		Example: `  skillsctl auth login`,
+		RunE:    runAuthLogin,
 	}
 
 	statusCmd := &cobra.Command{
-		Use:   "status",
-		Short: "Show authentication status",
-		RunE:  runAuthStatus,
+		Use:     "status",
+		Short:   "Show the active identity and token expiry",
+		Example: `  skillsctl auth status`,
+		RunE:    runAuthStatus,
 	}
 
 	logoutCmd := &cobra.Command{
-		Use:   "logout",
-		Short: "Remove cached credentials",
-		RunE:  runAuthLogout,
+		Use:     "logout",
+		Short:   "Remove cached credentials",
+		Example: `  skillsctl auth logout`,
+		RunE:    runAuthLogout,
 	}
 
 	authCmd.AddCommand(loginCmd, statusCmd, logoutCmd)

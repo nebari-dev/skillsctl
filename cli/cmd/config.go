@@ -21,34 +21,41 @@ var validConfigKeys = []string{"api_url", "skills_dir"}
 func addConfigCmd(root *cobra.Command) {
 	configCmd := &cobra.Command{
 		Use:   "config",
-		Short: "Manage skillsctl configuration",
+		Short: "Manage the local skillsctl configuration file",
+		Long: `Read and write ~/.config/skillsctl/config.yaml. Recognized keys are
+api_url (the registry URL the CLI talks to) and skills_dir (where 'install'
+writes downloaded skills).`,
 	}
 
 	initCmd := &cobra.Command{
-		Use:   "init",
-		Short: "Interactive first-time setup",
-		RunE:  runConfigInit,
+		Use:     "init",
+		Short:   "Interactive first-time setup; prompts for api_url and skills_dir",
+		Example: `  skillsctl config init`,
+		RunE:    runConfigInit,
 	}
-	initCmd.Flags().Bool("force", false, "Overwrite existing config")
+	initCmd.Flags().Bool("force", false, "Overwrite an existing config file")
 
 	setCmd := &cobra.Command{
-		Use:   "set <key> <value>",
-		Short: "Set a config value",
-		Args:  cobra.ExactArgs(2),
-		RunE:  runConfigSet,
+		Use:     "set <key> <value>",
+		Short:   "Set a config value (api_url or skills_dir)",
+		Example: `  skillsctl config set api_url https://skillsctl.example.com`,
+		Args:    cobra.ExactArgs(2),
+		RunE:    runConfigSet,
 	}
 
 	getCmd := &cobra.Command{
-		Use:   "get <key>",
-		Short: "Get a config value",
-		Args:  cobra.ExactArgs(1),
-		RunE:  runConfigGet,
+		Use:     "get <key>",
+		Short:   "Print a single config value",
+		Example: `  skillsctl config get api_url`,
+		Args:    cobra.ExactArgs(1),
+		RunE:    runConfigGet,
 	}
 
 	listCmd := &cobra.Command{
-		Use:   "list",
-		Short: "List all config values",
-		RunE:  runConfigList,
+		Use:     "list",
+		Short:   "Print every recognized config value",
+		Example: `  skillsctl config list`,
+		RunE:    runConfigList,
 	}
 
 	configCmd.PersistentFlags().StringVar(&configPath, "config-path", "", "Config file path (for testing)")
