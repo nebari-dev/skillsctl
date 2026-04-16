@@ -38,3 +38,6 @@ CLAUDE.md
 docs/site/public/
 docs/site/resources/
 docs/site/.hugo_build.lock
+
+# Auto-generated CLI reference (produced by tools/docs-gen in CI)
+docs/site/content/cli/reference/skillsctl*.md
