@@ -20,6 +20,14 @@ func addExploreCmd(root *cobra.Command) {
 	exploreCmd := &cobra.Command{
 		Use:   "explore",
 		Short: "Browse available skills",
+		Example: `  # List every skill in the registry
+  skillsctl explore
+
+  # Filter by tag (repeatable; matches any)
+  skillsctl explore --tag go --tag testing
+
+  # Only show skills published directly to this registry
+  skillsctl explore --source internal`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			client := getClientCtx(cmd.Context())
 
@@ -41,13 +49,18 @@ func addExploreCmd(root *cobra.Command) {
 		},
 	}
 
-	exploreCmd.Flags().StringSliceVar(&tags, "tag", nil, "Filter by tag (repeatable)")
-	exploreCmd.Flags().StringVar(&source, "source", "all", "Filter: internal, external, all")
+	exploreCmd.Flags().StringSliceVar(&tags, "tag", nil, "Filter by tag; repeat to match any of several tags")
+	exploreCmd.Flags().StringVar(&source, "source", "all", "Filter by source: internal, external, or all")
 
 	showCmd := &cobra.Command{
 		Use:   "show <name>",
-		Short: "Show skill details",
-		Args:  cobra.ExactArgs(1),
+		Short: "Show skill details and version history",
+		Example: `  # Metadata and version history
+  skillsctl explore show git-commit
+
+  # Include the rendered SKILL.md content
+  skillsctl explore show git-commit --verbose`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			client := getClientCtx(cmd.Context())
 			skill, versions, err := client.GetSkill(context.Background(), args[0])
@@ -78,7 +91,7 @@ func addExploreCmd(root *cobra.Command) {
 			return nil
 		},
 	}
-	showCmd.Flags().BoolP("verbose", "v", false, "include skill content in output")
+	showCmd.Flags().BoolP("verbose", "v", false, "Include the SKILL.md content (multi-file skills are extracted first)")
 
 	exploreCmd.AddCommand(showCmd)
 	root.AddCommand(exploreCmd)

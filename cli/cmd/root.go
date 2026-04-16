@@ -21,10 +21,14 @@ func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "skillsctl",
 		Short: "Discover, install, and publish Claude Code skills",
+		Long: `skillsctl is the CLI for the SkillsCtl skill registry. Use it to browse
+and install skills published by your team or organization, and to publish
+your own. Skills install into ~/.claude/skills/ by default and are picked
+up automatically by Claude Code at session start.`,
 	}
 	rootCmd.Version = version
 
-	rootCmd.PersistentFlags().StringVar(&apiURL, "api-url", "", "Backend API URL")
+	rootCmd.PersistentFlags().StringVar(&apiURL, "api-url", "", "Registry URL; overrides the api_url setting from config and SKILLCTL_API_URL")
 	rootCmd.PersistentFlags().StringVar(&credentialsPath, "credentials-path", "", "Credentials file path (for testing)")
 
 	cobra.OnInitialize(func() {
