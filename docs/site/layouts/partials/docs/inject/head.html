@@ -30,7 +30,7 @@
     }]);
   };
 
-  CookieConsent.run({
+  window.addEventListener('DOMContentLoaded', () => CookieConsent.run({
     guiOptions: {
       consentModal: { layout: 'box', position: 'bottom right' },
       preferencesModal: { layout: 'box' },
@@ -67,5 +67,5 @@
     onFirstConsent: () => updateGtag(CookieConsent.acceptedCategory('analytics')),
     onChange: () => updateGtag(CookieConsent.acceptedCategory('analytics')),
     onConsent: () => updateGtag(CookieConsent.acceptedCategory('analytics')),
-  });
+  }));
 </script>
