@@ -1,0 +1,12 @@
+name: skillsctl
+display_name: skillsctl
+description: CLI and registry server for discovering, installing, and publishing Claude Code skills.
+level: beta
+owner: dcmcand
+deprecated: false
+product_owner: null
+nebariapp_integration: full
+scope:
+  standalone-supported: yes
+links:
+  docs: https://github.com/nebari-dev/skillsctl/blob/main/README.md
