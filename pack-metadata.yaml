@@ -9,4 +9,4 @@ nebariapp_integration: full
 scope:
   standalone-supported: yes
 links:
-  docs: https://github.com/nebari-dev/skillsctl/blob/main/README.md
+  docs: https://skillsctl.dev
