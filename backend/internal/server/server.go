@@ -22,7 +22,9 @@ type Server struct {
 type Option func(*serverConfig)
 
 type serverConfig struct {
-	limits skillpkg.Limits
+	limits       skillpkg.Limits
+	buildVersion string
+	seedStatus   SeedStatus
 }
 
 // WithLimits sets the resource limits exposed by the GET /limits endpoint.
@@ -30,10 +32,19 @@ func WithLimits(l skillpkg.Limits) Option {
 	return func(c *serverConfig) { c.limits = l }
 }
 
+// WithSeedStatus sets the build version and startup seed outcome exposed by
+// GET /status.
+func WithSeedStatus(buildVersion string, s SeedStatus) Option {
+	return func(c *serverConfig) {
+		c.buildVersion = buildVersion
+		c.seedStatus = s
+	}
+}
+
 // New creates a Server wired to the given skill store with optional auth.
 // If authValidator is nil, authentication is disabled (local dev mode).
 func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg auth.Config, opts ...Option) *Server {
-	cfg := serverConfig{limits: skillpkg.DefaultLimits()}
+	cfg := serverConfig{limits: skillpkg.DefaultLimits(), buildVersion: "dev"}
 	for _, o := range opts {
 		o(&cfg)
 	}
@@ -42,6 +53,7 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg
 	mux.HandleFunc("/healthz", handleHealthz)
 	mux.HandleFunc("/auth/config", handleAuthConfig(authCfg))
 	mux.HandleFunc("/limits", handleLimits(cfg.limits))
+	mux.HandleFunc("/status", handleStatus(cfg.buildVersion, cfg.seedStatus))
 
 	interceptor := auth.NewInterceptor(authValidator)
 	path, handler := skillsctlv1connect.NewRegistryServiceHandler(
@@ -50,7 +62,7 @@ func New(skillStore store.Repository, authValidator auth.TokenValidator, authCfg
 	)
 	mux.Handle(path, handler)
 
-	wrapped := auth.NewAllowlistMiddleware([]string{"/healthz", "/auth/config", "/limits"}, mux)
+	wrapped := auth.NewAllowlistMiddleware([]string{"/healthz", "/auth/config", "/limits", "/status"}, mux)
 	return &Server{handler: wrapped}
 }
 

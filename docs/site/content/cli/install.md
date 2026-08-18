@@ -96,7 +96,7 @@ Installed files are written as `0600` and carry no executable bit, so a bundled 
 
 ## How it works
 
-1. The CLI fetches the skill content from `GetSkillContent` (unauthenticated).
+1. The CLI fetches the skill content from `GetSkillContent`. Like every RPC, this requires a bearer token; only `/healthz`, `/auth/config`, and `/limits` are reachable without one.
 2. If `--digest` is provided, the downloaded content is hashed and compared before writing.
 3. The CLI detects whether the content is a tarball (via gzip magic bytes). Multi-file skills are extracted into `<skills-dir>/<name>/`. Single-file skills are written atomically: content is written to a temporary file, then renamed into place.
 
