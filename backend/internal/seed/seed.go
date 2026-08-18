@@ -44,6 +44,7 @@ func Run(ctx context.Context, repo store.Repository, version string, skills []Sk
 		err := repo.CreateSkillVersion(ctx, skill, ver, s.Content)
 		if err != nil {
 			if errors.Is(err, store.ErrAlreadyExists) {
+				log.Printf("seed: %s@%s already present, skipping", s.Name, version)
 				continue
 			}
 			if errors.Is(err, store.ErrPermissionDenied) {

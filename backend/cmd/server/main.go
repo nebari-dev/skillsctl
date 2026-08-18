@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +20,11 @@ import (
 	skillpkg "github.com/nebari-dev/skillsctl/internal/skillpkg"
 	"github.com/nebari-dev/skillsctl/skills"
 )
+
+// buildVersion is the release this binary was built from, injected at build
+// time with -ldflags "-X main.buildVersion=<version>". Local builds leave it
+// at "dev".
+var buildVersion = "dev"
 
 func main() {
 	port := envOr("PORT", "8080")
@@ -63,12 +69,14 @@ func main() {
 	repo := sqlitestore.New(db)
 
 	// Seed default skills (idempotent - skips if version already exists)
-	appVersion := envOr("APP_VERSION", "0.0.0")
 	skillsctlUsage, err := skills.FS.ReadFile("skillsctl-usage.md")
 	if err != nil {
 		log.Fatalf("read embedded skill: %v", err)
 	}
-	if err := seed.Run(context.Background(), repo, appVersion, seed.DefaultSkills(skillsctlUsage)); err != nil {
+	seedVersion, err := resolveSeedVersion(buildVersion, os.Getenv("APP_VERSION"))
+	if err != nil {
+		log.Printf("seed: refusing to seed (%v)", err)
+	} else if err := seed.Run(context.Background(), repo, seedVersion, seed.DefaultSkills(skillsctlUsage)); err != nil {
 		log.Fatalf("seed skills: %v", err)
 	}
 
@@ -118,6 +126,31 @@ func envOr(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+// resolveSeedVersion decides which version the embedded skills are published
+// under. Seeded content comes from this binary, so the version must identify
+// this binary: publishing under a version built from different content makes
+// that version permanently wrong, because published versions are immutable.
+//
+// A stamped binary therefore refuses to seed when APP_VERSION disagrees with
+// its own build version. That disagreement happens whenever a pod from an
+// older image reads a configmap that a newer release already updated, which is
+// exactly the window a rolling update opens.
+//
+// Unstamped builds (local development, "dev") have no version to compare
+// against and fall back to APP_VERSION.
+func resolveSeedVersion(build, appVersion string) (string, error) {
+	if build == "" || build == "dev" {
+		if appVersion == "" {
+			return "0.0.0", nil
+		}
+		return appVersion, nil
+	}
+	if appVersion != "" && appVersion != build {
+		return "", fmt.Errorf("APP_VERSION %q does not match build version %q; this binary must not publish skills as %s", appVersion, build, appVersion)
+	}
+	return build, nil
 }
 
 func isDevMode() bool {
