@@ -43,7 +43,11 @@ func addInstallCmd(root *cobra.Command) {
 By default skills install to the directory configured as skills_dir
 (typically ~/.claude/skills). Use --project to install into a specific
 project's .claude/skills/ instead, or --skills-dir to override the
-target for a single invocation.`,
+target for a single invocation.
+
+--project takes an optional value, so a path must be attached with an
+equals sign (--project=/path/to/repo). Passing it bare (--project)
+installs into the current directory.`,
 		Example: `  # Install the latest version
   skillsctl install git-commit
 
@@ -53,8 +57,8 @@ target for a single invocation.`,
   # Install into the current project (writes to ./.claude/skills/)
   skillsctl install git-commit --project
 
-  # Install into a specific project directory
-  skillsctl install git-commit --project /path/to/repo`,
+  # Install into a specific project directory (note the '=')
+  skillsctl install git-commit --project=/path/to/repo`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name, version := parseNameVersion(args[0])

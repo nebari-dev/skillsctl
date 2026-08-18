@@ -130,11 +130,13 @@ Install into a project instead of the user-level skills directory:
 # Current working directory
 skillsctl install <name> --project
 
-# A specific project path
-skillsctl install <name> --project /path/to/repo
+# A specific project path (the '=' is required)
+skillsctl install <name> --project=/path/to/repo
 ```
 
 `--project` writes to `<path>/.claude/skills/<name>/` and is mutually exclusive with `--skills-dir`.
+
+`--project` takes an optional value, so a path must be attached with `=`. The space-separated form (`--project /path/to/repo`) fails with `accepts 1 arg(s), received 2`, because the path is parsed as a second positional argument instead of the flag's value.
 
 Overwrite an existing installation:
 
@@ -143,6 +145,8 @@ skillsctl install <name> --force
 ```
 
 Skills are installed as a directory under the skills directory (default `~/.claude/skills/<name>/`), with `SKILL.md` at the root alongside any supporting files (scripts, references, assets). Legacy single-file skills still install as just `SKILL.md`. After installing, the skill is immediately available in Claude Code sessions.
+
+Installed files are not executable. Packaging normalizes file modes and install writes files as `0600`, so a bundled script must be invoked through its interpreter (`bash <skill-dir>/script.sh`) rather than directly.
 
 ## Publishing skills
 

@@ -21,7 +21,7 @@ If `@VERSION` is omitted, the latest published version is installed.
 |------|---------|-------------|
 | `--digest sha256:HASH` | | Verify the downloaded content matches this digest before writing. |
 | `--skills-dir DIR` | `~/.claude/skills` | Directory to install the skill into. Overrides `skills_dir` from config. |
-| `--project[=PATH]` | *(unset)* | Install to `PATH/.claude/skills` instead of the user-level skills directory. When passed without a value, installs into the current working directory. Mutually exclusive with `--skills-dir`. |
+| `--project[=PATH]` | *(unset)* | Install to `PATH/.claude/skills` instead of the user-level skills directory. When passed without a value, installs into the current working directory. A path must be attached with `=`, not a space. Mutually exclusive with `--skills-dir`. |
 | `--force` | `false` | Overwrite an existing multi-file skill directory. Without this flag, install refuses if the target directory already exists. |
 
 ## Examples
@@ -92,6 +92,8 @@ If the target directory already exists, install refuses with an error. Pass `--f
 
 Single-file skills (legacy format) are still installed as a single `SKILL.md` file inside `<skills-dir>/<name>/`.
 
+Installed files are written as `0600` and carry no executable bit, so a bundled script must be run through its interpreter (`bash <skills-dir>/<name>/scripts/run.sh`) rather than directly.
+
 ## How it works
 
 1. The CLI fetches the skill content from `GetSkillContent` (unauthenticated).
@@ -108,6 +110,9 @@ The requested version does not exist. Use `skillsctl explore show NAME` to list 
 
 **Error: digest mismatch: expected sha256:X, got sha256:Y**
 The downloaded content does not match the expected digest. The file was not written. Check that the digest value is correct.
+
+**Error: accepts 1 arg(s), received 2**
+Install takes exactly one skill name. Either more than one name was given, or a path was passed to `--project` with a space instead of an `=` - the space-separated form leaves the path as a second positional argument. Use `--project=/path/to/repo`.
 
 **Error: skills directory does not exist: ...**
 The target directory is missing. Create it manually or set a valid path with `skillsctl config set skills_dir PATH`.
