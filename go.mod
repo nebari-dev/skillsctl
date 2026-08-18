@@ -11,7 +11,7 @@ require (
 	github.com/spf13/viper v1.21.0
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/mod v0.34.0
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 	modernc.org/sqlite v1.46.1
 )
 

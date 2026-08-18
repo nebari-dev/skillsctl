@@ -73,11 +73,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("read embedded skill: %v", err)
 	}
+	var seedStatus server.SeedStatus
 	seedVersion, err := resolveSeedVersion(buildVersion, os.Getenv("APP_VERSION"))
 	if err != nil {
 		log.Printf("seed: refusing to seed (%v)", err)
-	} else if err := seed.Run(context.Background(), repo, seedVersion, seed.DefaultSkills(skillsctlUsage)); err != nil {
-		log.Fatalf("seed skills: %v", err)
+		seedStatus.Declined = err.Error()
+	} else {
+		results, seedErr := seed.Run(context.Background(), repo, seedVersion, seed.DefaultSkills(skillsctlUsage))
+		if seedErr != nil {
+			log.Fatalf("seed skills: %v", seedErr)
+		}
+		seedStatus.Version = seedVersion
+		seedStatus.Skills = results
 	}
 
 	defaults := skillpkg.DefaultLimits()
@@ -88,7 +95,7 @@ func main() {
 		MaxFileBytes:   envInt64("LIMITS_MAX_FILE_BYTES", defaults.MaxFileBytes),
 	}
 
-	handler := server.New(repo, validator, authCfg, server.WithLimits(limits))
+	handler := server.New(repo, validator, authCfg, server.WithLimits(limits), server.WithSeedStatus(buildVersion, seedStatus))
 
 	srv := &http.Server{
 		Addr:              ":" + port,

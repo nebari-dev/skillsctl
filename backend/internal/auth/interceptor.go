@@ -30,7 +30,9 @@ func NewInterceptor(v TokenValidator) connect.UnaryInterceptorFunc {
 			// "Bearer xyz" -> ("xyz", true), "Bearer " -> ("", true), "Basic x" -> ("", false)
 			token, ok := strings.CutPrefix(req.Header().Get("Authorization"), "Bearer ")
 			if !ok || token == "" {
-				return nil, connect.NewError(connect.CodeUnauthenticated, nil)
+				// A nil error here yields an empty message, which clients then
+				// render as a blank failure with no hint to authenticate.
+				return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("missing bearer token"))
 			}
 
 			claims, err := v.Validate(ctx, token)

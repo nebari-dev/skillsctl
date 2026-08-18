@@ -4,13 +4,17 @@ managed:
   override:
     - file_option: go_package_prefix
       value: github.com/nebari-dev/skillsctl/gen/go
+# Remote plugin versions are pinned. Unpinned plugins float to whatever the BSR
+# publishes latest, so gen/ drifts on its own and the proto-check job (which
+# regenerates and diffs) reddens on an unrelated upstream release. Keep these in
+# step with the corresponding module versions in go.mod.
 plugins:
-  - remote: buf.build/protocolbuffers/go
+  - remote: buf.build/protocolbuffers/go:v1.36.12
     out: ../gen/go
     opt:
       - paths=source_relative
 
-  - remote: buf.build/connectrpc/go
+  - remote: buf.build/connectrpc/go:v1.19.1
     out: ../gen/go
     opt:
       - paths=source_relative

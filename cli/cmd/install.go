@@ -190,7 +190,14 @@ func mapInstallError(err error, name, version string) error {
 		return fmt.Errorf("skill %q not found", name)
 	case connect.CodeFailedPrecondition:
 		return fmt.Errorf("digest mismatch for %s@%s. Content may have been tampered with", name, version)
+	case connect.CodeUnauthenticated:
+		return errors.New("not authenticated. Run 'skillsctl auth login' and try again")
 	default:
-		return fmt.Errorf("error: %s", connectErr.Message())
+		// Always surface the code: some errors carry no message, and formatting
+		// only the message leaves the user with nothing to act on.
+		if msg := connectErr.Message(); msg != "" {
+			return fmt.Errorf("%s: %s", connectErr.Code(), msg)
+		}
+		return fmt.Errorf("request failed: %s", connectErr.Code())
 	}
 }

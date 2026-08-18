@@ -44,6 +44,34 @@ The current limits are published at `GET /limits` as JSON:
 
 This endpoint is unauthenticated and is used by the CLI to surface human-readable errors before uploading.
 
+## GET /status
+
+Reports the release this binary was built from and what the startup seed did:
+
+```json
+{
+  "buildVersion": "0.2.3",
+  "seed": {
+    "version": "0.2.3",
+    "skills": [
+      {"name": "skillsctl-usage", "version": "0.2.3", "outcome": "seeded"}
+    ]
+  }
+}
+```
+
+`outcome` is one of:
+
+| Outcome | Meaning |
+|---------|---------|
+| `seeded` | This run published the version. |
+| `already-present` | The version existed, so nothing was written. Whatever content is in the registry was published by whichever binary got there first, not necessarily this one. |
+| `not-owner` | Another publisher owns the skill, so the embedded copy can no longer update it. |
+
+When the binary's stamped version disagrees with `APP_VERSION`, seeding is declined and `seed.declined` carries the reason instead of a version. That happens when a pod from an older image reads a configmap a newer release already updated; publishing under that version would make it permanently wrong, because versions are immutable.
+
+Use this endpoint after a deploy to confirm the release actually republished its embedded skills. This endpoint is unauthenticated.
+
 ### OIDC
 
 | Variable | Required | Description |
