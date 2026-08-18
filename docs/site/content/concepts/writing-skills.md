@@ -56,6 +56,18 @@ my-skill/
 
 No specific layout beyond the root `SKILL.md` is enforced. Use whatever structure makes sense for your skill.
 
+### Bundled scripts are not executable
+
+Packaging normalizes file modes so that publishing the same directory twice always produces the same digest, and install writes every file as `0600`. A script that ships inside a skill therefore has no executable bit once installed.
+
+Write your instructions to call the interpreter explicitly:
+
+```bash
+bash <skill-dir>/scripts/run.sh
+```
+
+A skill that tells the reader to run `./scripts/run.sh` will fail with `Permission denied`.
+
 ## What makes a skill effective
 
 **Be specific about scope.** "Help with Terraform" is vague. "When writing Terraform modules, always declare variables with descriptions and validation rules, use `for_each` instead of `count` for resources that users might partially remove, and follow the naming convention `{project}-{env}-{resource}`" is actionable.
