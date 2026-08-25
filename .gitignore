@@ -35,9 +35,8 @@ CLAUDE.md
 *.db
 *.db-wal
 *.db-shm
-docs/site/public/
-docs/site/resources/
-docs/site/.hugo_build.lock
+docs/node_modules/
+docs/.astro/
 
 # Auto-generated CLI reference (produced by tools/docs-gen in CI)
-docs/site/content/cli/reference/skillsctl*.md
+docs/src/content/docs/cli/reference/skillsctl*.md

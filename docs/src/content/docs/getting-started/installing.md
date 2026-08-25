@@ -1,0 +1,95 @@
+---
+title: "Installing skills"
+---
+
+The `skillsctl install` command downloads a skill from the registry and saves it where Claude Code can find it.
+
+## Install the latest version
+
+```bash
+skillsctl install git-commit
+```
+
+```
+Installed git-commit@2.0.1 to /home/you/.claude/skills/git-commit/SKILL.md
+```
+
+## Install a pinned version
+
+Append `@<version>` to install a specific version:
+
+```bash
+skillsctl install git-commit@1.1.0
+```
+
+```
+Installed git-commit@1.1.0 to /home/you/.claude/skills/git-commit/SKILL.md
+```
+
+Pinning a version is useful in team environments where you want everyone using the same skill revision, or when a newer version changed behavior you rely on.
+
+## Verify with a digest
+
+Use `--digest` to verify the content hash before saving:
+
+```bash
+skillsctl install git-commit@2.0.1 --digest sha256:a3f8c1d2e4b567890abcdef1234567890abcdef1234567890abcdef1234567890
+```
+
+If the downloaded content does not match the digest, the install is aborted and nothing is written to disk:
+
+```
+Error: digest mismatch
+  expected: sha256:a3f8c1d2e4b567890abcdef1234567890abcdef1234567890abcdef1234567890
+  got:      sha256:b9e1f23a4c678901bcdef2345678901bcdef2345678901bcdef2345678901bcde
+```
+
+You can get the expected digest from `skillsctl explore show <name>` or from the skill publisher.
+
+## Where skills are stored
+
+Skills are saved under `~/.claude/skills/`:
+
+```
+~/.claude/skills/
+  git-commit/SKILL.md
+  code-review/SKILL.md
+  sql-optimizer/SKILL.md
+```
+
+Each skill gets its own directory with `SKILL.md` at the root plus any supporting files (scripts, references, assets) the publisher included. Installing a newer version overwrites the existing directory. If a directory already exists when installing a multi-file skill, the command refuses unless you pass `--force`.
+
+## Install into a project
+
+Use `--project` to install into a project's local skills directory instead of the user-level one. Skills installed this way are only active for Claude Code sessions started in that project.
+
+```bash
+# Installs to ./.claude/skills/git-commit/
+skillsctl install git-commit --project
+
+# Installs to /path/to/repo/.claude/skills/git-commit/
+skillsctl install git-commit --project=/path/to/repo
+```
+
+`--project` is mutually exclusive with `--skills-dir`.
+
+## Claude Code picks up skills automatically
+
+Claude Code reads `SKILL.md` files from subdirectories of `~/.claude/skills/` on startup. Once a skill is installed, it is available to Claude Code in all your projects without any additional configuration.
+
+To confirm a skill is active, start Claude Code and ask it to describe the skill you just installed.
+
+## Uninstalling a skill
+
+To remove a skill, delete its directory from `~/.claude/skills/`:
+
+```bash
+rm -r ~/.claude/skills/git-commit/
+```
+
+There is no `skillsctl uninstall` command - file deletion is sufficient and immediate.
+
+## Next steps
+
+- [Publish a skill](/getting-started/publishing/) - share a skill with your team
+- [Bootstrap with the SkillsCtl skill](/getting-started/skillsctl-skill/) - let Claude Code help you discover skills

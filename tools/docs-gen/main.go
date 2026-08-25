@@ -1,4 +1,4 @@
-// Command docs-gen renders the skillsctl CLI reference as Hugo-compatible
+// Command docs-gen renders the skillsctl CLI reference as Starlight-compatible
 // Markdown by walking the Cobra command tree.
 package main
 
@@ -50,7 +50,7 @@ func run(root *cobra.Command, out string) error {
 
 	linkHandler := func(name string) string {
 		base := strings.TrimSuffix(name, ".md")
-		return fmt.Sprintf("{{< relref \"/cli/reference/%s\" >}}", base)
+		return fmt.Sprintf("/cli/reference/%s/", base)
 	}
 
 	return doc.GenMarkdownTreeCustom(root, out, filePrepender, linkHandler)

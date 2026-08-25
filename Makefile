@@ -26,8 +26,8 @@ e2e:
 	./e2e/scripts/run-e2e.sh
 
 docs-cli:
-	go run ./tools/docs-gen -o docs/site/content/cli/reference
+	go run ./tools/docs-gen -o docs/src/content/docs/cli/reference
 
 clean:
 	rm -f skillsctl skillsctl-server coverage.out
-	rm -f docs/site/content/cli/reference/skillsctl*.md
+	rm -f docs/src/content/docs/cli/reference/skillsctl*.md

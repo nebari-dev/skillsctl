@@ -4,41 +4,73 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/site/**'
+      - 'docs/**'
       - 'cli/cmd/**'
       - 'tools/docs-gen/**'
+      - 'scripts/check-links.sh'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'cli/cmd/**'
+      - 'tools/docs-gen/**'
+      - 'scripts/check-links.sh'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
 
 permissions:
+  contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: pages
+  group: docs-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SITE: https://skillsctl.dev
+      BASE: /
     steps:
       - uses: actions/checkout@v6
+
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
           cache: true
-      - uses: peaceiris/actions-hugo@v3
+
+      - uses: actions/setup-node@v6
         with:
-          hugo-version: latest
-          extended: true
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install deps
+        working-directory: docs
+        run: npm ci
+
+      - name: Unit tests
+        working-directory: docs
+        run: npm test
+
       - name: Generate CLI reference
-        run: go run ./tools/docs-gen -o docs/site/content/cli/reference
-      - run: cd docs/site && hugo --minify
+        run: go run ./tools/docs-gen -o docs/src/content/docs/cli/reference
+
+      - name: Build
+        working-directory: docs
+        run: npm run build
+
+      - name: Check internal links
+        run: SKIP_BUILD=1 bash scripts/check-links.sh
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/site/public
+          path: docs/dist
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
