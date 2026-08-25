@@ -1,0 +1,127 @@
+---
+title: "Writing skills"
+---
+
+A skill is a directory containing a `SKILL.md` file and any supporting resources. Writing one well means being specific about what Claude should do, when it should do it, and what it should avoid.
+
+## Basic structure
+
+Skills don't require a fixed structure. A short, direct file often works better than a long one with elaborate sections. A minimal skill:
+
+```markdown
+# code-review
+
+When reviewing code, focus on:
+
+- Correctness: does the code do what the comments and tests say it does?
+- Error handling: are errors checked and propagated correctly?
+- Readability: are names descriptive and logic easy to follow?
+
+Do not comment on style issues covered by the project's linter.
+Do not suggest rewrites unless the existing code has a correctness problem.
+
+Format each comment as: `[file:line] issue - suggestion`.
+```
+
+This skill defines a scope (what to look for), constraints (what to skip), and an output format. Each of those three elements reduces ambiguity and produces more consistent results.
+
+## Skill layout
+
+A skill is a directory. At minimum it must contain `SKILL.md` at its root:
+
+```
+my-skill/
+  SKILL.md
+```
+
+Subdirectories are packaged and preserved during publish and install. Common conventions:
+
+```
+my-skill/
+  SKILL.md
+  scripts/
+    run.sh
+  references/
+    notes.md
+  assets/
+    diagram.png
+```
+
+- `scripts/` - runnable helpers that the skill's instructions reference
+- `references/` - supporting documents, examples, or supplementary notes
+- `assets/` - static files (images, data files, etc.)
+
+No specific layout beyond the root `SKILL.md` is enforced. Use whatever structure makes sense for your skill.
+
+### Bundled scripts are not executable
+
+Packaging normalizes file modes so that publishing the same directory twice always produces the same digest, and install writes every file as `0600`. A script that ships inside a skill therefore has no executable bit once installed.
+
+Write your instructions to call the interpreter explicitly:
+
+```bash
+bash <skill-dir>/scripts/run.sh
+```
+
+A skill that tells the reader to run `./scripts/run.sh` will fail with `Permission denied`.
+
+## What makes a skill effective
+
+**Be specific about scope.** "Help with Terraform" is vague. "When writing Terraform modules, always declare variables with descriptions and validation rules, use `for_each` instead of `count` for resources that users might partially remove, and follow the naming convention `{project}-{env}-{resource}`" is actionable.
+
+**Define output format.** If you expect a particular structure - a checklist, a table, a specific comment prefix - say so. Claude will follow it.
+
+**State what to avoid.** Exclusions are often more valuable than inclusions. "Do not suggest upgrading dependencies unless asked" prevents Claude from adding noise to reviews.
+
+**Keep it focused.** A skill for one task tends to work better than a skill that tries to cover everything. If you find yourself writing a skill with five unrelated sections, consider splitting it into five skills.
+
+**Use imperative language.** "Check for missing error handling" is clearer than "Error handling should be considered."
+
+## The SkillsCtl skill as an example
+
+SkillsCtl ships a skill that teaches Claude Code how to use SkillsCtl itself. Install it with:
+
+```bash
+skillsctl install skillsctl
+```
+
+This skill demonstrates a common pattern: teaching Claude the interface of a specific tool. It includes the command reference, common workflows, and examples. Once installed, you can ask Claude to run skillsctl commands on your behalf or guide you through publishing a new skill.
+
+The SkillsCtl skill is also a working example of the bootstrap pattern: the tool for managing skills is itself published as a skill in the registry.
+
+## Publishing a skill
+
+Once your skill directory is ready, publish it to the registry:
+
+```bash
+skillsctl publish \
+  --name my-skill \
+  --version 1.0.0 \
+  --description "Short description of what this skill does" \
+  --dir ./my-skill \
+  --tag review \
+  --changelog "initial release"
+```
+
+Tags help others discover the skill with `skillsctl explore --tag review`. Choose tags that describe the domain or task rather than the tool.
+
+## Versioning your skill
+
+Use [semantic versioning](/concepts/versioning/): `MAJOR.MINOR.PATCH`.
+
+- Bump `PATCH` for corrections that don't change the skill's behavior from the user's perspective
+- Bump `MINOR` for new instructions or examples that are backward compatible
+- Bump `MAJOR` for changes that significantly alter what Claude does with the skill active
+
+Versions are immutable once published. If you need to fix a mistake, publish a new version.
+
+## Testing a skill
+
+Install the skill locally and use it for a few sessions. Ask Claude to do the task the skill covers and check whether the output matches your intent. Refine the skill and publish a new version.
+
+There is no automated testing for skills - they are natural language and the only real test is Claude's behavior.
+
+## Next steps
+
+- [Versioning and ownership](/concepts/versioning/) - semver rules, immutability
+- [Security](/concepts/security/) - what to consider before publishing a skill others will use

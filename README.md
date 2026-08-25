@@ -2,7 +2,7 @@
 
 A CLI tool and backend registry for discovering, installing, and publishing [Claude Code](https://claude.ai/code) skills.
 
-**[Documentation](https://skillsctl.dev)** | **[Quick Start](#quick-start)** | **[Install](#install)**
+**[Documentation](https://packs.nebari.dev/skillsctl/)** | **[Quick Start](#quick-start)** | **[Install](#install)**
 
 ## Install
 
