@@ -20,19 +20,18 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  pull-requests: write
 
 concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  PACK_SLUG: skillsctl
+
 jobs:
-  build:
+  docs:
     runs-on: ubuntu-latest
-    env:
-      SITE: https://skillsctl.dev
-      BASE: /
     steps:
       - uses: actions/checkout@v6
 
@@ -58,24 +57,48 @@ jobs:
       - name: Generate CLI reference
         run: go run ./tools/docs-gen -o docs/src/content/docs/cli/reference
 
+      - name: Compute site, base, and deploy branch
+        id: base
+        env:
+          HEAD_REF: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "site=https://packs.nebari.dev" >> "$GITHUB_OUTPUT"
+            echo "base=/${PACK_SLUG}/" >> "$GITHUB_OUTPUT"
+            echo "branch=main" >> "$GITHUB_OUTPUT"
+          else
+            ALIAS=$(printf '%s' "$HEAD_REF" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+            echo "site=https://${ALIAS}.${PACK_SLUG}.pages.dev" >> "$GITHUB_OUTPUT"
+            echo "base=/" >> "$GITHUB_OUTPUT"
+            echo "branch=${HEAD_REF}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build
         working-directory: docs
+        env:
+          SITE: ${{ steps.base.outputs.site }}
+          BASE: ${{ steps.base.outputs.base }}
         run: npm run build
 
       - name: Check internal links
+        env:
+          BASE: ${{ steps.base.outputs.base }}
         run: SKIP_BUILD=1 bash scripts/check-links.sh
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
-          path: docs/dist
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy docs/dist --project-name=${{ env.PACK_SLUG }} --branch=${{ steps.base.outputs.branch }}
 
-  deploy:
-    if: github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Comment preview URL
+        if: ${{ github.event_name == 'pull_request' && steps.deploy.outcome == 'success' }}
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
+        with:
+          comment-tag: docs-preview
+          message: |
+            📄 **Docs preview** for `${{ github.event.pull_request.head.ref }}`:
+            ${{ steps.deploy.outputs.pages-deployment-alias-url }}

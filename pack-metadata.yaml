@@ -8,5 +8,8 @@ product_owner: null
 nebariapp_integration: full
 scope:
   standalone-supported: yes
+# Makes the dashboard Worker route packs.nebari.dev/skillsctl/ to
+# skillsctl.pages.dev; without it the deployed site is unreachable there.
+docs_site: true
 links:
-  docs: https://skillsctl.dev
+  docs: https://packs.nebari.dev/skillsctl/
